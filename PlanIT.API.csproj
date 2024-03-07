@@ -11,14 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
     <Folder Include="Data\Migrations\" />
-    <Folder Include="Models\Entities\" />
     <Folder Include="Models\DTOs\" />
-    <Folder Include="Mappers\" />
-    <Folder Include="Middleware\" />
     <Folder Include="Logs\" />
-    <Folder Include="Validators\" />
     <Folder Include="Repositories\Interfaces\" />
     <Folder Include="Services\Interfaces\" />
   </ItemGroup>
