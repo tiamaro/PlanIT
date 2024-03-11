@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
-    <Folder Include="Models\DTOs\" />
     <Folder Include="Logs\" />
     <Folder Include="Services\Interfaces\" />
   </ItemGroup>
