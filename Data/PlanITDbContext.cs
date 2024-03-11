@@ -1,6 +1,20 @@
-﻿namespace PlanIT.API.Data
+﻿using Microsoft.EntityFrameworkCore;
+using PlanIT.API.Models.Entities;
+
+namespace PlanIT.API.Data;
+
+public class PlanITDbContext : DbContext
 {
-    public class PlanITDbContext
-    {
-    }
+    // For konfigurering av databasen
+    public PlanITDbContext(DbContextOptions<PlanITDbContext> options)
+        : base(options) { }
+
+    // Tabeller til databasen
+    public DbSet <User> Users { get; set; }
+    public DbSet <Event> Events  { get; set; }
+    public DbSet <Invite> Invites  { get; set; }
+    public DbSet <Dinner> Dinners { get; set; }
+    public DbSet <ToDo> ToDos  { get; set; }
+    public DbSet <ShoppingList> ShoppingLists { get; set; }
+
 }
