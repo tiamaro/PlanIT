@@ -11,6 +11,7 @@ public class ShoppingList
     [ForeignKey("UserId")]
     public int UserId { get; set; }
 
+    [Required]
     public string Name { get; set; } = string.Empty;
 
 
