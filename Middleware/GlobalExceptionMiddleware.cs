@@ -19,12 +19,12 @@ public class GlobalExceptionMiddleware : IMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Noe gikk galt - test exception {@Machine} {@TraceId}",
+            _logger.LogError(ex, "Something went wrong - test exception {@Machine} {@TraceId}",
                Environment.MachineName,
                System.Diagnostics.Activity.Current?.Id);
 
             await Results.Problem(
-                title: "GlobalException har oppdaget et stort problem!!",
+                title: "GlobalException has discovered a big problem!!",
                 statusCode: StatusCodes.Status500InternalServerError,
                 extensions: new Dictionary<string, Object?>
                 {

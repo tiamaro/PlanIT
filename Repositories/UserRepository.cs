@@ -2,16 +2,19 @@
 using PlanIT.API.Data;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
+using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
 public class UserRepository : IRepository<User>
 {
     private readonly PlanITDbContext _dbContext;
+    private readonly PaginationUtility _pagination;
 
-    public UserRepository(PlanITDbContext dbContext)
+    public UserRepository(PlanITDbContext dbContext, PaginationUtility pagination)
     {
         _dbContext = dbContext;
+        _pagination = pagination;
     }
 
     // Legger til ny bruker i databasen
@@ -24,10 +27,13 @@ public class UserRepository : IRepository<User>
     }
 
 
-    // Henter alle brukere
-    public async Task<ICollection<User>> GetAllAsync()
+    // Henter alle brukere med paginering
+    public async Task<ICollection<User>> GetAllAsync(int pageNr, int pageSize)
     {
-        return await _dbContext.Users.ToListAsync();
+        var pagination = new PaginationUtility(_dbContext);
+
+        IQueryable<User> usersQuery = _dbContext.Users.OrderBy(x => x.Id);
+        return await _pagination.GetPageAsync(usersQuery, pageNr, pageSize);
     }
 
 
@@ -42,15 +48,16 @@ public class UserRepository : IRepository<User>
     // Oppdaterer bruker
     public async Task<User?> UpdateAsync(int userId, User updatedUser)
     {
-        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
-        if (existingUser == null) return null;
-
-        // Oppdaterer feltene med de nye verdiene
-        existingUser.Name = string.IsNullOrEmpty(updatedUser.Name) ? existingUser.Name : updatedUser.Name;
-        existingUser.Email = string.IsNullOrEmpty(updatedUser.Email) ? existingUser.Email : updatedUser.Email;
-
+        var userRows = await _dbContext.Events.Where(x => x.Id == userId)
+            .ExecuteUpdateAsync(setters => setters
+            .SetProperty(x => x.Name, updatedUser.Name)
+            .SetProperty(x => x.Time, updatedUser.Email));
+         
         await _dbContext.SaveChangesAsync();
-        return existingUser;
+
+        if (userRows == 0) return null;
+        return updatedUser;
+
     }
 
 
