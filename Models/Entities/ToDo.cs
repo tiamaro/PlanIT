@@ -14,7 +14,7 @@ public class ToDo
     [Required]
     public string Name { get; set;} = string.Empty;
 
-    [Required]
+    
     public DateOnly Date { get; set; }
 
 

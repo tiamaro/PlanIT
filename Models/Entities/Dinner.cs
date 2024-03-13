@@ -14,6 +14,9 @@ public class Dinner
     [Required]
     public DateOnly Date { get; set; }
 
+    [Required]
+    public string Name { get; set; } = string.Empty;
+
 
 
 
