@@ -2,7 +2,7 @@
 
 public class ToDoDTO
 {
-    public ToDoDTO(int id, int userId, string name, DateTime date)
+    public ToDoDTO(int id, int userId, string name, DateOnly date)
     {
         Id = id;
         UserId = userId;
@@ -16,5 +16,6 @@ public class ToDoDTO
 
     public string Name { get; init; } = string.Empty;
 
-    public DateTime Date { get; init; }
+    public DateOnly Date { get; init; }
+
 }

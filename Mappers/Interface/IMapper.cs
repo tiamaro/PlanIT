@@ -1,6 +1,8 @@
-﻿namespace PlanIT.API.Mappers.Interface
+﻿namespace PlanIT.API.Mappers.Interface;
+
+// Generisk interface for å mappe data mellom en modell (TModel) og en DTO (TDto).
+public interface IMapper<TModel, TDto>
 {
-    public interface IMapper
-    {
-    }
+    TDto MapToDTO(TModel model);
+    TModel MapToModel(TDto dto);
 }
