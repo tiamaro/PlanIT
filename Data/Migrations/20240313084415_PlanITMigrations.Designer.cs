@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240311124340_PlanITMigrations")]
+    [Migration("20240313084415_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -35,6 +35,10 @@ namespace PlanIT.API.Data.Migrations
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
