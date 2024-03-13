@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Mappers.Interface;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,13 @@ builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
 
+// Bruk av Serilog logger
+builder.Host.UseSerilog((context, configuration) =>
+{
+    // Konfigurer logger fra appens konfigurasjonsfiler
+    configuration.ReadFrom.Configuration(context.Configuration);
+});
+
 var app = builder.Build();
 
 // Konfigurer HTTP-forespørselsrørledningen.
@@ -30,6 +38,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
+app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
 
 app.UseHttpsRedirection();
 
