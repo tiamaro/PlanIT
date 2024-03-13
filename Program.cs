@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Mappers.Interface;
+using PlanIT.API.Repositories.Interfaces;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,8 +15,8 @@ builder.Services.AddSwaggerGen();
 
 // Tilpassede metoder for utvidelser
 builder.RegisterOpenGenericType(typeof(IMapper<,>)); // Registrerer mappere
-// builder.RegisterOpenGenericType(typeof(IRepository<,>)); // Registrerer repositories
-// builder.RegisterOpenGenericType(typeof(IService<,>)); // Registrerer services
+builder.RegisterOpenGenericType(typeof(IRepository<>)); // Registrerer repositories
+// builder.RegisterOpenGenericType(typeof(IService<>)); // Registrerer services
 
 
 // Database-tilkobling via entityframework
