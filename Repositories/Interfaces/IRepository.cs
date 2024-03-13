@@ -7,7 +7,7 @@ public interface IRepository<TEntity>
 
     // READ
     Task<TEntity?> GetByIdAsync(int id);
-    Task<ICollection<TEntity>> GetAllAsync();
+    Task<ICollection<TEntity>> GetAllAsync(int pageNr, int pageSize);
 
 
     // UPDATE

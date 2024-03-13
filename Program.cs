@@ -1,8 +1,11 @@
+using FluentValidation.AspNetCore;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Repositories.Interfaces;
+using PlanIT.API.Utilities;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,14 +18,22 @@ builder.Services.AddSwaggerGen();
 
 // Tilpassede metoder for utvidelser
 builder.RegisterOpenGenericType(typeof(IMapper<,>)); // Registrerer mappere
-builder.RegisterOpenGenericType(typeof(IRepository<>)); // Registrerer repositories
 // builder.RegisterOpenGenericType(typeof(IService<>)); // Registrerer services
+builder.RegisterOpenGenericType(typeof(IRepository<>)); // Registrerer repositories
+
+
+// VALIDERING
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation(config => config.DisableDataAnnotationsValidation = false);
 
 
 // Database-tilkobling via entityframework
 builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
+
+// Tillegg for paginering
+builder.Services.AddScoped<PaginationUtility>(); 
 
 // Bruk av Serilog logger
 builder.Host.UseSerilog((context, configuration) =>
