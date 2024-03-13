@@ -12,15 +12,15 @@ public class EventDTO
         Location = location;
     }
 
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    public int UserId { get; set; }
+    public int UserId { get; init; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public DateOnly Date { get; set; }
+    public DateOnly Date { get; init; }
 
-    public string Time { get; set; } = string.Empty;
+    public string Time { get; init; } = string.Empty;
 
-    public string Location { get; set; } = string.Empty;
+    public string Location { get; init; } = string.Empty;
 }
