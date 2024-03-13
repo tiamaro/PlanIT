@@ -10,11 +10,11 @@ public class DinnerDTO
         Name = name;
     }
 
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    public int UserId { get; set; }
-    public DateOnly Date { get; set;}
-    public string Name { get; set; } = string.Empty;
+    public int UserId { get; init; }
+    public DateOnly Date { get; init;}
+    public string Name { get; init; } = string.Empty;
 
 }
 

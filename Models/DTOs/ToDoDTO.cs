@@ -10,11 +10,11 @@ public class ToDoDTO
         Date = date;
     }
 
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    public int UserId { get; set; }
+    public int UserId { get; init; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public DateTime Date { get; set; }
+    public DateTime Date { get; init; }
 }

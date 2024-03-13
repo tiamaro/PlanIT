@@ -11,13 +11,13 @@ public class InviteDTO
         Coming = coming;
     }
 
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    public int EventId { get; set; }
+    public int EventId { get; init; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 
-    public bool Coming { get; set; }
+    public bool Coming { get; init; }
 }
