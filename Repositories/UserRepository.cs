@@ -48,10 +48,10 @@ public class UserRepository : IRepository<User>
     // Oppdaterer bruker
     public async Task<User?> UpdateAsync(int userId, User updatedUser)
     {
-        var userRows = await _dbContext.Events.Where(x => x.Id == userId)
+        var userRows = await _dbContext.Users.Where(x => x.Id == userId)
             .ExecuteUpdateAsync(setters => setters
             .SetProperty(x => x.Name, updatedUser.Name)
-            .SetProperty(x => x.Time, updatedUser.Email));
+            .SetProperty(x => x.Email, updatedUser.Email));
          
         await _dbContext.SaveChangesAsync();
 
