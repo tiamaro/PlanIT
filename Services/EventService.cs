@@ -27,7 +27,7 @@ public class EventService : IEventService
         // Mapper EventDTO til Event-modellen
         var newEvent = _eventMapper.MapToModel(newEventDTO);
 
-        // Legger til den nye arrangementet i databasen og henter resultatet
+        // Legger til det nye arrangementet i databasen og henter resultatet
         var addedEvent = await _eventRepository.AddAsync(newEvent);
 
         // Mapper det nye arrangementet til EventDTO og returnerer den
