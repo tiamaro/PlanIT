@@ -88,7 +88,7 @@ public class EventsController : ControllerBase
     }
 
 
-    // Oppdaterer et arramngement basert på arrangementets ID ved å bruke EventService.
+    // Oppdaterer et arrangement basert på arrangementets ID ved å bruke EventService.
     // Returnerer en ActionResult med en oppdatert EventDTO hvis oppdateringen var vellykket, 
     // ellers returneres NotFound hvis arrangementet ikke ble funnet.
     // PUT /api/v1/Events/4
