@@ -141,6 +141,5 @@ public class UsersController : ControllerBase
             _logger.LogError("An unknown error occured: " + ex.Message);
             return StatusCode(500, "An unknown error occured, please try again later");
         }
-
     }
 }
