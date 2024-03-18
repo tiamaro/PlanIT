@@ -7,6 +7,8 @@ using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Utilities;
 using Serilog;
+using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,9 +19,12 @@ builder.Services.AddSwaggerGen();
 
 
 // Tilpassede metoder for utvidelser
-builder.RegisterOpenGenericType(typeof(IMapper<,>)); // Registrerer mappere
-// builder.RegisterOpenGenericType(typeof(IService<>)); // Registrerer services
-builder.RegisterOpenGenericType(typeof(IRepository<>)); // Registrerer repositories
+builder.RegisterOpenGenericTypeAndDerivatives(typeof(IMapper<,>));    // Registrerer mappere
+builder.RegisterOpenGenericTypeAndDerivatives(typeof(IService<>));    // Registrerer services
+builder.RegisterOpenGenericTypeAndDerivatives(typeof(IRepository<>)); // Registrerer repositories
+
+// Registerer UserService
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 // VALIDERING
