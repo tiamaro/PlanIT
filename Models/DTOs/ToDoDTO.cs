@@ -1,8 +1,8 @@
 ﻿namespace PlanIT.API.Models.DTOs;
 
-public class TodoDTO
+public class ToDoDTO
 {
-    public TodoDTO(int id, int userId, string name, DateOnly date)
+    public ToDoDTO(int id, int userId, string name, DateOnly date)
     {
         Id = id;
         UserId = userId;
