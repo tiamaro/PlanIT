@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PlanIT.API.Models.Entities;
 
-public class Todo
+public class ToDo
 {
     [Key]
     public int Id { get; set; }
