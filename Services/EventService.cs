@@ -6,7 +6,7 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Services;
 
-public class EventService : IEventService
+public class EventService : IService<EventDTO>
 {
     private readonly IMapper<Event, EventDTO> _eventMapper;
     private readonly IRepository<Event> _eventRepository;
@@ -22,7 +22,7 @@ public class EventService : IEventService
     }
 
     // Oppretter nytt arrangement
-    public async Task<EventDTO?> CreateEventAsync(EventDTO newEventDTO)
+    public async Task<EventDTO?> CreateAsync(EventDTO newEventDTO)
     {
         // Mapper EventDTO til Event-modellen
         var newEvent = _eventMapper.MapToModel(newEventDTO);
@@ -86,5 +86,6 @@ public class EventService : IEventService
         // Sletter arrangementet fra databasen og mapper den til EventDTO for retur                 
         var isDeleted = await _eventRepository.DeleteAsync(eventId);
         return isDeleted != null ? _eventMapper.MapToDTO(eventToDelete) : null;
-    }   
+    }
+
 }

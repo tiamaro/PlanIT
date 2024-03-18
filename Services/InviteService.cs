@@ -6,7 +6,7 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Services;
 
-public class InviteService : IInviteService
+public class InviteService : IService<InviteDTO>
 {
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
