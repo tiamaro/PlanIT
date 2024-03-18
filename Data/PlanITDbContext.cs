@@ -14,7 +14,7 @@ public class PlanITDbContext : DbContext
     public DbSet <Event> Events  { get; set; }
     public DbSet <Invite> Invites  { get; set; }
     public DbSet <Dinner> Dinners { get; set; }
-    public DbSet <ToDo> ToDos  { get; set; }
+    public DbSet <Todo> Todos  { get; set; }
     public DbSet <ShoppingList> ShoppingLists { get; set; }
 
 }
