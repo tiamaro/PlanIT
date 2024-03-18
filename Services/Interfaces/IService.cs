@@ -1,7 +1,11 @@
-﻿namespace PlanIT.API.Services.Interfaces;
+﻿using PlanIT.API.Models.DTOs;
+
+namespace PlanIT.API.Services.Interfaces;
 
 public interface IService<TDto>
 {
+    // CREATE
+    Task<TDto?> CreateAsync(TDto dto);
 
     // READ
     Task<TDto?> GetByIdAsync(int id);

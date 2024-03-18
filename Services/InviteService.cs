@@ -6,7 +6,7 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Services;
 
-public class InviteService : IInviteService
+public class InviteService : IService<InviteDTO>
 {
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
@@ -23,7 +23,7 @@ public class InviteService : IInviteService
 
 
     // Oppretter ny invitasjon
-    public async Task<InviteDTO?> CreateInviteAsync(InviteDTO newInviteDTO)
+    public async Task<InviteDTO?> CreateAsync(InviteDTO newInviteDTO)
     {
         // Mapper InviteDTO til Invite-modellen
         var newInvite = _inviteMapper.MapToModel(newInviteDTO);
