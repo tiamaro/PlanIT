@@ -2,6 +2,8 @@
 
 public interface IService<TDto>
 {
+    // CREATE
+    Task<TDto?> CreateAsync(TDto newDto);
 
     // READ
     Task<TDto?> GetByIdAsync(int id);

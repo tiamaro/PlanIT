@@ -23,7 +23,7 @@ public class InviteService : IInviteService
 
 
     // Oppretter ny invitasjon
-    public async Task<InviteDTO?> CreateInviteAsync(InviteDTO newInviteDTO)
+    public async Task<InviteDTO?> CreateAsync(InviteDTO newInviteDTO)
     {
         // Mapper InviteDTO til Invite-modellen
         var newInvite = _inviteMapper.MapToModel(newInviteDTO);
