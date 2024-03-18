@@ -5,7 +5,7 @@ namespace PlanIT.API.Services.Interfaces;
 public interface IUserService
 {
     // CREATE
-    Task<UserRegDTO?> RegisterUserAsync(UserRegDTO userRegDto);
+    Task<UserDTO?> RegisterUserAsync(UserRegDTO userRegDto);
 
     // READ
     Task<UserDTO?> GetByIdAsync(int id);
