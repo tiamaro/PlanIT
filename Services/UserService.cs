@@ -26,7 +26,7 @@ public class UserService : IUserService
 
 
     // Registrerer en ny bruker
-    public async Task<UserDTO?> RegisterUserAsync(UserRegDTO userRegDTO)
+    public async Task<UserRegDTO?> RegisterUserAsync(UserRegDTO userRegDTO)
     {
         // Mapper UserRegDTO til User-modellen
         var newUser = _userRegMapper.MapToModel(userRegDTO);
@@ -39,7 +39,7 @@ public class UserService : IUserService
         var addedUser = await _userRepository.AddAsync(newUser);
 
         // Mapper den nye brukeren til UserDto og returnerer den
-        return _userMapper.MapToDTO(addedUser!);
+        return _userRegMapper.MapToDTO(addedUser!);
     }
 
 
@@ -96,5 +96,10 @@ public class UserService : IUserService
         var isDeleted = await _userRepository.DeleteAsync(userId);      
         return isDeleted != null ? _userMapper.MapToDTO(userToDelete) : null;
        
+    }
+
+    Task<UserRegDTO?> IUserService.RegisterUserAsync(UserRegDTO userRegDto)
+    {
+        throw new NotImplementedException();
     }
 }
