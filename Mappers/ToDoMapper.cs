@@ -4,16 +4,16 @@ using PlanIT.API.Models.Entities;
 
 namespace PlanIT.API.Mappers;
 
-public class ToDoMapper : IMapper<ToDo, ToDoDTO>
+public class TodoMapper : IMapper<Todo, TodoDTO>
 {
-    public ToDoDTO MapToDTO(ToDo model)
+    public TodoDTO MapToDTO(Todo model)
     {
-        return new ToDoDTO(model.Id, model.UserId, model.Name, model.Date);
+        return new TodoDTO(model.Id, model.UserId, model.Name, model.Date);
     }
 
-    public ToDo MapToModel(ToDoDTO dto)
+    public Todo MapToModel(TodoDTO dto)
     {
-        return new ToDo 
+        return new Todo 
         { 
             Id = dto.Id,
             UserId = dto.UserId,
