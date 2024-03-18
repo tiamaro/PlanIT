@@ -15,10 +15,10 @@ namespace PlanIT.API.Controllers;
 
 public class EventsController : ControllerBase
 {
-    private readonly IEventService _eventService;
+    private readonly IService<EventDTO> _eventService;
     private readonly ILogger<EventsController> _logger;
 
-    public EventsController(IEventService eventService, ILogger<EventsController> logger)
+    public EventsController(IService<EventDTO> eventService, ILogger<EventsController> logger)
     {
         _eventService = eventService;
         _logger = logger;
@@ -42,7 +42,7 @@ public class EventsController : ControllerBase
             }
 
             // Registrer arrangementet ved å bruke de oppgitte detaljene for arrangementregistrering
-            var addedEvent = await _eventService.CreateEventAsync(newEventDTO);
+            var addedEvent = await _eventService.CreateAsync(newEventDTO);
 
             // Sjekk om arrangementsregistreringen var vellykket
             return addedEvent != null

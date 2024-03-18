@@ -16,10 +16,10 @@ namespace PlanIT.API.Controllers;
 
 public class InvitesController : ControllerBase
 {
-    private readonly IInviteService _inviteService;
+    private readonly IService<InviteDTO> _inviteService;
     private readonly ILogger<InvitesController> _logger;
 
-    public InvitesController(IInviteService inviteService, ILogger<InvitesController> logger)
+    public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger)
     {
         _inviteService = inviteService;
         _logger = logger;
@@ -42,7 +42,7 @@ public class InvitesController : ControllerBase
             }
 
             // Registrer invitasjonen ved å bruke de oppgitte detaljene for invitasjonsregistrering
-            var addedInvite = await _inviteService.CreateInviteAsync(newInviteDTO);
+            var addedInvite = await _inviteService.CreateAsync(newInviteDTO);
 
             // Sjekk om invitasjonsregistreringen var vellykket
             return addedInvite != null

@@ -5,7 +5,7 @@ using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
-public class TodoRepository : IRepository<Todo>
+public class TodoRepository : IRepository<ToDo>
 {
     private readonly PlanITDbContext _dbContext;
     private readonly PaginationUtility _pagination;
@@ -16,7 +16,7 @@ public class TodoRepository : IRepository<Todo>
         _pagination = pagination;
     }
 
-    public async Task<Todo?> AddAsync(Todo newTodo)
+    public async Task<ToDo?> AddAsync(ToDo newTodo)
     {
         var addedTodo = await _dbContext.Todos.AddAsync(newTodo);
         await _dbContext.SaveChangesAsync();
@@ -24,19 +24,19 @@ public class TodoRepository : IRepository<Todo>
     }
     
     // Retrieves all todo items with pagination
-    public async Task<ICollection<Todo>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<ToDo>> GetAllAsync(int pageNr, int pageSize)
     {
-        IQueryable<Todo> todosQuery = _dbContext.Todos.OrderBy(x => x.Id);
+        IQueryable<ToDo> todosQuery = _dbContext.Todos.OrderBy(x => x.Id);
         return await _pagination.GetPageAsync(todosQuery, pageNr, pageSize);
     }
     
     // Retrieves a todo item by its ID
-    public async Task<Todo?> GetByIdAsync(int id)
+    public async Task<ToDo?> GetByIdAsync(int id)
     {
         return await _dbContext.Todos.FindAsync(id);
     }
 
-    public async Task<Todo?> UpdateAsync(int id, Todo updatedTodo)
+    public async Task<ToDo?> UpdateAsync(int id, ToDo updatedTodo)
     {
         // Find the existing todo item by its ID
         var existingTodo = await _dbContext.Todos.FindAsync(id);
@@ -59,7 +59,7 @@ public class TodoRepository : IRepository<Todo>
     }
 
     // Deletes a todo item by its ID
-    public async Task<Todo?> DeleteAsync(int id)
+    public async Task<ToDo?> DeleteAsync(int id)
     {
         // Find the todo item to delete by its ID
         var todoToDelete = await _dbContext.Todos.FindAsync(id);

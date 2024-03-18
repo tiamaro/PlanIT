@@ -9,16 +9,16 @@ namespace PlanIT.API.Controllers;
 public class TodoController : ControllerBase
 {
     private readonly ILogger<TodoController> _logger;
-    private readonly IService<TodoDTO> _todoService;
+    private readonly IService<ToDoDTO> _todoService;
 
-    public TodoController(ILogger<TodoController> logger, IService<TodoDTO> todoService)
+    public TodoController(ILogger<TodoController> logger, IService<ToDoDTO> todoService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _todoService = todoService ?? throw new ArgumentNullException(nameof(todoService));
     }
 
     [HttpPost]
-    public async Task<ActionResult<TodoDTO>> CreateTodoAsync(TodoDTO newTodoDto)
+    public async Task<ActionResult<ToDoDTO>> CreateTodoAsync(ToDoDTO newTodoDto)
     {
         try
         {
@@ -38,7 +38,7 @@ public class TodoController : ControllerBase
     }
     
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TodoDTO>> GetTodoByIdAsync(int id)
+    public async Task<ActionResult<ToDoDTO>> GetTodoByIdAsync(int id)
     {
         try
         {
@@ -57,7 +57,7 @@ public class TodoController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TodoDTO>>> GetTodosAsync([FromQuery] int pageNr, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync([FromQuery] int pageNr, [FromQuery] int pageSize)
     {
         try
         {
@@ -77,7 +77,7 @@ public class TodoController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<TodoDTO>> UpdateTodoAsync(int id, TodoDTO updatedTodoDto)
+    public async Task<ActionResult<ToDoDTO>> UpdateTodoAsync(int id, ToDoDTO updatedTodoDto)
     {
         try
         {
@@ -96,7 +96,7 @@ public class TodoController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult<TodoDTO>> DeleteTodoAsync(int id)
+    public async Task<ActionResult<ToDoDTO>> DeleteTodoAsync(int id)
     {
         try
         {
