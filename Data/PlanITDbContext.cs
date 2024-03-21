@@ -16,5 +16,6 @@ public class PlanITDbContext : DbContext
     public DbSet <Dinner> Dinners { get; set; }
     public DbSet <ToDo> Todos  { get; set; }
     public DbSet <ShoppingList> ShoppingLists { get; set; }
+    public DbSet <ImportantDate> ImportantDates { get; set; }
 
 }

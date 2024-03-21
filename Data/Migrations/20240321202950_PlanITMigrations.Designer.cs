@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240321202124_PlanITMigrations")]
+    [Migration("20240321202950_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -81,6 +81,31 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("PlanIT.API.Models.Entities.ImportantDate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ImportantDates");
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Invite", b =>
@@ -200,6 +225,17 @@ namespace PlanIT.API.Data.Migrations
                 {
                     b.HasOne("PlanIT.API.Models.Entities.User", "User")
                         .WithMany("Events")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PlanIT.API.Models.Entities.ImportantDate", b =>
+                {
+                    b.HasOne("PlanIT.API.Models.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

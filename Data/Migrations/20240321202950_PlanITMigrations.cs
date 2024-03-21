@@ -87,6 +87,29 @@ namespace PlanIT.API.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ImportantDates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ImportantDates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ImportantDates_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ShoppingLists",
                 columns: table => new
                 {
@@ -166,6 +189,11 @@ namespace PlanIT.API.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ImportantDates_UserId",
+                table: "ImportantDates",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Invites_EventId",
                 table: "Invites",
                 column: "EventId");
@@ -186,6 +214,9 @@ namespace PlanIT.API.Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Dinners");
+
+            migrationBuilder.DropTable(
+                name: "ImportantDates");
 
             migrationBuilder.DropTable(
                 name: "Invites");

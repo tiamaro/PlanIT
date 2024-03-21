@@ -80,6 +80,31 @@ namespace PlanIT.API.Data.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("PlanIT.API.Models.Entities.ImportantDate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ImportantDates");
+                });
+
             modelBuilder.Entity("PlanIT.API.Models.Entities.Invite", b =>
                 {
                     b.Property<int>("Id")
@@ -197,6 +222,17 @@ namespace PlanIT.API.Data.Migrations
                 {
                     b.HasOne("PlanIT.API.Models.Entities.User", "User")
                         .WithMany("Events")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PlanIT.API.Models.Entities.ImportantDate", b =>
+                {
+                    b.HasOne("PlanIT.API.Models.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
