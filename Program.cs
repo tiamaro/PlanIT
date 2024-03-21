@@ -9,6 +9,8 @@ using PlanIT.API.Utilities;
 using Serilog;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services;
+using PlanIT.API.Middleware;
+using PlanIT.API.Services.AuthenticationService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,14 +19,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register JwtAuthMiddleware
+builder.Services.AddSingleton<JwtAuthMiddleware>();
 
 // Tilpassede metoder for utvidelser
 builder.RegisterOpenGenericTypeAndDerivatives(typeof(IMapper<,>));    // Registrerer mappere
 builder.RegisterOpenGenericTypeAndDerivatives(typeof(IService<>));    // Registrerer services
 builder.RegisterOpenGenericTypeAndDerivatives(typeof(IRepository<>)); // Registrerer repositories
+builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
 // Registerer UserService
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthenticationService>();
 
 
 // VALIDERING
@@ -57,6 +63,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
+app.UseMiddleware<JwtAuthMiddleware>();
 app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
 
 app.UseHttpsRedirection();

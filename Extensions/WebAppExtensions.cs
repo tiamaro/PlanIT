@@ -1,4 +1,6 @@
-﻿namespace PlanIT.API.Extensions;
+﻿using Microsoft.OpenApi.Models;
+
+namespace PlanIT.API.Extensions;
 
 public static class WebAppExtensions
 {
@@ -30,5 +32,35 @@ public static class WebAppExtensions
     {
         return interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == openGenericType ||
                interfaceType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGenericType);
+    }
+
+
+    // Metode for å konfigurere Swagger med json web token autentisering
+    public static void AddSwaggerWithJwtAuthentication(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
+        });
     }
 }
