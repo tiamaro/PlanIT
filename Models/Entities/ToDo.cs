@@ -14,9 +14,6 @@ public class ToDo
     [Required]
     public string Name { get; set;} = string.Empty;
 
-    
-    public DateOnly Date { get; set; }
-
 
     public virtual User? User { get; set; }
 }

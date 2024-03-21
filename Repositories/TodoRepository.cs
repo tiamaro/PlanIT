@@ -49,7 +49,6 @@ public class TodoRepository : IRepository<ToDo>
 
         // Update the properties of the existing todo item
         existingTodo.Name = updatedTodo.Name;
-        existingTodo.Date = updatedTodo.Date;
 
         // Save changes to the database
         await _dbContext.SaveChangesAsync();

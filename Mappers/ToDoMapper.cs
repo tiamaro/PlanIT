@@ -8,7 +8,7 @@ public class ToDoMapper : IMapper<ToDo, ToDoDTO>
 {
     public ToDoDTO MapToDTO(ToDo model)
     {
-        return new ToDoDTO(model.Id, model.UserId, model.Name, model.Date);
+        return new ToDoDTO(model.Id, model.UserId, model.Name);
     }
 
     public ToDo MapToModel(ToDoDTO dto)
@@ -17,8 +17,7 @@ public class ToDoMapper : IMapper<ToDo, ToDoDTO>
         { 
             Id = dto.Id,
             UserId = dto.UserId,
-            Name = dto.Name,
-            Date = dto.Date 
+            Name = dto.Name
         };
     }
 }
