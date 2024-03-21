@@ -10,12 +10,12 @@ public class UserService : IUserService
 {
     private readonly IMapper<User, UserDTO> _userMapper;
     private readonly IMapper<User, UserRegDTO> _userRegMapper;
-    private readonly IRepository<User> _userRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<UserService> _logger;
 
     public UserService(IMapper<User, UserDTO> userMapper
         , IMapper<User, UserRegDTO> UserRegMapper,
-        IRepository<User> userRepository, 
+        IUserRepository userRepository, 
         ILogger<UserService> logger)
     {
         _userMapper = userMapper;
@@ -32,9 +32,9 @@ public class UserService : IUserService
         // Mapper UserRegDTO til User-modellen
         var newUser = _userRegMapper.MapToModel(userRegDTO);
 
-        //// Genererer salt og hash-verdi for passordet
-        //newUser.Salt = BCrypt.Net.BCrypt.GenerateSalt();
-        //newUser.HashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegDTO.Password, newUser.Salt);
+        // Genererer salt og hash-verdi for passordet
+        newUser.Salt = BCrypt.Net.BCrypt.GenerateSalt();
+        newUser.HashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegDTO.Password, newUser.Salt);
 
         // Legger til den nye brukerern i databasen og henter resultatet
         var addedUser = await _userRepository.AddAsync(newUser);

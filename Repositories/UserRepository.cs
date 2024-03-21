@@ -6,7 +6,7 @@ using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
-public class UserRepository : IRepository<User>
+public class UserRepository : IUserRepository
 {
     private readonly PlanITDbContext _dbContext;
     private readonly PaginationUtility _pagination;
@@ -44,7 +44,15 @@ public class UserRepository : IRepository<User>
         return existingUser is null ? null : existingUser;
     }
 
-   
+    // Henter bruker basert på Email
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        return user; 
+    }
+
+
     // Oppdaterer bruker
     public async Task<User?> UpdateAsync(int userId, User updatedUser)
     {
@@ -72,4 +80,6 @@ public class UserRepository : IRepository<User>
 
         return deletedUser?.Entity;
     }
+
+   
 }

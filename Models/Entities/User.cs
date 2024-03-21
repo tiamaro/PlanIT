@@ -18,7 +18,7 @@ public class User
     public string HashedPassword { get; set; } = string.Empty;
 
     [Required]
-    public string salt { get; set; } = string.Empty;
+    public string Salt { get; set; } = string.Empty;
 
 
 
