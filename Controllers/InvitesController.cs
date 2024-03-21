@@ -18,11 +18,13 @@ public class InvitesController : ControllerBase
 {
     private readonly IService<InviteDTO> _inviteService;
     private readonly ILogger<InvitesController> _logger;
+    private readonly IMailService _mailService;
 
-    public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger)
+    public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger, IMailService mailService)
     {
         _inviteService = inviteService;
         _logger = logger;
+        _mailService = mailService;
     }
 
     // Endepunkt for registrering av ny invitasjon
