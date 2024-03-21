@@ -2,12 +2,11 @@
 
 public class ToDoDTO
 {
-    public ToDoDTO(int id, int userId, string name, DateOnly date)
+    public ToDoDTO(int id, int userId, string name)
     {
         Id = id;
         UserId = userId;
         Name = name;
-        Date = date;
     }
 
     public int Id { get; init; }
@@ -16,6 +15,5 @@ public class ToDoDTO
 
     public string Name { get; init; } = string.Empty;
 
-    public DateOnly Date { get; init; }
 
 }

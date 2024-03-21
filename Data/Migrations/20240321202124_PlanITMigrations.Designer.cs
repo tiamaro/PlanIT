@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240313084415_PlanITMigrations")]
+    [Migration("20240321202124_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace PlanIT.API.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -142,9 +142,6 @@ namespace PlanIT.API.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -156,7 +153,7 @@ namespace PlanIT.API.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ToDos");
+                    b.ToTable("Todos");
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.User", b =>
@@ -179,7 +176,7 @@ namespace PlanIT.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("salt")
+                    b.Property<string>("Salt")
                         .IsRequired()
                         .HasColumnType("longtext");
 

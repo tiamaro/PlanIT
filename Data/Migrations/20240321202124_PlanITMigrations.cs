@@ -27,7 +27,7 @@ namespace PlanIT.API.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     HashedPassword = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    salt = table.Column<string>(type: "longtext", nullable: false)
+                    Salt = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -109,21 +109,20 @@ namespace PlanIT.API.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ToDos",
+                name: "Todos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Date = table.Column<DateOnly>(type: "date", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ToDos", x => x.Id);
+                    table.PrimaryKey("PK_Todos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ToDos_Users_UserId",
+                        name: "FK_Todos_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -177,8 +176,8 @@ namespace PlanIT.API.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ToDos_UserId",
-                table: "ToDos",
+                name: "IX_Todos_UserId",
+                table: "Todos",
                 column: "UserId");
         }
 
@@ -195,7 +194,7 @@ namespace PlanIT.API.Data.Migrations
                 name: "ShoppingLists");
 
             migrationBuilder.DropTable(
-                name: "ToDos");
+                name: "Todos");
 
             migrationBuilder.DropTable(
                 name: "Events");
