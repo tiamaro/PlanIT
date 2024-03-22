@@ -7,6 +7,7 @@ namespace PlanIT.API.Services.MailService;
 
 public class MailService : IMailService
 {
+
     public void SendInviteEmail(Invite invite)
     {
         try
