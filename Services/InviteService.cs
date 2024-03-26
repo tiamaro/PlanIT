@@ -3,6 +3,8 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Services.MailService;
+using System.ComponentModel;
 
 namespace PlanIT.API.Services;
 
@@ -11,14 +13,21 @@ public class InviteService : IService<InviteDTO>
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
     private readonly ILogger<InviteService> _logger;
+    //private readonly IBackgroundJobClient _backgroundJobClient;
+    public readonly IMailService _mailService;
 
     public InviteService(IMapper<Invite, InviteDTO> inviteMapper,
         IRepository<Invite> inviteRepository,
-        ILogger<InviteService> logger)
+        ILogger<InviteService> logger,
+       // IBackgroundJobClient backgroundJobClient
+        IMailService mailService
+        )
     {
         _inviteMapper = inviteMapper;
         _inviteRepository = inviteRepository;
         _logger = logger;
+        //_backgroundJobClient = backgroundJobClient;
+        _mailService = mailService;
     }
 
 
@@ -30,6 +39,21 @@ public class InviteService : IService<InviteDTO>
 
         // Legger til den nye invitasjonen i databasen og henter resultatet
         var addedInvite = await _inviteRepository.AddAsync(newInvite);
+        //_mailService.SendInviteEmail(addedInvite);
+
+
+        // Unsure of what to do with invite null reference 
+        // Unsure how this will work 
+        //_backgroundJobClient.Schedule(() => _mailService.SendReminderEmail(addedInvite),
+        //addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) >= DateTime.Today
+        //? (addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) - DateTime.Today).TotalDays < 3
+        //? TimeSpan.Zero  // Schedule immediately if less than 3 days
+        //: (addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) - DateTime.Today)  // Schedule for remaining days
+        //: addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue).Subtract(DateTime.Today));
+
+
+
+
 
         // Mapper den nye invitasjonen til InviteDTO og returnerer den
         return _inviteMapper.MapToDTO(addedInvite!);

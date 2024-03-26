@@ -12,6 +12,7 @@ using PlanIT.API.Services;
 using PlanIT.API.Middleware;
 using PlanIT.API.Services.AuthenticationService;
 using PlanIT.API.Services.MailService;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,9 @@ builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
 
+
+
+
 // Tillegg for paginering
 builder.Services.AddScoped<PaginationUtility>(); 
 
@@ -62,6 +66,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    
 }
 
 // app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
