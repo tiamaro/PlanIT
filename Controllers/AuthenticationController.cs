@@ -4,6 +4,8 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
+
+[Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
 public class AuthenticationController : ControllerBase
@@ -17,8 +19,8 @@ public class AuthenticationController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("login", Name = "Login")]
     [AllowAnonymous]
+    [HttpPost("login", Name = "Login")]
     public async Task<IActionResult> LoginAsync(UserLoginDTO userLoginDTO)
     {
         try

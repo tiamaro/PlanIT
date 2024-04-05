@@ -12,11 +12,13 @@ public class AuthenticationService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthenticationService> _logger;
 
-    public AuthenticationService(IUserRepository userRepository, IConfiguration configuration)
+    public AuthenticationService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthenticationService> logger)
     {
         _userRepository = userRepository;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<User?> AuthenticateUserAsync(string email, string password)
@@ -25,47 +27,51 @@ public class AuthenticationService : IAuthService
 
         if (user != null && VerifyPasswordHash(password, user.HashedPassword, user.Salt))
         {
-            // Bruker autensisering er vellykket
+            // Authentication successful, return the user object
             return user;
         }
 
-        // Autentisering feilet
+        // Authentication failed, return null
         return null;
     }
 
-    // Metode for å generere JWT-token 
+
     public async Task<string> GenerateJwtTokenAsync(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtSecret = _configuration["Jwt:Secret"] ?? "secret_key"; // Henter JWT-key fra konfigurasjonen eller bruker standardkey
-        var keySizeInBits = int.Parse(_configuration["Jwt:KeySizeInBits"]); // Henter nøkkelstørrelsen fra konfigurasjonen
-        var key = Encoding.ASCII.GetBytes(jwtSecret); // Konverterer til byte-array
+        var jwtSecret = _configuration["Jwt:Secret"]; // Retrieve JWT key from configuration
+        _logger.LogInformation("JWT Secret Key for Token Generation: {JwtSecret}", jwtSecret);
 
-        // Opprett SymmetricSecurityKey med riktig nøkkelstørrelse
-        var symmetricKey = new SymmetricSecurityKey(key.Take(keySizeInBits / 8).ToArray());
+        var key = Encoding.ASCII.GetBytes(jwtSecret); // Convert to byte array directly
 
-        var issuer = _configuration["Jwt:Issuer"]; // Henter utsteder fra konfigurasjonen
+        // Use the entire secret key for creating SymmetricSecurityKey
+        var symmetricKey = new SymmetricSecurityKey(key);
+
+        var issuer = _configuration["Jwt:Issuer"]; // Retrieve issuer from configuration
+        var audience = _configuration["Jwt:Audience"]; // Retrieve audience from configuration
 
         if (!int.TryParse(_configuration["Jwt:ExpiryInMinutes"], out int expirationMinutes))
         {
-            expirationMinutes = 60; // Standard utløpstid for token
+            expirationMinutes = 60; // Default token expiration time
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new Claim[]
             {
-        new Claim(ClaimTypes.NameIdentifier, user.Email) // Bruk e-post som identifikator
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Use ID as identifier
+            new Claim(ClaimTypes.Email, user.Email) // Include email in claims
+
             }),
-            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), // Angi tokenets utløpstid
-            Issuer = issuer, // Angi tokenets utsteder
-            SigningCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256Signature) // Angi signering av tokenet
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), // Set token expiration time
+            Issuer = issuer, // Set token issuer
+            Audience = audience, // Set audience
+            SigningCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256Signature) // Set token signing with the full key
         };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor); // Opprett JWT-token
-        return await Task.FromResult(tokenHandler.WriteToken(token)); // Returner JWT-token som streng
+        var token = tokenHandler.CreateToken(tokenDescriptor); // Create JWT token
+        return await Task.FromResult(tokenHandler.WriteToken(token)); // Return JWT token as string
     }
-
 
     // Hjelpemetode for å verifisere passordhash
     private bool VerifyPasswordHash(string password, string storedHash, string salt)

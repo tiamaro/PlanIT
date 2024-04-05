@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
 
@@ -9,6 +10,7 @@ namespace PlanIT.API.Controllers;
 // Tar imot en UserService-innstans som en del av konstruktøren for å utføre brukerrelaterte operasjoner.
 // api/v1/Users
 
+[Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
 public class UsersController : ControllerBase
@@ -25,6 +27,7 @@ public class UsersController : ControllerBase
 
     // Endepunkt for registrering av ny bruker
     // POST /api/v1/Users/register
+    [AllowAnonymous]
     [HttpPost("register", Name = "AddUser")]
     public async Task<ActionResult<UserDTO>> AddUserAsync(UserRegDTO userRegDTO)
     {
