@@ -18,6 +18,11 @@ public class Invite
     public string Email { get; set; } = string.Empty;
 
 
+
+    // CHANGE "COMING" THIS TO, implement logic in invite service when sending out emails 
+    //[Required]
+    //public bool InviteSent { get; set; }
+
     [Required]
     public bool Coming { get; set; }
 

@@ -12,6 +12,7 @@ using PlanIT.API.Services;
 using PlanIT.API.Services.AuthenticationService;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Configurations;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,9 @@ builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
 
+
+
+
 // Tillegg for paginering
 builder.Services.AddScoped<PaginationUtility>(); 
 
@@ -59,15 +63,16 @@ builder.Services.ConfigureAuthorization();
 
 var app = builder.Build();
 
-// Konfigurer HTTP-forespørselsrørledningen.
+// Konfigurer HTTP-forespÃ¸rselsrÃ¸rledningen.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    
 }
 
-// app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
-app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
+// app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhÃ¥ndtering
+app.UseSerilogRequestLogging(); // Logger HTTP-forespÃ¸rsler med Serilog
 
 app.UseHttpsRedirection();
 
