@@ -41,13 +41,13 @@ public class MailService : IMailService
 
         }
 
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             _logger.LogError($"An error occured trying to send invite email:{ex.ToString()}");
             Console.WriteLine($"Error sending email:");
 
         }
-        
+
 
     }
 
@@ -56,7 +56,7 @@ public class MailService : IMailService
         if (invite?.Event?.Date.CompareTo(DateTime.Today) <= 3)
             try
             {
-                using (var client =new SmtpClient("smtp-mail.outlook.com", 587))
+                using (var client = new SmtpClient("smtp-mail.outlook.com", 587))
                 {
                     var message = new MailMessage("planit-event@outlook.com", $"{invite.Email}");
                     message.Subject = $"Reminder {invite.Name} in 3 days!";
@@ -77,9 +77,9 @@ public class MailService : IMailService
 
             catch (Exception ex)
             {
-                _logger.LogError($"An error occured trying to send reminder email:{ ex.ToString()}");
+                _logger.LogError($"An error occured trying to send reminder email:{ex.ToString()}");
                 Console.WriteLine($"Error sending reminder email");
             }
-        }
     }
+}
 

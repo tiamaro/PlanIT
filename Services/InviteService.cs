@@ -3,8 +3,6 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Services.MailService;
-using System.ComponentModel;
 
 namespace PlanIT.API.Services;
 
@@ -19,7 +17,7 @@ public class InviteService : IService<InviteDTO>
     public InviteService(IMapper<Invite, InviteDTO> inviteMapper,
         IRepository<Invite> inviteRepository,
         ILogger<InviteService> logger,
-       // IBackgroundJobClient backgroundJobClient
+        // IBackgroundJobClient backgroundJobClient
         IMailService mailService
         )
     {
@@ -59,7 +57,7 @@ public class InviteService : IService<InviteDTO>
         return _inviteMapper.MapToDTO(addedInvite!);
     }
 
-   
+
     // Henter alle invitasjoner
     public async Task<ICollection<InviteDTO>> GetAllAsync(int pageNr, int pageSize)
     {

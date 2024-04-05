@@ -80,7 +80,7 @@ public class ImportantDateController : ControllerBase
             _logger.LogError($"An unknown error occured: {ex.Message}", ex);
             return StatusCode(500, "An unknown error occured, please try again later");
 
-        }         
+        }
 
     }
 
@@ -107,8 +107,5 @@ public class ImportantDateController : ControllerBase
 
 
     }
-
-
-
 
 }

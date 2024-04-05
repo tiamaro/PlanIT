@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using FluentValidation.AspNetCore;
 using PlanIT.API.Models.DTOs;
 
 namespace PlanIT.API.Validators;

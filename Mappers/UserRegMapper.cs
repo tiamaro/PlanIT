@@ -14,7 +14,7 @@ public class UserRegMapper : IMapper<User, UserRegDTO>
     public User MapToModel(UserRegDTO dto)
     {
         return new User
-        { 
+        {
             Name = dto.Name,
             Email = dto.Email,
             HashedPassword = dto.Password

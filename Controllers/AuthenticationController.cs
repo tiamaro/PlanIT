@@ -5,6 +5,10 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
+// Denne kontrolleren håndterer brukerinnlogging og generering av JWT (JSON Web Token) for autentiserte brukere.
+// Ved å bruke [Authorize(Policy = "Bearer")], kreves det at alle handlinger i denne kontrolleren
+// autentiseres med en gyldig JWT, med mindre [AllowAnonymous] er eksplisitt satt på en handling.
+
 [Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]

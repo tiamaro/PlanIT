@@ -13,11 +13,11 @@ public class UserMapper : IMapper<User, UserDTO>
 
     public User MapToModel(UserDTO dto)
     {
-        return new User 
-        {   
+        return new User
+        {
             Id = dto.Id,
             Name = dto.Name,
-            Email = dto.Email 
+            Email = dto.Email
         };
     }
 }

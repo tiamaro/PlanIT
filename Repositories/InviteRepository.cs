@@ -27,7 +27,7 @@ public class InviteRepository : IRepository<Invite>
         return addedInviteEntry?.Entity;
     }
 
-    
+
     // Henter alle invitasjoner med paginering
     public async Task<ICollection<Invite>> GetAllAsync(int pageNr, int pageSize)
     {

@@ -14,13 +14,13 @@ public class Event
     public string Name { get; set; } = string.Empty;
 
     [Required]
-    public DateOnly Date {  get; set; }
+    public DateOnly Date { get; set; }
 
     [Required]
     public string Time { get; set; } = string.Empty;
 
     [Required]
-    public string Location {  get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
 
 
 

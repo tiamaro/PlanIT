@@ -28,17 +28,17 @@ public class EventDTOValidator : AbstractValidator<EventDTO>
             .NotEmpty().WithMessage("Event Location cannot be empty")
             .MinimumLength(4).WithMessage("Event Location must be a least 4 characters")
             .MaximumLength(50).WithMessage("Event Location cannot exceed 50 charcters");
-          
-      
+
+
     }
 
 
-    
+
     private bool BeAValidTime(string time)
     {
         string pattern = @"^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
 
-        
+
         if (System.Text.RegularExpressions.Regex.IsMatch(time, pattern))
         {
             return true;

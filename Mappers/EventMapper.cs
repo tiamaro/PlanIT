@@ -13,15 +13,15 @@ public class EventMapper : IMapper<Event, EventDTO>
 
     public Event MapToModel(EventDTO dto)
     {
-        return new Event 
-        { 
+        return new Event
+        {
             Id = dto.Id,
             UserId = dto.UserId,
             Name = dto.Name,
             Date = dto.Date,
             Time = dto.Time,
-            Location = dto.Location 
-        
+            Location = dto.Location
+
         };
     }
 }

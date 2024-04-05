@@ -13,8 +13,8 @@ public class ToDoMapper : IMapper<ToDo, ToDoDTO>
 
     public ToDo MapToModel(ToDoDTO dto)
     {
-        return new ToDo 
-        { 
+        return new ToDo
+        {
             Id = dto.Id,
             UserId = dto.UserId,
             Name = dto.Name

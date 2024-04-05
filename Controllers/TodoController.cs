@@ -36,7 +36,7 @@ public class TodoController : ControllerBase
             return StatusCode(500, "An error occurred while creating todo");
         }
     }
-    
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ToDoDTO>> GetTodoByIdAsync(int id)
     {

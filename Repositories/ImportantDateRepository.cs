@@ -28,7 +28,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
     }
 
     // Henter alle ImportantDates med paginering 
-    public  async Task<ICollection<ImportantDate>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<ImportantDate>> GetAllAsync(int pageNr, int pageSize)
     {
         var pagination = new PaginationUtility(_dbContext);
 
@@ -57,20 +57,20 @@ public class ImportantDateRepository : IRepository<ImportantDate>
 
         if (importantDateRows == 0) return null;
         return updatedImportantDate;
-        
+
     }
 
 
     // Sletter ImportantDate
     public async Task<ImportantDate?> DeleteAsync(int importantDateId)
     {
-        var importantDateById = await _dbContext.ImportantDates.FirstOrDefaultAsync( x => x.Id == importantDateId);
+        var importantDateById = await _dbContext.ImportantDates.FirstOrDefaultAsync(x => x.Id == importantDateId);
         if (importantDateById == null) return null;
 
         var deletedImportantDate = _dbContext.ImportantDates.Remove(importantDateById);
         await _dbContext.SaveChangesAsync();
 
         return deletedImportantDate?.Entity;
-        
+
     }
 }

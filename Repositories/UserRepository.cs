@@ -49,7 +49,7 @@ public class UserRepository : IUserRepository
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        return user; 
+        return user;
     }
 
 
@@ -60,7 +60,7 @@ public class UserRepository : IUserRepository
             .ExecuteUpdateAsync(setters => setters
             .SetProperty(x => x.Name, updatedUser.Name)
             .SetProperty(x => x.Email, updatedUser.Email));
-         
+
         await _dbContext.SaveChangesAsync();
 
         if (userRows == 0) return null;
@@ -81,5 +81,5 @@ public class UserRepository : IUserRepository
         return deletedUser?.Entity;
     }
 
-   
+
 }
