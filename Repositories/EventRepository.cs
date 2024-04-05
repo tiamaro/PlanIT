@@ -42,13 +42,13 @@ public class EventRepository : IRepository<Event>
     // Henter arrangementer basert på ID
     public async Task<Event?> GetByIdAsync(int eventId)
     {
-        var eventById = await _dbContext.Events.FirstOrDefaultAsync(x =>x.Id == eventId);
+        var eventById = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == eventId);
         return eventById is null ? null : eventById;
     }
 
     // Oppdaterer arrangementsinformasjon
     public async Task<Event?> UpdateAsync(int id, Event updatedEvent)
-    {    
+    {
         var eventRows = await _dbContext.Events.Where(x => x.Id == id)
             .ExecuteUpdateAsync(setters => setters
             .SetProperty(x => x.Name, updatedEvent.Name)
@@ -71,7 +71,7 @@ public class EventRepository : IRepository<Event>
 
         var deletedEvent = _dbContext.Events.Remove(eventById);
         await _dbContext.SaveChangesAsync();
-        
+
         return deletedEvent?.Entity;
 
     }

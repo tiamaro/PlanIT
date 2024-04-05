@@ -21,57 +21,69 @@ public class AuthenticationService : IAuthService
         _logger = logger;
     }
 
+    // Autentiserer en bruker basert på e-post og passord.
     public async Task<User?> AuthenticateUserAsync(string email, string password)
     {
         var user = await _userRepository.GetUserByEmailAsync(email);
 
+        // Sjekker om en bruker ble funnet og at passordet som ble oppgitt matcher brukerens lagrede passordhash.
         if (user != null && VerifyPasswordHash(password, user.HashedPassword, user.Salt))
         {
-            // Authentication successful, return the user object
+            // Autentiseringen var vellykket.
             return user;
         }
 
-        // Authentication failed, return null
+        // Autentiseringen feilet.
         return null;
     }
 
 
-    public async Task<string> GenerateJwtTokenAsync(User user)
+    // Metode for å generere en JWT (JSON Web Token) for en gitt bruker.
+    // Denne metoden er synkron, men returnerer en Task for å tilpasse seg et asynkront grensesnitt.
+    public Task<string> GenerateJwtTokenAsync(User user)
     {
+        // Oppretter en ny instans av JwtSecurityTokenHandler for å håndtere opprettelsen av JWT-tokenet.
         var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtSecret = _configuration["Jwt:Secret"]; // Retrieve JWT key from configuration
-        _logger.LogInformation("JWT Secret Key for Token Generation: {JwtSecret}", jwtSecret);
 
-        var key = Encoding.ASCII.GetBytes(jwtSecret); // Convert to byte array directly
+        // Henter den hemmelige nøkkelen for JWT fra appsettings.
+        var jwtSecret = _configuration["Jwt:Secret"];
 
-        // Use the entire secret key for creating SymmetricSecurityKey
-        var symmetricKey = new SymmetricSecurityKey(key);
-
-        var issuer = _configuration["Jwt:Issuer"]; // Retrieve issuer from configuration
-        var audience = _configuration["Jwt:Audience"]; // Retrieve audience from configuration
-
-        if (!int.TryParse(_configuration["Jwt:ExpiryInMinutes"], out int expirationMinutes))
+        if (string.IsNullOrEmpty(jwtSecret))
         {
-            expirationMinutes = 60; // Default token expiration time
+            throw new InvalidOperationException("JWT Secret is not configured correctly.");
         }
 
+        _logger.LogInformation("JWT Secret Key for Token Generation: {JwtSecret}", jwtSecret);
+
+        // Konverterer den hemmelige nøkkelen til en byte-array, og oppretter SymmetricSecurityKey
+        var key = Encoding.ASCII.GetBytes(jwtSecret);
+        var symmetricKey = new SymmetricSecurityKey(key);
+
+        // Henter informasjon om token-utsteder, mottaker og utløpstid fra konfigurasjonen.
+        var issuer = _configuration["Jwt:Issuer"];
+        var audience = _configuration["Jwt:Audience"];
+        var expirationMinutes = _configuration.GetValue<int>("Jwt:ExpiryInMinutes", 60);
+
+        // Setter opp tokenbeskrivelsen med nødvendig informasjon som brukerens ID og e-post,
+        // samt utløpstid, utsteder, mottaker og signaturinnstillinger.
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new Claim[]
+            Subject = new ClaimsIdentity(new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Use ID as identifier
-            new Claim(ClaimTypes.Email, user.Email) // Include email in claims
-
-            }),
-            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes), // Set token expiration time
-            Issuer = issuer, // Set token issuer
-            Audience = audience, // Set audience
-            SigningCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256Signature) // Set token signing with the full key
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email)
+        }),
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
+            Issuer = issuer,
+            Audience = audience,
+            SigningCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256Signature)
         };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor); // Create JWT token
-        return await Task.FromResult(tokenHandler.WriteToken(token)); // Return JWT token as string
+        // Oppretter tokenet, og returnerer det.
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return Task.FromResult(tokenHandler.WriteToken(token));
     }
+
 
     // Hjelpemetode for å verifisere passordhash
     private bool VerifyPasswordHash(string password, string storedHash, string salt)

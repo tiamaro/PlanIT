@@ -9,14 +9,20 @@ public static class AuthenticationConfiguration
 {
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration, Serilog.ILogger logger)
     {
+        // Henter og validerer den hemmelige nøkkelen for JWT fra konfigurasjonen.
         var jwtSecret = configuration["Jwt:Secret"];
-        logger.Information($"JWT Secret Key for Token Validation: {jwtSecret}");
-
-        services.AddAuthentication(options =>
+        if (string.IsNullOrEmpty(jwtSecret))
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
+            logger.Error("JWT Secret Key is not configured correctly.");
+            throw new InvalidOperationException("JWT Secret Key is not configured.");
+        }
+        logger.Information("JWT configuration validated successfully.");
+
+        // Konverterer den hemmelige nøkkelen til en byte-array.
+        var key = Encoding.ASCII.GetBytes(jwtSecret);
+
+        // Konfigurerer autentiseringstjenester med JWT Bearer som standard.
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -25,25 +31,23 @@ public static class AuthenticationConfiguration
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = configuration["Jwt:Issuer"], // Set issuer from configuration
-                ValidAudience = configuration["Jwt:Audience"], // Set expected audience
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecret)) // Set the key for validating the signature
+                ValidIssuer = configuration["Jwt:Issuer"],
+                ValidAudience = configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key) // Angir signatur-nøkkelen.
             };
 
+            // Hendelser for autentisering. Logging ved feil eller vellykket validering.
             options.Events = new JwtBearerEvents
             {
                 OnAuthenticationFailed = context =>
                 {
-                    logger.Error("Authentication failed: {ErrorMessage}", context.Exception.Message);
-                    // Log the token causing authentication failure
-                    logger.Debug("Token: {Token}", context.Request.Headers["Authorization"]);
+                    logger.Error("Authentication failed: {ErrorMessage}", context.Exception?.Message);
                     return Task.CompletedTask;
                 },
                 OnTokenValidated = context =>
                 {
-                    logger.Information("Token validated: {SecurityToken}", context.SecurityToken);
-                    // Log the claims extracted from the token
-                    logger.Debug("Claims: {Claims}", context.Principal.Claims);
+                    var claimsCount = context.Principal?.Claims.Count() ?? 0;
+                    logger.Information("Token validated successfully with {ClaimsCount} claims.", claimsCount);
                     return Task.CompletedTask;
                 }
             };

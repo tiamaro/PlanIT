@@ -13,14 +13,14 @@ public class InviteMapper : IMapper<Invite, InviteDTO>
 
     public Invite MapToModel(InviteDTO dto)
     {
-        return new Invite 
+        return new Invite
         {
             Id = dto.Id,
             EventId = dto.EventId,
             Name = dto.Name,
             Email = dto.Email,
-            Coming = dto.Coming        
-        
+            Coming = dto.Coming
+
         };
     }
 }

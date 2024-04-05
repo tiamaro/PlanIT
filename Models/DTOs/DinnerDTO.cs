@@ -13,7 +13,7 @@ public class DinnerDTO
     public int Id { get; init; }
 
     public int UserId { get; init; }
-    public DateOnly Date { get; init;}
+    public DateOnly Date { get; init; }
     public string Name { get; init; } = string.Empty;
 
 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlanIT.API.Models.DTOs;
-using PlanIT.API.Services;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
@@ -18,13 +17,13 @@ public class InvitesController : ControllerBase
 {
     private readonly IService<InviteDTO> _inviteService;
     private readonly ILogger<InvitesController> _logger;
-   
+
 
     public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger)
     {
         _inviteService = inviteService;
         _logger = logger;
-        
+
     }
 
     // Endepunkt for registrering av ny invitasjon

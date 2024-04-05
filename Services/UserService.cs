@@ -15,7 +15,7 @@ public class UserService : IUserService
 
     public UserService(IMapper<User, UserDTO> userMapper
         , IMapper<User, UserRegDTO> UserRegMapper,
-        IUserRepository userRepository, 
+        IUserRepository userRepository,
         ILogger<UserService> logger)
     {
         _userMapper = userMapper;
@@ -55,7 +55,7 @@ public class UserService : IUserService
         var userDTOs = usersFromRepository.Select(user => _userMapper.MapToDTO(user)).ToList();
         return userDTOs;
     }
-    
+
 
     // Henter bruker basert på ID
     public async Task<UserDTO?> GetByIdAsync(int userId)
@@ -63,7 +63,7 @@ public class UserService : IUserService
         var userFromRepository = await _userRepository.GetByIdAsync(userId);
         return userFromRepository != null ? _userMapper.MapToDTO(userFromRepository) : null;
     }
-   
+
 
     // Oppdaterer bruker
     public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
@@ -82,7 +82,7 @@ public class UserService : IUserService
         var updatedUser = await _userRepository.UpdateAsync(userId, userToUpdate);
 
         return updatedUser != null ? _userMapper.MapToDTO(updatedUser) : null;
-      
+
     }
 
 
@@ -93,11 +93,11 @@ public class UserService : IUserService
 
         // Sjekker om brukeren eksisterer
         if (userToDelete == null) return null;
-      
+
         // Sletter brukeren fra databasen og mapper den til UserDTO for retur                 
-        var isDeleted = await _userRepository.DeleteAsync(userId);      
+        var isDeleted = await _userRepository.DeleteAsync(userId);
         return isDeleted != null ? _userMapper.MapToDTO(userToDelete) : null;
-       
+
     }
 
 }

@@ -19,7 +19,7 @@ public class ImportantDateMapper : IMapper<ImportantDate, ImportantDateDTO>
             UserId = dto.UserId,
             Name = dto.Name,
             Date = dto.Date
-            
+
         };
     }
 }

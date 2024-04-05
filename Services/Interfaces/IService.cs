@@ -1,6 +1,4 @@
-﻿using PlanIT.API.Models.DTOs;
-
-namespace PlanIT.API.Services.Interfaces;
+﻿namespace PlanIT.API.Services.Interfaces;
 
 public interface IService<TDto>
 {

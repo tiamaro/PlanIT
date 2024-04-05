@@ -59,7 +59,7 @@ public class DinnerController : ControllerBase
         var dinners = await _dinnerService.GetAllAsync(pageNr, pageSize);
         return Ok(dinners);
     }
-    
+
     [HttpPut("{id:int}")]
     public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int id, DinnerDTO updatedDinnerDto)
     {

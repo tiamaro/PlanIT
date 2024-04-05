@@ -1,18 +1,17 @@
-using FluentValidation.AspNetCore;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using PlanIT.API.Configurations;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Repositories.Interfaces;
-using PlanIT.API.Utilities;
-using Serilog;
-using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services;
 using PlanIT.API.Services.AuthenticationService;
+using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
-using PlanIT.API.Configurations;
-using Hangfire;
+using PlanIT.API.Utilities;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +47,7 @@ builder.Services.AddDbContext<PlanITDbContext>(options =>
 
 
 // Tillegg for paginering
-builder.Services.AddScoped<PaginationUtility>(); 
+builder.Services.AddScoped<PaginationUtility>();
 
 // Bruk av Serilog logger
 builder.Host.UseSerilog((context, configuration) =>
@@ -68,7 +67,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
+
 }
 
 // app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
