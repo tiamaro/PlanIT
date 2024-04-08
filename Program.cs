@@ -43,7 +43,17 @@ builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
 
-
+// Legg til CORS-policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMyFrontend",
+        policyBuilder =>
+        {
+            policyBuilder.WithOrigins("http://127.0.0.1:5500") // Erstatt med den faktiske URLen til din Live Server
+                         .AllowAnyHeader()
+                         .AllowAnyMethod();
+        });
+});
 
 
 // Tillegg for paginering
@@ -72,6 +82,8 @@ if (app.Environment.IsDevelopment())
 
 // app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
 app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
+
+app.UseCors("AllowMyFrontend");
 
 app.UseHttpsRedirection();
 
