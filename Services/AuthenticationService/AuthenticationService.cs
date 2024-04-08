@@ -50,10 +50,11 @@ public class AuthenticationService : IAuthService
 
         if (string.IsNullOrEmpty(jwtSecret))
         {
+            _logger.LogError("JWT Secret is not configured correctly.");
             throw new InvalidOperationException("JWT Secret is not configured correctly.");
         }
 
-        _logger.LogInformation("JWT Secret Key for Token Generation: {JwtSecret}", jwtSecret);
+        _logger.LogInformation("Starting JWT token generation for user: {UserId}", user.Id);
 
         // Konverterer den hemmelige nøkkelen til en byte-array, og oppretter SymmetricSecurityKey
         var key = Encoding.ASCII.GetBytes(jwtSecret);
@@ -81,6 +82,8 @@ public class AuthenticationService : IAuthService
 
         // Oppretter tokenet, og returnerer det.
         var token = tokenHandler.CreateToken(tokenDescriptor);
+        _logger.LogInformation("JWT token generated for user: {UserId}", user.Id);
+
         return Task.FromResult(tokenHandler.WriteToken(token));
     }
 
