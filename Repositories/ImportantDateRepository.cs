@@ -46,17 +46,18 @@ public class ImportantDateRepository : IRepository<ImportantDate>
 
 
     // Oppdaterer ImportantDate
-    public async Task<ImportantDate?> UpdateAsync(int dateID, ImportantDate updatedImportantDate)
+    public async Task<ImportantDate?> UpdateAsync(int importantDateId, ImportantDate updatedImportantDate)
     {
-        var importantDateRows = await _dbContext.ImportantDates.Where(x => x.Id == dateID)
-            .ExecuteUpdateAsync(setters => setters
-            .SetProperty(x => x.Name, updatedImportantDate.Name)
-            .SetProperty(x => x.Date, updatedImportantDate.Date));
+
+        var exsistingDate = await _dbContext.ImportantDates.FirstOrDefaultAsync(x => x.Id == importantDateId);
+        if (exsistingDate == null) return null;
+
+        exsistingDate.Name = string.IsNullOrEmpty(updatedImportantDate.Name) ? exsistingDate.Name : updatedImportantDate.Name;
+        exsistingDate.Date = updatedImportantDate.Date != DateOnly.MinValue ? updatedImportantDate.Date : exsistingDate.Date;
 
         await _dbContext.SaveChangesAsync();
+        return exsistingDate;
 
-        if (importantDateRows == 0) return null;
-        return updatedImportantDate;
 
     }
 
