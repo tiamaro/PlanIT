@@ -51,11 +51,14 @@ public class InviteRepository : IRepository<Invite>
         var exsistingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
         if (exsistingInvite == null) return null;
 
-        exsistingInvite.Name = string.IsNullOrEmpty(updatedImportantDate.Name) ? exsistingInvite.Name : updatedImportantDate.Name;
-        exsistingInvite.Date = updatedImportantDate.Date != DateOnly.MinValue ? updatedImportantDate.Date : exsistingInvite.Date;
+        exsistingInvite.Name = string.IsNullOrEmpty(updatedInvite.Name) ? exsistingInvite.Name : updatedInvite.Name;
+        exsistingInvite.Email = string.IsNullOrEmpty(updatedInvite.Email) ? exsistingInvite.Email : updatedInvite.Email;
+        exsistingInvite.Coming = updatedInvite.Coming;
 
         await _dbContext.SaveChangesAsync();
         return exsistingInvite;
+
+    }
 
 
         // Sletter invitasjon
