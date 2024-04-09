@@ -17,9 +17,9 @@ public class DinnerRepository : IRepository<Dinner>
         _pagination = pagination;
     }
 
-    public async Task<Dinner?> AddAsync(Dinner dinner)
+    public async Task<Dinner?> AddAsync(Dinner newDinner)
     {
-        var addedDinner = await _dbContext.Dinners.AddAsync(dinner);
+        var addedDinner = await _dbContext.Dinners.AddAsync(newDinner);
         await _dbContext.SaveChangesAsync();
         return addedDinner.Entity;
     }
@@ -30,27 +30,29 @@ public class DinnerRepository : IRepository<Dinner>
         return await _pagination.GetPageAsync(dinnersQuery, pageNr, pageSize);
     }
 
-    public async Task<Dinner?> GetByIdAsync(int id)
+    public async Task<Dinner?> GetByIdAsync(int dinnerId)
     {
-        return await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == dinnerId);
     }
 
     public async Task<Dinner?> UpdateAsync(int id, Dinner updatedDinner)
     {
-        var existingDinner = await _dbContext.Dinners.FindAsync(id);
-        if (existingDinner == null)
-        {
-            return null;
-        }
+        var exsistingDinner = await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == id);
+        if (exsistingDinner == null) return null;
 
-        _dbContext.Entry(existingDinner).CurrentValues.SetValues(updatedDinner);
+        exsistingDinner.Name = string.IsNullOrEmpty(updatedDinner.Name) ? exsistingDinner.Name : updatedDinner.Name;
+        exsistingDinner.Date = updatedDinner.Date != DateOnly.MinValue ? updatedDinner.Date : exsistingDinner.Date;
+
         await _dbContext.SaveChangesAsync();
-        return updatedDinner;
+        return exsistingDinner;
+
     }
 
-    public async Task<Dinner?> DeleteAsync(int id)
+    
+
+    public async Task<Dinner?> DeleteAsync(int dinnerId)
     {
-        var existingDinner = await _dbContext.Dinners.FindAsync(id);
+        var existingDinner = await _dbContext.Dinners.FindAsync(dinnerId);
         if (existingDinner == null)
         {
             return null;

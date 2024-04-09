@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -31,37 +32,28 @@ public class TodoRepository : IRepository<ToDo>
     }
 
     // Retrieves a todo item by its ID
-    public async Task<ToDo?> GetByIdAsync(int id)
+    public async Task<ToDo?> GetByIdAsync(int toDoId)
     {
-        return await _dbContext.Todos.FindAsync(id);
+        return await _dbContext.Todos.FindAsync(toDoId);
     }
 
-    public async Task<ToDo?> UpdateAsync(int id, ToDo updatedTodo)
+    public async Task<ToDo?> UpdateAsync(int toDoId, ToDo updatedTodo)
     {
-        // Find the existing todo item by its ID
-        var existingTodo = await _dbContext.Todos.FindAsync(id);
+        var exsistingToDo = await _dbContext.Todos.FirstOrDefaultAsync(x => x.Id == toDoId);
+        if (exsistingToDo == null) return null;
 
-        // If the existing todo item is not found, return null
-        if (existingTodo == null)
-        {
-            return null;
-        }
+        exsistingToDo.Name = string.IsNullOrEmpty(updatedTodo.Name) ? exsistingToDo.Name : updatedTodo.Name;
 
-        // Update the properties of the existing todo item
-        existingTodo.Name = updatedTodo.Name;
-
-        // Save changes to the database
         await _dbContext.SaveChangesAsync();
+        return exsistingToDo;
 
-        // Return the updated todo item
-        return existingTodo;
     }
 
     // Deletes a todo item by its ID
-    public async Task<ToDo?> DeleteAsync(int id)
+    public async Task<ToDo?> DeleteAsync(int toDoId)
     {
         // Find the todo item to delete by its ID
-        var todoToDelete = await _dbContext.Todos.FindAsync(id);
+        var todoToDelete = await _dbContext.Todos.FindAsync(toDoId);
 
         // If the todo item is not found, return null
         if (todoToDelete == null)

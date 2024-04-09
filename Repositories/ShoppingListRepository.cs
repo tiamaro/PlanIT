@@ -45,16 +45,16 @@ public class ShoppingListRepository : IRepository<ShoppingList>
     }
 
     // Oppdaterer handleliste
-    public async Task<ShoppingList?> UpdateAsync(int shoppingListId, ShoppingList updatedShoppingList)
+    public async Task<ShoppingList?> UpdateAsync(int id, ShoppingList updatedShoppingList)
     {
-        var shoppingListRows = await _dbContext.ShoppingLists.Where(x => x.Id == shoppingListId)
-            .ExecuteUpdateAsync(setters => setters
-            .SetProperty(x => x.Name, updatedShoppingList.Name));
+        var exsistingShoppingList = await _dbContext.ShoppingLists.FirstOrDefaultAsync(x => x.Id == id);
+        if (exsistingShoppingList == null) return null;
+
+        exsistingShoppingList.Name = string.IsNullOrEmpty(updatedShoppingList.Name) ? exsistingShoppingList.Name : updatedShoppingList.Name;
 
         await _dbContext.SaveChangesAsync();
+        return exsistingShoppingList;
 
-        if (shoppingListRows == 0) return null;
-        return updatedShoppingList;
 
     }
 

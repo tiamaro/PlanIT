@@ -48,21 +48,18 @@ public class InviteRepository : IRepository<Invite>
     // Oppdaterer invitasjon
     public async Task<Invite?> UpdateAsync(int inviteId, Invite updatedInvite)
     {
-        var inviteRows = await _dbContext.Invites.Where(x => x.Id == inviteId)
-            .ExecuteUpdateAsync(setters => setters
-            .SetProperty(x => x.Name, updatedInvite.Name)
-            .SetProperty(x => x.Email, updatedInvite.Email)
-            .SetProperty(x => x.Coming, updatedInvite.Coming));
+        var exsistingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
+        if (exsistingInvite == null) return null;
+
+        exsistingInvite.Name = string.IsNullOrEmpty(updatedImportantDate.Name) ? exsistingInvite.Name : updatedImportantDate.Name;
+        exsistingInvite.Date = updatedImportantDate.Date != DateOnly.MinValue ? updatedImportantDate.Date : exsistingInvite.Date;
 
         await _dbContext.SaveChangesAsync();
-
-        if (inviteRows == 0) return null;
-        return updatedInvite;
-    }
+        return exsistingInvite;
 
 
-    // Sletter invitasjon
-    public async Task<Invite?> DeleteAsync(int inviteId)
+        // Sletter invitasjon
+        public async Task<Invite?> DeleteAsync(int inviteId)
     {
         var existingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
         if (existingInvite == null) return null;

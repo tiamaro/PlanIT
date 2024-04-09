@@ -56,15 +56,16 @@ public class UserRepository : IUserRepository
     // Oppdaterer bruker
     public async Task<User?> UpdateAsync(int userId, User updatedUser)
     {
-        var userRows = await _dbContext.Users.Where(x => x.Id == userId)
-            .ExecuteUpdateAsync(setters => setters
-            .SetProperty(x => x.Name, updatedUser.Name)
-            .SetProperty(x => x.Email, updatedUser.Email));
+        var exsistingUser = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == id);
+        if (exsistingUser == null) return null;
+
+        exsistingUser.Name = string.IsNullOrEmpty(updatedEvent.Name) ? exsistingUser.Name : updatedEvent.Name;
+        exsistingUser.Date = updatedEvent.Date != DateOnly.MinValue ? updatedEvent.Date : exsistingUser.Date;
+        exsistingUser.Time = string.IsNullOrEmpty(updatedEvent.Time) ? exsistingUser.Time : updatedEvent.Time;
+        exsistingUser.Location = string.IsNullOrEmpty(updatedEvent.Location) ? exsistingUser.Location : updatedEvent.Location;
 
         await _dbContext.SaveChangesAsync();
-
-        if (userRows == 0) return null;
-        return updatedUser;
+        return exsistingUser;
 
     }
 

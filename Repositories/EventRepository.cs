@@ -49,19 +49,28 @@ public class EventRepository : IRepository<Event>
     // Oppdaterer arrangementsinformasjon
     public async Task<Event?> UpdateAsync(int id, Event updatedEvent)
     {
-        var eventRows = await _dbContext.Events.Where(x => x.Id == id)
-            .ExecuteUpdateAsync(setters => setters
-            .SetProperty(x => x.Name, updatedEvent.Name)
-            .SetProperty(x => x.Time, updatedEvent.Time)
-            .SetProperty(x => x.Location, updatedEvent.Location)
-            .SetProperty(x => x.Date, updatedEvent.Date));
+        var exsistingEvent = await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == id);
+        if (exsistingEvent == null) return null;
+
+        exsistingEvent.Name = string.IsNullOrEmpty(updatedDinner.Name) ? exsistingEvent.Name : updatedDinner.Name;
+        exsistingEvent.Date = updatedDinner.Date != DateOnly.MinValue ? updatedDinner.Date : exsistingEvent.Date;
 
         await _dbContext.SaveChangesAsync();
+        return exsistingEvent;
 
-        if (eventRows == 0) return null;
-        return updatedEvent;
 
     }
+
+    //var exsistingEvent = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == id);
+    //    if (exsistingEvent == null) return null;
+
+    //    exsistingEvent.Name = string.IsNullOrEmpty(updatedEvent.Name) ? exsistingEvent.Name : updatedEvent.Name;
+
+    //    await _dbContext.SaveChangesAsync();
+    //    return exsistingEvent;
+
+
+
 
     // Sletter Arrangement
     public async Task<Event?> DeleteAsync(int eventId)
