@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240321202950_PlanITMigrations")]
+    [Migration("20240410121516_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -191,7 +191,7 @@ namespace PlanIT.API.Data.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("HashedPassword")
                         .IsRequired()
@@ -207,7 +207,36 @@ namespace PlanIT.API.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "PerHansen@mail.com",
+                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUOfhg4jdA7vadk0U1oSzfhxMQFc7rBIYm",
+                            Name = "",
+                            Salt = "$2a$11$BYoIkWTHbRHiL8BKb.Sl.."
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "Olanordmann@mail.com",
+                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUO1ckdbk5hGDRYoOH0dpZyeT83QGXmISm",
+                            Name = "",
+                            Salt = "$2a$11$b/RJYNgZNhN5e59sDIUSK."
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Email = "Karinordmann@mail.com",
+                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUOzxyxeP.xcDWRTVK/qUDaW/0Z9IfJ4Zy",
+                            Name = "",
+                            Salt = "$2a$11$XyJcI9t8GKpP8VC4WYsudu"
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Dinner", b =>
