@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
+
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace PlanIT.API.Data.Migrations
 {
@@ -20,7 +23,7 @@ namespace PlanIT.API.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -177,6 +180,16 @@ namespace PlanIT.API.Data.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
+                values: new object[,]
+                {
+                    { 1, "PerHansen@mail.com", "$2a$11$mgIiqg8ubtkxYTYOYV5BUOfhg4jdA7vadk0U1oSzfhxMQFc7rBIYm", "", "$2a$11$BYoIkWTHbRHiL8BKb.Sl.." },
+                    { 2, "Olanordmann@mail.com", "$2a$11$mgIiqg8ubtkxYTYOYV5BUO1ckdbk5hGDRYoOH0dpZyeT83QGXmISm", "", "$2a$11$b/RJYNgZNhN5e59sDIUSK." },
+                    { 3, "Karinordmann@mail.com", "$2a$11$mgIiqg8ubtkxYTYOYV5BUOzxyxeP.xcDWRTVK/qUDaW/0Z9IfJ4Zy", "", "$2a$11$XyJcI9t8GKpP8VC4WYsudu" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Dinners_UserId",
                 table: "Dinners",
@@ -206,6 +219,12 @@ namespace PlanIT.API.Data.Migrations
                 name: "IX_Todos_UserId",
                 table: "Todos",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
         }
 
         /// <inheritdoc />
