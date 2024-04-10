@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240410121516_PlanITMigrations")]
+    [Migration("20240410122344_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -216,26 +216,26 @@ namespace PlanIT.API.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Email = "PerHansen@mail.com",
-                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUOfhg4jdA7vadk0U1oSzfhxMQFc7rBIYm",
-                            Name = "",
-                            Salt = "$2a$11$BYoIkWTHbRHiL8BKb.Sl.."
+                            Email = "perhansen@mail.com",
+                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu6QdIRQd2XDZVPnBsdJ9z5wc7dhqrKI6",
+                            Name = "Per",
+                            Salt = "$2a$11$WIJDo2p29qYjKQKmYXknHu"
                         },
                         new
                         {
                             Id = 2,
-                            Email = "Olanordmann@mail.com",
-                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUO1ckdbk5hGDRYoOH0dpZyeT83QGXmISm",
-                            Name = "",
-                            Salt = "$2a$11$b/RJYNgZNhN5e59sDIUSK."
+                            Email = "olanordmann@mail.com",
+                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu11aLWYHdbWIMCBrQUrs5PxXcZCod6pa",
+                            Name = "Ola",
+                            Salt = "$2a$11$FMCHnD3Ml4C4.dCknR8rv."
                         },
                         new
                         {
                             Id = 3,
-                            Email = "Karinordmann@mail.com",
-                            HashedPassword = "$2a$11$mgIiqg8ubtkxYTYOYV5BUOzxyxeP.xcDWRTVK/qUDaW/0Z9IfJ4Zy",
-                            Name = "",
-                            Salt = "$2a$11$XyJcI9t8GKpP8VC4WYsudu"
+                            Email = "karinordmann@mail.com",
+                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu20kR0E3wt3/ywgx7Hx/rf48QkMtWRra",
+                            Name = "Kari",
+                            Salt = "$2a$11$QiyC/O/F0KCt9ZhYlSWBBu"
                         });
                 });
 

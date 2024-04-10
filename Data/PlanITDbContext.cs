@@ -30,7 +30,8 @@ public class PlanITDbContext : DbContext
             new User
             {
                 Id = 1,
-                Email = "PerHansen@mail.com",
+                Email = "perhansen@mail.com",
+                Name = "Per",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
                 Salt = BCrypt.Net.BCrypt.GenerateSalt()
             });
@@ -39,7 +40,8 @@ public class PlanITDbContext : DbContext
             new User
             {
                 Id = 2,
-                Email = "Olanordmann@mail.com",
+                Email = "olanordmann@mail.com",
+                Name = "Ola",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Ola123!", salt),
                 Salt = BCrypt.Net.BCrypt.GenerateSalt()
             });
@@ -48,7 +50,8 @@ public class PlanITDbContext : DbContext
             new User
             {
                 Id = 3,
-                Email = "Karinordmann@mail.com",
+                Email = "karinordmann@mail.com",
+                Name = "Kari",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Kari123!", salt),
                 Salt = BCrypt.Net.BCrypt.GenerateSalt()
             });
