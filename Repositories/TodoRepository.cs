@@ -21,7 +21,8 @@ public class TodoRepository : IRepository<ToDo>
     {
         var addedTodo = await _dbContext.Todos.AddAsync(newTodo);
         await _dbContext.SaveChangesAsync();
-        return addedTodo.Entity;
+
+        return addedTodo?.Entity;
     }
 
     // Retrieves all todo items with pagination
@@ -34,7 +35,8 @@ public class TodoRepository : IRepository<ToDo>
     // Retrieves a todo item by its ID
     public async Task<ToDo?> GetByIdAsync(int toDoId)
     {
-        return await _dbContext.Todos.FindAsync(toDoId);
+        var exsistingToDo = await _dbContext.Todos.FirstOrDefaultAsync(x => x.Id == toDoId);
+        return exsistingToDo is null ? null : exsistingToDo;
     }
 
     public async Task<ToDo?> UpdateAsync(int toDoId, ToDo updatedTodo)
@@ -52,20 +54,14 @@ public class TodoRepository : IRepository<ToDo>
     // Deletes a todo item by its ID
     public async Task<ToDo?> DeleteAsync(int toDoId)
     {
-        // Find the todo item to delete by its ID
-        var todoToDelete = await _dbContext.Todos.FindAsync(toDoId);
-
-        // If the todo item is not found, return null
-        if (todoToDelete == null)
-        {
-            return null;
-        }
-
-        // Remove the todo item from the database
-        _dbContext.Todos.Remove(todoToDelete);
+        
+        var exsistingToDO = await _dbContext.Todos.FindAsync(toDoId);
+        if (exsistingToDO == null) return null;
+       
+        var deletedToDo = _dbContext.Todos.Remove(exsistingToDO);
         await _dbContext.SaveChangesAsync();
 
-        // Return the deleted todo item
-        return todoToDelete;
+       
+        return deletedToDo?.Entity;
     }
 }

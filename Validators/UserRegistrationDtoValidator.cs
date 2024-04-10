@@ -16,7 +16,8 @@ public class UserRegistrationDtoValidator : AbstractValidator<UserRegDTO>
 
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("User email cannot be empty")
-            .EmailAddress().WithMessage("Valid email is required");
+            .EmailAddress().WithMessage("Valid email is required")
+            .MaximumLength(100).WithMessage(" User Name cannot exceed 100 characters");
 
 
         RuleFor(x => x.Password)

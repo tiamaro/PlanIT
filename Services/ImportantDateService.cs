@@ -28,7 +28,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
         var newImportantDate = _dateMapper.MapToModel(importantDateDTO);
         var addedImportantDate = await _dateRepository.AddAsync(newImportantDate);
-        return _dateMapper.MapToDTO(addedImportantDate!);
+        return addedImportantDate != null ? _dateMapper.MapToDTO(addedImportantDate) : null;
     }
 
 
@@ -53,11 +53,8 @@ public class ImportantDateService : IService<ImportantDateDTO>
     {
         var exsistingImportantDate = await _dateRepository.GetByIdAsync(importantDateId);
 
-        if (exsistingImportantDate == null)
-        {
-            return null;
-        }
-
+        if (exsistingImportantDate == null) return null;
+        
         var importantDateToUpdate = _dateMapper.MapToModel(dateDTO);
         importantDateToUpdate.Id = importantDateId;
 
@@ -72,7 +69,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
         var importantDateToDelete = await _dateRepository.GetByIdAsync(importantDateId);
         if (importantDateToDelete == null) return null;
 
-        var isDeleted = await _dateRepository.DeleteAsync(importantDateId);
-        return isDeleted != null ? _dateMapper.MapToDTO(importantDateToDelete) : null;
+        var deltedImportantDate = await _dateRepository.DeleteAsync(importantDateId);
+        return deltedImportantDate != null ? _dateMapper.MapToDTO(importantDateToDelete) : null;
     }
 }
