@@ -12,7 +12,8 @@ public class EventService : IService<EventDTO>
     private readonly IRepository<Event> _eventRepository;
     private readonly ILogger<EventService> _logger;
 
-    public EventService(IMapper<Event, EventDTO> eventMapper,
+    public EventService(IMapper<Event,
+        EventDTO> eventMapper,
         IRepository<Event> eventRepository,
         ILogger<EventService> logger)
     {
@@ -31,7 +32,7 @@ public class EventService : IService<EventDTO>
         var addedEvent = await _eventRepository.AddAsync(newEvent);
 
         // Mapper det nye arrangementet til EventDTO og returnerer den
-        return _eventMapper.MapToDTO(addedEvent!);
+        return addedEvent != null ? _eventMapper.MapToDTO(addedEvent) : null;   
     }
 
 
@@ -59,11 +60,8 @@ public class EventService : IService<EventDTO>
     public async Task<EventDTO?> UpdateAsync(int eventId, EventDTO eventDTO)
     {
         var existingEvent = await _eventRepository.GetByIdAsync(eventId);
-
-        if (existingEvent == null)
-        {
-            return null; // Arrangement ikke funnet
-        }
+        if (existingEvent == null) return null;
+        
 
         // Mapper og oppdaterer arrangementsinformasjon
         var eventToUpdate = _eventMapper.MapToModel(eventDTO);
@@ -84,8 +82,8 @@ public class EventService : IService<EventDTO>
         if (eventToDelete == null) return null;
 
         // Sletter arrangementet fra databasen og mapper den til EventDTO for retur                 
-        var isDeleted = await _eventRepository.DeleteAsync(eventId);
-        return isDeleted != null ? _eventMapper.MapToDTO(eventToDelete) : null;
+        var deletedEvent = await _eventRepository.DeleteAsync(eventId);
+        return deletedEvent != null ? _eventMapper.MapToDTO(eventToDelete) : null;
     }
 
 }

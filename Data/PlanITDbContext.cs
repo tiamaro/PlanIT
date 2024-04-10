@@ -18,4 +18,42 @@ public class PlanITDbContext : DbContext
     public DbSet<ShoppingList> ShoppingLists { get; set; }
     public DbSet<ImportantDate> ImportantDates { get; set; }
 
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+
+        var salt = BCrypt.Net.BCrypt.GenerateSalt();
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = 1,
+                Email = "PerHansen@mail.com",
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
+                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+            });
+
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = 2,
+                Email = "Olanordmann@mail.com",
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Ola123!", salt),
+                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+            });
+
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = 3,
+                Email = "Karinordmann@mail.com",
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Kari123!", salt),
+                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+            });
+
+
+    }
+
 }

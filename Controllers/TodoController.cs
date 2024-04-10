@@ -13,70 +13,55 @@ public class TodoController : ControllerBase
 
     public TodoController(ILogger<TodoController> logger, IService<ToDoDTO> todoService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _todoService = todoService ?? throw new ArgumentNullException(nameof(todoService));
+        _logger = logger;
+        _todoService = todoService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ToDoDTO>> CreateTodoAsync(ToDoDTO newTodoDto)
+    [HttpPost(Name = "AddToDo")]
+    public async Task<ActionResult<ToDoDTO>> AddToDoAsync(ToDoDTO newTodoDto)
     {
         try
         {
-            var createdTodo = await _todoService.CreateAsync(newTodoDto);
-            if (createdTodo == null)
+            if (!ModelState.IsValid)
             {
-                return StatusCode(500, "Failed to create todo");
+                _logger.LogError("Invalid model state in AddToDoAsync");
+                return BadRequest(ModelState);
             }
 
-            return Ok(createdTodo);
+            var addedToDo = await _todoService.CreateAsync(newTodoDto);
+            return addedToDo != null
+                ? Ok(addedToDo) 
+                : BadRequest("Failed to register new event");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create todo");
-            return StatusCode(500, "An error occurred while creating todo");
+            _logger.LogError("An unknown error occured: " + ex.Message);
+            return StatusCode(500, "An unknown error occured, please try again later");
         }
+        
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<ToDoDTO>> GetTodoByIdAsync(int id)
+    [HttpGet("{toDoId}", Name = "GetToDoById")]
+    public async Task<ActionResult<ToDoDTO>> GetTodoByIdAsync(int toDoId)
     {
-        try
-        {
-            var todo = await _todoService.GetByIdAsync(id);
-            if (todo == null)
-            {
-                return NotFound();
-            }
-            return Ok(todo);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Failed to get todo with ID {id}");
-            return StatusCode(500, $"An error occurred while getting todo with ID {id}");
-        }
+        var exsistingToDo = await _todoService.GetByIdAsync(toDoId);
+
+        return exsistingToDo != null
+            ? Ok(exsistingToDo)
+            : NotFound("Event not found");
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync([FromQuery] int pageNr, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync(int pageNr, int pageSize)
     {
-        try
-        {
-            if (pageNr <= 0 || pageSize <= 0)
-            {
-                return BadRequest("Invalid page number or page size");
-            }
+        var allToDos = await _todoService.GetAllAsync(pageNr, pageSize);
 
-            var todos = await _todoService.GetAllAsync(pageNr, pageSize);
-            return Ok(todos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve todos");
-            return StatusCode(500, "An error occurred while retrieving todos");
-        }
+        return allToDos != null
+           ? Ok(allToDos)
+           : NotFound("No registered toDos found.");
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id}")]
     public async Task<ActionResult<ToDoDTO>> UpdateTodoAsync(int id, ToDoDTO updatedTodoDto)
     {
         try
@@ -95,7 +80,7 @@ public class TodoController : ControllerBase
         }
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id}")]
     public async Task<ActionResult<ToDoDTO>> DeleteTodoAsync(int id)
     {
         try

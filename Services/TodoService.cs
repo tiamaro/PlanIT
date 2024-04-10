@@ -18,42 +18,40 @@ public class TodoService : IService<ToDoDTO>
         IMapper<ToDo, ToDoDTO> todoMapper,
         ILogger<TodoService> logger)
     {
-        _todoRepository = todoRepository ?? throw new ArgumentNullException(nameof(todoRepository));
-        _todoMapper = todoMapper ?? throw new ArgumentNullException(nameof(todoMapper));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _todoRepository = todoRepository;
+        _todoMapper = todoMapper;
+        _logger = logger;
     }
 
     // Creates a new todo asynchronously.
-    public async Task<ToDoDTO?> CreateAsync(ToDoDTO newDto)
+    public async Task<ToDoDTO?> CreateAsync(ToDoDTO todoDTO)
     {
-        var newTodo = _todoMapper.MapToModel(newDto);
+        var newTodo = _todoMapper.MapToModel(todoDTO);
         var addedTodo = await _todoRepository.AddAsync(newTodo);
-        return _todoMapper.MapToDTO(addedTodo!);
+        return addedTodo != null ? _todoMapper.MapToDTO(addedTodo) : null;  
     }
 
-    // Retrieves a single todo item by its unique identifier asynchronously.
-    public async Task<ToDoDTO?> GetByIdAsync(int id)
-    {
-        var todo = await _todoRepository.GetByIdAsync(id);
-        return todo != null ? _todoMapper.MapToDTO(todo) : null;
-    }
 
     // Retrieves all todo items with pagination asynchronously.
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int pageNr, int pageSize)
     {
-        var todos = await _todoRepository.GetAllAsync(pageNr, pageSize);
-        return todos.Select(_todoMapper.MapToDTO).ToList();
+        var toDosFromRepository = await _todoRepository.GetAllAsync(pageNr, pageSize);
+        var todDoDTOs = toDosFromRepository.Select(todoEntity => _todoMapper.MapToDTO(todoEntity)).ToList();
+        return todDoDTOs;
+    }
+
+    // Retrieves a single todo item by its unique identifier asynchronously.
+    public async Task<ToDoDTO?> GetByIdAsync(int toDoId)
+    {
+        var toDoFromRepository = await _todoRepository.GetByIdAsync(toDoId);
+        return toDoFromRepository != null ? _todoMapper.MapToDTO(toDoFromRepository) : null;
     }
 
     // Updates an existing todo item asynchronously.
     public async Task<ToDoDTO?> UpdateAsync(int id, ToDoDTO todoDto)
     {
         var existingTodo = await _todoRepository.GetByIdAsync(id);
-        if (existingTodo == null)
-        {
-            _logger.LogWarning("Todo item with ID {TodoId} was not found.", id);
-            return null;
-        }
+        if (existingTodo == null) return null;
 
         var todoToUpdate = _todoMapper.MapToModel(todoDto);
         todoToUpdate.Id = id;
@@ -63,15 +61,12 @@ public class TodoService : IService<ToDoDTO>
     }
 
     // Deletes a todo item by its unique identifier asynchronously.
-    public async Task<ToDoDTO?> DeleteAsync(int id)
+    public async Task<ToDoDTO?> DeleteAsync(int toDoId)
     {
-        var deletedTodo = await _todoRepository.DeleteAsync(id);
-        if (deletedTodo == null)
-        {
-            _logger.LogWarning("Todo with ID {TodoId} was not found.", id);
-            return null;
-        }
+        var toDoToDelete = await _todoRepository.GetByIdAsync(toDoId);
+        if (toDoToDelete == null) return null;
 
-        return _todoMapper.MapToDTO(deletedTodo);
+        var deltedToDo = await _todoRepository.DeleteAsync(toDoId);
+        return deltedToDo != null ? _todoMapper.MapToDTO(toDoToDelete) : null; 
     }
 }

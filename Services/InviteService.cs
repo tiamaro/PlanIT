@@ -11,20 +11,17 @@ public class InviteService : IService<InviteDTO>
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
     private readonly ILogger<InviteService> _logger;
-    //private readonly IBackgroundJobClient _backgroundJobClient;
-    public readonly IMailService _mailService;
+    private readonly IMailService _mailService;
 
     public InviteService(IMapper<Invite, InviteDTO> inviteMapper,
         IRepository<Invite> inviteRepository,
         ILogger<InviteService> logger,
-        // IBackgroundJobClient backgroundJobClient
         IMailService mailService
         )
     {
         _inviteMapper = inviteMapper;
         _inviteRepository = inviteRepository;
         _logger = logger;
-        //_backgroundJobClient = backgroundJobClient;
         _mailService = mailService;
     }
 
@@ -40,21 +37,8 @@ public class InviteService : IService<InviteDTO>
         //_mailService.SendInviteEmail(addedInvite);
 
 
-        // Unsure of what to do with invite null reference 
-        // Unsure how this will work 
-        //_backgroundJobClient.Schedule(() => _mailService.SendReminderEmail(addedInvite),
-        //addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) >= DateTime.Today
-        //? (addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) - DateTime.Today).TotalDays < 3
-        //? TimeSpan.Zero  // Schedule immediately if less than 3 days
-        //: (addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue) - DateTime.Today)  // Schedule for remaining days
-        //: addedInvite.Event.Date.ToDateTime(TimeOnly.MinValue).Subtract(DateTime.Today));
-
-
-
-
-
         // Mapper den nye invitasjonen til InviteDTO og returnerer den
-        return _inviteMapper.MapToDTO(addedInvite!);
+        return addedInvite != null ? _inviteMapper.MapToDTO(addedInvite) : null;    
     }
 
 
@@ -65,7 +49,7 @@ public class InviteService : IService<InviteDTO>
         var invitesFromRepository = await _inviteRepository.GetAllAsync(1, 10);
 
         // Mapper invitasjonsdataene til inviteDTO-format
-        var inviteDTOs = invitesFromRepository.Select(invite => _inviteMapper.MapToDTO(invite)).ToList();
+        var inviteDTOs = invitesFromRepository.Select(inviteEntity => _inviteMapper.MapToDTO(inviteEntity)).ToList();
         return inviteDTOs;
     }
 
@@ -82,18 +66,14 @@ public class InviteService : IService<InviteDTO>
     public async Task<InviteDTO?> UpdateAsync(int inviteId, InviteDTO inviteDTO)
     {
         var existingInvite = await _inviteRepository.GetByIdAsync(inviteId);
-
-        if (existingInvite == null)
-        {
-            return null; // Invitasjon ikke funnet
-        }
+        if (existingInvite == null) return null;
+        
 
         // Mapper og oppdaterer invitasjonsinformasjon
         var inviteToUpdate = _inviteMapper.MapToModel(inviteDTO);
         inviteToUpdate.Id = inviteId;
 
         var updatedInvite = await _inviteRepository.UpdateAsync(inviteId, inviteToUpdate);
-
         return updatedInvite != null ? _inviteMapper.MapToDTO(updatedInvite) : null;
     }
 
@@ -107,7 +87,7 @@ public class InviteService : IService<InviteDTO>
         if (inviteToDelete == null) return null;
 
         // Sletter invitasjonen fra databasen og mapper den til InviteDTO for retur                 
-        var isDeleted = await _inviteRepository.DeleteAsync(inviteId);
-        return isDeleted != null ? _inviteMapper.MapToDTO(inviteToDelete) : null;
+        var deletedInvite = await _inviteRepository.DeleteAsync(inviteId);
+        return deletedInvite != null ? _inviteMapper.MapToDTO(inviteToDelete) : null;
     }
 }
