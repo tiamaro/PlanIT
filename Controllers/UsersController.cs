@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
+using System.Security.Claims;
 
 namespace PlanIT.API.Controllers;
 
@@ -89,34 +90,36 @@ public class UsersController : ControllerBase
     }
 
 
-    // Oppdaterer en bruker basert på brukerens ID ved å bruke UserService.
-    // Returnerer en ActionResult med en oppdatert UserDTO hvis oppdateringen var vellykket, 
-    // ellers returneres NotFound hvis brukeren ikke ble funnet.
+    // Oppdaterer informasjonen for den innloggede brukeren basert på data fra en JWT-token.
+    // Brukerens unike ID hentes fra den autentiserte brukerens claims i JWT-tokenet,
+    // og sikrer dermed at brukere kun kan oppdatere sin egen informasjon.
     // PUT /api/v1/Users/4
-    [HttpPut("{userId}", Name = "UpdateUser")]
-    public async Task<ActionResult<UserDTO>> UpdateUserAsync(int userId, UserDTO updatedUserDTO)
+    [HttpPut(Name = "UpdateUser")]
+    public async Task<ActionResult<UserDTO>> UpdateUserAsync(UserDTO updatedUserDTO)
     {
+        // Hent brukerens unike ID fra de autentiserte brukerens claims
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        // Sjekk om brukerens ID ble funnet i tokenet
+        if (!int.TryParse(userIdValue, out var userId))
+        {
+            _logger.LogError("Invalid or missing user ID in JWT token.");
+            return Unauthorized("Invalid user ID.");
+        }
+
         // Hent bruker fra tjenesten
         var user = await _userService.GetByIdAsync(userId);
-
-        // Sjekk om bruker eksisterer
-        if (user == null) return NotFound("User not found");
-
-        try
+        if (user == null)
         {
-            // Hvis bruker er riktig, fortsett med oppdateringen.
-            var updatedUserResult = await _userService.UpdateAsync(userId, updatedUserDTO);
-            return updatedUserResult != null
-                ? Ok(updatedUserResult)
-                : NotFound("Unable to update the user");
-        }
-        catch (Exception ex) // Generell Exception-håndtering for uventede feil
-        {
-            _logger.LogError("An unknown error occured: " + ex.Message);
-            return StatusCode(500, "An unknown error occured, please try again later");
+            _logger.LogWarning($"User with ID {userId} not found.");
+            return NotFound("User not found");
         }
 
+        var updatedUserResult = await _userService.UpdateAsync(userId, updatedUserDTO);
+        return updatedUserResult != null ? Ok(updatedUserResult) : NotFound("Unable to update the user");
+       
     }
+
 
     // Sletter en bruker basert på brukerens ID ved å bruke UserService.
     // Returnerer en ActionResult med en slettet UserDTO hvis slettingen var vellykket, 

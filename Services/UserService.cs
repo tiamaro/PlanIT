@@ -70,20 +70,18 @@ public class UserService : IUserService
     {
         var existingUser = await _userRepository.GetByIdAsync(userId);
 
-        if (existingUser == null)
-        {
-            return null; // bruker ikke funnet
-        }
+        if (existingUser == null) return null;
 
-        // Mapper og oppdaterer brukerinformasjon
         var userToUpdate = _userMapper.MapToModel(userDTO);
+
+        // Sørger for at IDen som brukes er den som er autorisert fra JWT-token
         userToUpdate.Id = userId;
 
         var updatedUser = await _userRepository.UpdateAsync(userId, userToUpdate);
 
         return updatedUser != null ? _userMapper.MapToDTO(updatedUser) : null;
-
     }
+
 
 
     // Sletter en bruker
