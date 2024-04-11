@@ -33,7 +33,7 @@ public class PlanITDbContext : DbContext
                 Email = "perhansen@mail.com",
                 Name = "Per",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
-                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+                Salt = salt
             });
 
         modelBuilder.Entity<User>().HasData(
@@ -42,8 +42,8 @@ public class PlanITDbContext : DbContext
                 Id = 2,
                 Email = "olanordmann@mail.com",
                 Name = "Ola",
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Ola123!", salt),
-                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
+                Salt = salt
             });
 
         modelBuilder.Entity<User>().HasData(
@@ -53,7 +53,7 @@ public class PlanITDbContext : DbContext
                 Email = "karinordmann@mail.com",
                 Name = "Kari",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Kari123!", salt),
-                Salt = BCrypt.Net.BCrypt.GenerateSalt()
+                Salt = salt
             });
 
 

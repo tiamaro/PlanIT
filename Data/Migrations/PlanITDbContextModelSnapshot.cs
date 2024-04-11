@@ -214,25 +214,25 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu6QdIRQd2XDZVPnBsdJ9z5wc7dhqrKI6",
+                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy",
                             Name = "Per",
-                            Salt = "$2a$11$WIJDo2p29qYjKQKmYXknHu"
+                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
                         },
                         new
                         {
                             Id = 2,
                             Email = "olanordmann@mail.com",
-                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu11aLWYHdbWIMCBrQUrs5PxXcZCod6pa",
+                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy",
                             Name = "Ola",
-                            Salt = "$2a$11$FMCHnD3Ml4C4.dCknR8rv."
+                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
                         },
                         new
                         {
                             Id = 3,
                             Email = "karinordmann@mail.com",
-                            HashedPassword = "$2a$11$GP6oXQpor8wSJfP5i5nqxu20kR0E3wt3/ywgx7Hx/rf48QkMtWRra",
+                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO29dfuJb9b9I6INvpgd0mO/nW0IKVYtS",
                             Name = "Kari",
-                            Salt = "$2a$11$QiyC/O/F0KCt9ZhYlSWBBu"
+                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
                         });
                 });
 

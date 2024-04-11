@@ -185,9 +185,9 @@ namespace PlanIT.API.Data.Migrations
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
                 values: new object[,]
                 {
-                    { 1, "perhansen@mail.com", "$2a$11$GP6oXQpor8wSJfP5i5nqxu6QdIRQd2XDZVPnBsdJ9z5wc7dhqrKI6", "Per", "$2a$11$WIJDo2p29qYjKQKmYXknHu" },
-                    { 2, "olanordmann@mail.com", "$2a$11$GP6oXQpor8wSJfP5i5nqxu11aLWYHdbWIMCBrQUrs5PxXcZCod6pa", "Ola", "$2a$11$FMCHnD3Ml4C4.dCknR8rv." },
-                    { 3, "karinordmann@mail.com", "$2a$11$GP6oXQpor8wSJfP5i5nqxu20kR0E3wt3/ywgx7Hx/rf48QkMtWRra", "Kari", "$2a$11$QiyC/O/F0KCt9ZhYlSWBBu" }
+                    { 1, "perhansen@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy", "Per", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" },
+                    { 2, "olanordmann@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy", "Ola", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" },
+                    { 3, "karinordmann@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO29dfuJb9b9I6INvpgd0mO/nW0IKVYtS", "Kari", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" }
                 });
 
             migrationBuilder.CreateIndex(

@@ -5,6 +5,7 @@ using PlanIT.API.Configurations;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Mappers.Interface;
+using PlanIT.API.Middleware;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services;
 using PlanIT.API.Services.AuthenticationService;
@@ -88,9 +89,11 @@ app.UseCors("AllowMyFrontend");
 app.UseHttpsRedirection();
 
 
-app.UseAuthentication();
+app.UseAuthentication(); // Setter opp autentiseringssystemet og etablerer brukeridentiteten
 
-app.UseAuthorization();
+app.UseMiddleware<JWTClaimsValidationMiddleware>(); // Utfører tilpasset logikk basert på den etablerte brukeridentiteten
+
+app.UseAuthorization(); // Håndterer autorisasjon basert på brukeridentiteten og tilhørende claims
 
 app.MapControllers();
 
