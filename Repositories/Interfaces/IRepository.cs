@@ -6,7 +6,7 @@ public interface IRepository<TEntity>
     Task<TEntity?> AddAsync(TEntity entity);
 
     // READ
-    Task<TEntity?> GetByIdAsync(int id);
+    Task<TEntity?> GetByIdAndUserIdAsync(int id, int userId);
     Task<ICollection<TEntity>> GetAllAsync(int pageNr, int pageSize);
 
 

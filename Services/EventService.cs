@@ -48,11 +48,15 @@ public class EventService : IService<EventDTO>
     }
 
 
-    // Henter arrangement basert på ID
-    public async Task<EventDTO?> GetByIdAsync(int eventId)
+    // Henter arrangement basert på eventID og brukerID
+    public async Task<EventDTO?> GetByIdAndUserIdAsync(int eventId, int userId)
     {
         var eventFromRepository = await _eventRepository.GetByIdAsync(eventId);
-        return eventFromRepository != null ? _eventMapper.MapToDTO(eventFromRepository) : null;
+        if (eventFromRepository != null && eventFromRepository.UserId == userId)
+        {
+            return _eventMapper.MapToDTO(eventFromRepository);
+        }
+        return null; // Retur null hvis arrangementet ikke tilhører brukeren
     }
 
 
@@ -85,5 +89,4 @@ public class EventService : IService<EventDTO>
         var deletedEvent = await _eventRepository.DeleteAsync(eventId);
         return deletedEvent != null ? _eventMapper.MapToDTO(eventToDelete) : null;
     }
-
 }

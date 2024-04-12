@@ -39,10 +39,12 @@ public class EventRepository : IRepository<Event>
     }
 
 
-    // Henter arrangementer basert på ID
-    public async Task<Event?> GetByIdAsync(int eventId)
+    // Henter arrangementer basert på ID og brukerID
+    public async Task<Event?> GetByIdAndUserIdAsync(int eventId, int userId)
     {
-        var eventById = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == eventId);
+        var eventById = await _dbContext.Events
+                           .Where(e => e.Id == eventId && e.UserId == userId)
+                           .FirstOrDefaultAsync();
         return eventById is null ? null : eventById;
     }
 

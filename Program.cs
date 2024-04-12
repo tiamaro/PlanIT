@@ -16,6 +16,9 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Registrer HandleExceptionFilter for controllers
+builder.Services.AddScoped<HandleExceptionFilter>();
+
 // Legg til tjenester i beholderen (DI-containeren).
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -88,6 +91,7 @@ app.UseCors("AllowMyFrontend");
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
 
 app.UseAuthentication(); // Setter opp autentiseringssystemet og etablerer brukeridentiteten
 
