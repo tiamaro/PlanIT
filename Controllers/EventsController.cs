@@ -1,18 +1,33 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
+using System.Security.Claims;
 
 namespace PlanIT.API.Controllers;
 
 
-// Kontrolleren for API-versjon 1 som definerer adressen (URL) til API-et.
-// [ApiController] indikerer at klassen fungerer som en kontroller i systemet og arver fra ControllerBase.
-// Tar imot en EventService-innstans som en del av konstruktøren for å utføre arrangementrelaterte operasjoner.
-// api/v1/Events
+// EventController - API Controller for arrangementhåndtering:
+// - Kontrolleren håndterer alle forespørsler relatert til arrangementdata, inkludert registrering,
+//   oppdatering, sletting og henting av arrangementinformasjon. Den tar imot en instans av eventService
+//   som en del av konstruktøren for å utføre operasjoner relatert til arrangementer.
+//
+// Policy:
+// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
+//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
+//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+//
+// HandleExceptionFilter:
+// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+//
+// Forespørsler som starter med "api/v1/Events" vil bli rutet til metoder definert i denne kontrolleren.
 
+
+[Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
-
+[ServiceFilter(typeof(HandleExceptionFilter))]  // Bruker HandleExceptionFilter for å håndtere unntak
 public class EventsController : ControllerBase
 {
     private readonly IService<EventDTO> _eventService;
@@ -30,36 +45,27 @@ public class EventsController : ControllerBase
     [HttpPost("register", Name = "AddEvent")]
     public async Task<ActionResult<EventDTO>> AddEventAsync(EventDTO newEventDTO)
     {
-        try
+       
+        // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
+        if (!ModelState.IsValid)
         {
-            // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state in AddEventAsync");
-
-                // Hvis modelltilstanden er ugyldig, returner en BadRequest sammen med ModelState-feilene
-                return BadRequest(ModelState);
-            }
-
-            // Registrer arrangementet ved å bruke de oppgitte detaljene for arrangementregistrering
-            var addedEvent = await _eventService.CreateAsync(newEventDTO);
-
-            // Sjekk om arrangementsregistreringen var vellykket
-            return addedEvent != null
-                ? Ok(addedEvent)
-                : BadRequest("Failed to register new event");
+            _logger.LogError("Invalid model state in AddEventAsync");
+            return BadRequest(ModelState);
         }
-        catch (Exception ex) // Generell Exception-håndtering for uventede feil
-        {
-            _logger.LogError("An unknown error occured: " + ex.Message);
-            return StatusCode(500, "An unknown error occured, please try again later");
-        }
+
+        // Registrer arrangementet
+        var addedEvent = await _eventService.CreateAsync(newEventDTO);
+
+        // Sjekk om arrangementsregistreringen var vellykket
+        return addedEvent != null
+            ? Ok(addedEvent)
+            : BadRequest("Failed to register new event");        
     }
 
 
-    // Henter en liste over arrangementer i form av EventDTO-objekter med paginering.
-    // Parametrene 'pageNr' og 'pageSize' angir henholdsvis sidenummer og størrelse på siden.
-    // Returnerer en ActionResult med en IEnumerable av EventDTO-objekter.
+    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
+    //
+    // Henter en liste over arrangementer
     // GET: /api/v1/Events?pageNr=1&pageSize=10
     [HttpGet(Name = "GetEvents")]
     public async Task<ActionResult<IEnumerable<EventDTO>>> GetEventsAsync(int pageNr, int pageSize)
@@ -72,15 +78,19 @@ public class EventsController : ControllerBase
     }
 
 
-    // Henter et arrangement basert på arrangementets ID ved hjelp av EventService.
-    // Returnerer en ActionResult med en EventDTO hvis arrangementet ble funnet,
-    // ellers returneres NotFound hvis arrangementet ikke ble funnet.
+    // Henter et arrangement basert på arrangementets ID
     // GET /api/v1/Events/1
     [HttpGet("{eventId}", Name = "GetEventsById")]
     public async Task<ActionResult<EventDTO>> GetEventsByIdASync(int eventId)
     {
-        // Hent arrangement fra tjenesten
-        var existingEvent = await _eventService.GetByIdAsync(eventId);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userId, out var numericUserId))
+        {
+            return Unauthorized("Invalid user ID.");
+        }
+
+        // Hent arrangement fra tjenesten, filtrert etter brukerens ID
+        var existingEvent = await _eventService.GetByIdAndUserIdAsync(eventId, numericUserId);
 
         return existingEvent != null
             ? Ok(existingEvent)
@@ -88,9 +98,7 @@ public class EventsController : ControllerBase
     }
 
 
-    // Oppdaterer et arrangement basert på arrangementets ID ved å bruke EventService.
-    // Returnerer en ActionResult med en oppdatert EventDTO hvis oppdateringen var vellykket, 
-    // ellers returneres NotFound hvis arrangementet ikke ble funnet.
+    // Oppdaterer et arrangement basert på arrangementets ID
     // PUT /api/v1/Events/4
     [HttpPut("{eventId}", Name = "UpdateEvent")]
     public async Task<ActionResult<EventDTO>> UpdateEventAsync(int eventId, EventDTO updatedEventDTO)
@@ -101,26 +109,16 @@ public class EventsController : ControllerBase
         // Sjekk om arrangementet eksisterer
         if (existingEvent == null) return NotFound("Event not found");
 
-        try
-        {
-            // Hvis arrangement er riktig, fortsett med oppdateringen.
-            var updatedEventResult = await _eventService.UpdateAsync(eventId, updatedEventDTO);
-            return updatedEventResult != null
-                ? Ok(updatedEventResult)
-                : NotFound("Unable to update the event");
-        }
-        catch (Exception ex) // Generell Exception-håndtering for uventede feil
-        {
-            _logger.LogError("An unknown error occured: " + ex.Message);
-            return StatusCode(500, "An unknown error occured, please try again later");
-        }
-
+        
+        // Hvis arrangement er riktig, fortsett med oppdateringen.
+        var updatedEventResult = await _eventService.UpdateAsync(eventId, updatedEventDTO);
+        return updatedEventResult != null
+            ? Ok(updatedEventResult)
+            : NotFound("Unable to update the event");
     }
 
 
-    // Sletter et arrangement basert på arrangementets ID ved å bruke EventService.
-    // Returnerer en ActionResult med en slettet EventDTO hvis slettingen var vellykket, 
-    // ellers returneres BadRequest hvis arrangement ikke kunne slettes.
+    // Sletter et arrangement basert på arrangementets ID
     // DELETE /api/v1/Events/2
     [HttpDelete("{eventId}", Name = "DeleteEvent")]
     public async Task<ActionResult<EventDTO>> DeleteEventAsync(int eventId)
@@ -131,19 +129,11 @@ public class EventsController : ControllerBase
         // Sjekk om arrangement eksisterer
         if (existingEvent == null) return NotFound("Event not found");
 
-        try
-        {
-            // Hvis arrangement er riktig, fortsett med slettingen.
-            var deletedEventResult = await _eventService.DeleteAsync(eventId);
-            return deletedEventResult != null
-                ? Ok(deletedEventResult)
-                : BadRequest("Unable to delete event");
-        }
-        catch (Exception ex) // Generell Exception-håndtering for uventede feil
-        {
-            _logger.LogError("An unknown error occured: " + ex.Message);
-            return StatusCode(500, "An unknown error occured, please try again later");
-        }
-
+        
+        // Hvis arrangement er riktig, fortsett med slettingen.
+        var deletedEventResult = await _eventService.DeleteAsync(eventId);
+        return deletedEventResult != null
+            ? Ok(deletedEventResult)
+            : BadRequest("Unable to delete event");
     }
 }

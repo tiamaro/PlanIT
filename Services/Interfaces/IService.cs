@@ -7,7 +7,7 @@ public interface IService<TDto>
     Task<TDto?> CreateAsync(TDto dto);
 
     // READ
-    Task<TDto?> GetByIdAsync(int id);
+    Task<TDto?> GetByIdAndUserIdAsync(int id, int userId);
     Task<ICollection<TDto>> GetAllAsync(int pageNr, int pageSize);
 
     // UPDATE
