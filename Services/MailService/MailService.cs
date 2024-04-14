@@ -33,6 +33,8 @@ public class MailService : IMailService
                 message.Body = $"<h1>Hello {invite.Name} you have been invited to {invite?.Event?.Name} on {invite?.Event?.Date} at {invite?.Event?.Time} at {invite?.Event?.Location}, best wishes {invite?.Event?.User?.Name}</h1>";
                 message.IsBodyHtml = true;
 
+
+                //await Task.Run(() => client.Send(message));
                 client.Send(message);
 
 

@@ -9,6 +9,7 @@ using PlanIT.API.Middleware;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services;
 using PlanIT.API.Services.AuthenticationService;
+using PlanIT.API.Services.BackgroundService;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
@@ -35,6 +36,10 @@ builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autent
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
+
+
+// background service 
+builder.Services.AddHostedService<BackgroundWorkerService>();
 
 
 // VALIDERING

@@ -17,11 +17,8 @@ public class Invite
     [Required]
     public string Email { get; set; } = string.Empty;
 
-
-
-    // CHANGE "COMING" THIS TO, implement logic in invite service when sending out emails 
-    //[Required]
-    //public bool/int InviteSent { get; set; }
+    [Required]
+    public bool IsReminderSent { get; set; }
 
 
     [Required]
