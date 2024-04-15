@@ -1,6 +1,8 @@
+using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 
@@ -42,13 +44,15 @@ public class ShoppingListService : IService<ShoppingListDTO>
         }, "Failed to retrieve shopping lists.");
     }
 
-    public async Task<ShoppingListDTO?> GetByIdAsync(int id)
+    // Henter ShoppingList basert på shoppingListId og brukerID
+    public async Task<ShoppingListDTO?> GetByIdAndUserIdAsync(int shoppingListId, int userId)
     {
-        return await HandleServiceCallAsync(async () =>
+        var shoppingListFromRepository = await _shoppingListRepository.GetByIdAsync(shoppingListId);
+        if (shoppingListFromRepository != null && shoppingListFromRepository.UserId == userId)
         {
-            var shoppingList = await _shoppingListRepository.GetByIdAsync(id);
-            return shoppingList != null ? _shoppingListMapper.MapToDTO(shoppingList) : null;
-        }, "Failed to retrieve a shopping list by ID.");
+            return _shoppingListMapper.MapToDTO(shoppingListFromRepository);
+        }
+        return null; // Retur null hvis ShoppingList ikke tilhører brukeren
     }
 
     public async Task<ShoppingListDTO?> UpdateAsync(int id, ShoppingListDTO dto)

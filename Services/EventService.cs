@@ -6,6 +6,8 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Services;
 
+// Serviceklasse for håndtering av arrangementsinformasjon.
+// Exceptions blir fanget av en middleware: HandleExceptionFilter
 public class EventService : IService<EventDTO>
 {
     private readonly IMapper<Event, EventDTO> _eventMapper;
@@ -22,20 +24,31 @@ public class EventService : IService<EventDTO>
         _logger = logger;
     }
 
+
     // Oppretter nytt arrangement
     public async Task<EventDTO?> CreateAsync(EventDTO newEventDTO)
     {
+        _logger.LogInformation("Starting to create a new event.");
+
         // Mapper EventDTO til Event-modellen
         var newEvent = _eventMapper.MapToModel(newEventDTO);
 
         // Legger til det nye arrangementet i databasen og henter resultatet
         var addedEvent = await _eventRepository.AddAsync(newEvent);
+        if (addedEvent == null)
+        {
+            _logger.LogWarning("Failed to create new event.");
+            throw new InvalidOperationException("The event could not be created due to invalid data or state.");
+        }
 
-        // Mapper det nye arrangementet til EventDTO og returnerer den
-        return addedEvent != null ? _eventMapper.MapToDTO(addedEvent) : null;   
+        _logger.LogInformation("New event created successfully with ID {EventId}.", addedEvent.Id);
+        return _eventMapper.MapToDTO(addedEvent);
     }
 
 
+
+    // *********NB!! FJERNE??? *************
+    //
     // Henter alle arrangementer med paginering
     public async Task<ICollection<EventDTO>> GetAllAsync(int pageNr, int pageSize)
     {
@@ -48,45 +61,98 @@ public class EventService : IService<EventDTO>
     }
 
 
+
     // Henter arrangement basert på eventID og brukerID
-    public async Task<EventDTO?> GetByIdAndUserIdAsync(int eventId, int userId)
+    public async Task<EventDTO?> GetByIdAsync(int userIdFromToken, int eventId)
     {
+        _logger.LogDebug("Attempting to retrieve event with ID {EventId} for user ID {UserId}.", eventId, userIdFromToken);
+
         var eventFromRepository = await _eventRepository.GetByIdAsync(eventId);
-        if (eventFromRepository != null && eventFromRepository.UserId == userId)
+
+        if (eventFromRepository == null)
         {
-            return _eventMapper.MapToDTO(eventFromRepository);
+            _logger.LogWarning("Event with ID {EventId} not found.", eventId);
+            throw new KeyNotFoundException($"Event with ID {eventId} not found.");
         }
-        return null; // Retur null hvis arrangementet ikke tilhører brukeren
+
+        if (eventFromRepository.UserId != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized attempt to access event with ID {EventId} by user ID {UserId}.", eventId, userIdFromToken);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access event ID {eventId}.");
+        }
+
+        _logger.LogInformation("Event with ID {EventId} retrieved successfully for user ID {UserId}.", eventId, userIdFromToken);
+        return _eventMapper.MapToDTO(eventFromRepository);
     }
 
 
     // Oppdaterer arrangement
-    public async Task<EventDTO?> UpdateAsync(int eventId, EventDTO eventDTO)
+    public async Task<EventDTO?> UpdateAsync(int userIdFromToken, int eventId, EventDTO eventDTO)
     {
+        _logger.LogDebug("Attempting to update event with ID {EventId} for user ID {UserId}.", eventId, userIdFromToken);
+
+        // Sjekker om arrangementet eksisterer
         var existingEvent = await _eventRepository.GetByIdAsync(eventId);
-        if (existingEvent == null) return null;
-        
+        if (existingEvent == null)
+        {
+            _logger.LogWarning("Event with ID {EventId} not found.", eventId);
+            throw new KeyNotFoundException($"Event with ID {eventId} not found.");
+        }
 
-        // Mapper og oppdaterer arrangementsinformasjon
+        // Sjekker om brukeren har rettigheter til å oppdatere arrangementet
+        if (existingEvent.UserId != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized update attempt by User ID {UserId} on Event ID {EventId}", userIdFromToken, eventId);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update event ID {eventId}.");
+        }
+
         var eventToUpdate = _eventMapper.MapToModel(eventDTO);
-        eventToUpdate.Id = eventId;
+        eventToUpdate.Id = eventId; // Passer på at ikke ID endrer seg under oppdatering
 
+        // Oppdaterer arrangementet
         var updatedEvent = await _eventRepository.UpdateAsync(eventId, eventToUpdate);
+        if (updatedEvent == null)
+        {
+            _logger.LogError("Failed to update Event with ID {EventId}", eventId);
+            throw new InvalidOperationException($"Failed to update event with ID {eventId}.");
+        }
 
-        return updatedEvent != null ? _eventMapper.MapToDTO(updatedEvent) : null;
+        _logger.LogInformation("Event with ID {EventId} updated successfully by User ID {UserId}.", eventId, userIdFromToken);
+        return _eventMapper.MapToDTO(updatedEvent);
     }
 
 
+
     // Sletter arrangement
-    public async Task<EventDTO?> DeleteAsync(int eventId)
+    public async Task<EventDTO?> DeleteAsync(int userIdFromToken, int eventId)
     {
+        _logger.LogDebug("Attempting to delete event with ID {EventId} by user ID {UserId}.", eventId, userIdFromToken);
+
         var eventToDelete = await _eventRepository.GetByIdAsync(eventId);
 
         // Sjekker om arrangementet eksisterer
-        if (eventToDelete == null) return null;
+        if (eventToDelete == null)
+        {
+            _logger.LogWarning("Attempt to delete a non-existent event with ID {EventId}.", eventId);
+            throw new KeyNotFoundException($"Event with ID {eventId} not found."); 
+        }
 
-        // Sletter arrangementet fra databasen og mapper den til EventDTO for retur                 
+        // Sjekker om brukeren har rettigheter til å oppdatere arrangementet
+        if (eventToDelete.UserId != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on Event ID {EventId}.", userIdFromToken, eventId);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete event ID {eventId}.");  
+        }
+
+        // Sletter arrangement fra databasen
         var deletedEvent = await _eventRepository.DeleteAsync(eventId);
-        return deletedEvent != null ? _eventMapper.MapToDTO(eventToDelete) : null;
+        if (deletedEvent == null)
+        {
+            _logger.LogError("Failed to delete event with ID {EventId}.", eventId);
+            throw new InvalidOperationException("Deletion failed, could not complete operation on the database.");
+        }
+
+        _logger.LogInformation("Event with ID {EventId} deleted successfully by User ID {UserId}.", eventId, userIdFromToken);
+        return _eventMapper.MapToDTO(eventToDelete);
     }
 }
