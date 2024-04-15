@@ -9,7 +9,7 @@ using PlanIT.API.Middleware;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services;
 using PlanIT.API.Services.AuthenticationService;
-using PlanIT.API.Services.BackgroundService;
+using PlanIT.API.Services.BackgroundWorkerServices;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
@@ -40,6 +40,10 @@ builder.Services.AddScoped<IAuthService, AuthenticationService>();
 
 // background service 
 builder.Services.AddHostedService<BackgroundWorkerService>();
+
+
+// Register HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
 
 
 // VALIDERING

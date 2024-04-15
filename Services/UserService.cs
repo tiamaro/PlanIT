@@ -80,6 +80,7 @@ public class UserService : IUserService
     }
 
 
+
     // Henter bruker basert på ID
     public async Task<UserDTO?> GetByIdAsync(int userId)
     {
@@ -98,54 +99,68 @@ public class UserService : IUserService
 
 
     // Oppdaterer bruker
-    public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
+    public async Task<UserDTO?> UpdateAsync(int userIdFromToken, UserDTO userDTO)
     {
-        // Sjekker om brukeren eksisterer
-        var existingUser = await _userRepository.GetByIdAsync(userId);
+        _logger.LogInformation("Attempting to update user: {UserId} by requester: {RequesterId}", userDTO.Id, userIdFromToken);
 
+        var existingUser = await _userRepository.GetByIdAsync(userDTO.Id);
+
+        // Sjekker om bruker eksisterer og om den etterspurte brukeren er lik brukeren som skal oppdateres
         if (existingUser == null)
         {
-            _logger.LogWarning("Failed to update user: User not found with ID: {UserId}", userId);
+            _logger.LogWarning("User not found during update attempt: {UserId}", userDTO.Id);
+            return null;
+        }
+
+        if (existingUser.Id != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized update attempt by {RequesterId} on user: {UserId}", userIdFromToken, userDTO.Id);
             return null;
         }
 
         var userToUpdate = _userMapper.MapToModel(userDTO);
+        var updatedUser = await _userRepository.UpdateAsync(userDTO.Id, userToUpdate);
 
-        // Oppdaterer brukeren
-        var updatedUser = await _userRepository.UpdateAsync(userId, userToUpdate);
         if (updatedUser == null)
         {
-            _logger.LogError("Failed to update user with ID: {UserId}", userId);
+            _logger.LogError("Failed to update user: {UserId}", userDTO.Id);
             return null;
         }
 
-        _logger.LogInformation("Successfully updated user with ID: {UserId}", userId);
-
+        _logger.LogInformation("Successfully updated user: {UserId}", userDTO.Id);
         return _userMapper.MapToDTO(updatedUser);
     }
 
 
+
     // Sletter en bruker
-    public async Task<UserDTO?> DeleteAsync(int userId)
+    public async Task<UserDTO?> DeleteAsync(int userIdFromToken)
     {
-        // Sjekker om brukeren eksisterer
-        var userToDelete = await _userRepository.GetByIdAsync(userId);
+        _logger.LogInformation("Delete attempt by user: {RequesterId}", userIdFromToken);
+
+        var userToDelete = await _userRepository.GetByIdAsync(userIdFromToken);
+
         if (userToDelete == null)
         {
-            _logger.LogWarning("Failed to delete user: User not found with ID: {UserId}", userId);
+            _logger.LogWarning("User not found: {UserId}", userIdFromToken);
             return null;
         }
 
-        // Sletter brukeren fra databasen
-        var isDeleted = await _userRepository.DeleteAsync(userId);
+        // Sjekker om brukeren skal slette sin egen konto
+        if (userToDelete.Id != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized delete attempt by {RequesterId} on user: {UserId}", userIdFromToken, userToDelete.Id);
+            return null;
+        }
+
+        var isDeleted = await _userRepository.DeleteAsync(userIdFromToken);
         if (isDeleted == null)
         {
-            _logger.LogError("Error deleting user with ID: {UserId}", userId);
+            _logger.LogError("Failed to delete user: {UserId}", userIdFromToken);
             return null;
         }
 
-        _logger.LogInformation("Successfully deleted user with ID: {UserId}", userId);
-
+        _logger.LogInformation("Successfully deleted user: {UserId}", userIdFromToken);
         return _userMapper.MapToDTO(userToDelete);
     }
 }

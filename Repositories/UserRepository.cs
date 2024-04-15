@@ -80,5 +80,4 @@ public class UserRepository : IUserRepository
         return deletedUser?.Entity;
     }
 
-
 }

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 
+
 namespace PlanIT.API.Middleware;
 
 public class JWTClaimsValidationMiddleware
@@ -16,19 +17,25 @@ public class JWTClaimsValidationMiddleware
         // Sjekker kun for autentiserte forespørsler
         if (context.User?.Identity?.IsAuthenticated == true)
         {
-            // Claims som må være med
+            // Krav til claims som må være til stede
             var requiredClaimTypes = new[] { ClaimTypes.NameIdentifier, ClaimTypes.Email };
 
-
-            // Sjekker om alle påkrevde claim-types finnes for den autentiserte brukeren
+            // Sjekk om alle påkrevde claim-typer er til stede for den autentiserte brukeren
             bool hasAllRequiredClaims = requiredClaimTypes.All(requiredClaimType =>
                 context.User.HasClaim(c => c.Type == requiredClaimType));
 
             if (!hasAllRequiredClaims)
             {
-                context.Response.StatusCode = 403; // Forbidden
+                context.Response.StatusCode = 403; // Forbudt
                 await context.Response.WriteAsync("Access Denied. User does not have the required claims.");
                 return;
+            }
+
+            // Hvis de nødvendige claims er til stede, hent og lagre UserId-claim for senere bruk
+            var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null)
+            {
+                context.Items["UserId"] = userIdClaim.Value;
             }
         }
 

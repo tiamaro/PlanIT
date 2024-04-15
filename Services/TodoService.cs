@@ -1,6 +1,8 @@
+using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 
@@ -40,11 +42,15 @@ public class TodoService : IService<ToDoDTO>
         return todDoDTOs;
     }
 
-    // Retrieves a single todo item by its unique identifier asynchronously.
-    public async Task<ToDoDTO?> GetByIdAsync(int toDoId)
+    // Henter ToDo liste basert på toDoID og brukerID
+    public async Task<ToDoDTO?> GetByIdAndUserIdAsync(int toDoId, int userId)
     {
         var toDoFromRepository = await _todoRepository.GetByIdAsync(toDoId);
-        return toDoFromRepository != null ? _todoMapper.MapToDTO(toDoFromRepository) : null;
+        if (toDoFromRepository != null && toDoFromRepository.UserId == userId)
+        {
+            return _todoMapper.MapToDTO(toDoFromRepository);
+        }
+        return null; // Retur null hvis ToDo listen ikke tilhører brukeren
     }
 
     // Updates an existing todo item asynchronously.

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
-using System.Security.Claims;
 
 namespace PlanIT.API.Controllers;
 
@@ -29,10 +28,12 @@ namespace PlanIT.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
 
@@ -85,55 +86,70 @@ public class UsersController : ControllerBase
     }
 
 
-    // Henter den innloggede brukerens informasjon basert på ID fra JWT-token
+    // Henter informasjon om den innloggede brukeren ved å bruke en bruker-ID
+    // hentet fra JWT-tokenet, som deretter er lagret i HttpContext.Items av middleware.
     [HttpGet("profile", Name = "GetUserProfile")]
     public async Task<ActionResult<UserDTO>> GetUserProfileAsync()
     {
-        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // Henter UserId fra HttpContext.Items som ble lagt til av middleware
+        var userIdValue = HttpContext.Items["UserId"] as string;
 
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0) {
-            return Unauthorized("Invalid user ID."); }
+        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
+        {
+            return Unauthorized("Invalid user ID.");
+        }
 
         var user = await _userService.GetByIdAsync(userId);
 
-        return user != null 
-            ? Ok(user) 
+        return user != null
+            ? Ok(user)
             : NotFound("User not found");
     }
 
 
-    // Oppdaterer informasjonen for den innloggede brukeren basert på data fra en JWT-token
+    // Oppdaterer den innloggede brukerens informasjon ved å bruke bruker-ID
+    // hentet fra JWT-tokenet som deretter er lagret i HttpContext.Items av middleware.
     // PUT /api/v1/Users/4
     [HttpPut(Name = "UpdateUser")]
     public async Task<ActionResult<UserDTO>> UpdateUserAsync(UserDTO updatedUserDTO)
     {
-        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userIdValue = HttpContext.Items["UserId"] as string;
 
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0) {
-            return Unauthorized("Invalid user ID."); }
+        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
+        {
+            return Unauthorized("Invalid user ID.");
+        }
 
+        // Prøver å oppdatere brukeren med den nye informasjonen
         var updatedUserResult = await _userService.UpdateAsync(userId, updatedUserDTO);
 
-        return updatedUserResult != null 
-            ? Ok(updatedUserResult) 
+        // Returnerer oppdatert brukerdata, eller en feilmelding hvis oppdateringen mislykkes
+        return updatedUserResult != null
+            ? Ok(updatedUserResult)
             : NotFound("Unable to update the user");
     }
 
 
-    // Sletter en bruker basert på brukerens ID hentet fra JWT-token
+    // Sletter en bruker basert på brukerens ID hentet fra JWT-tokenet,
+    // som deretter er lagret i HttpContext.Items av middleware.
     // DELETE /api/v1/Users
     [HttpDelete(Name = "DeleteUser")]
     public async Task<IActionResult> DeleteUserAsync()
     {
-        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userIdValue = HttpContext.Items["UserId"] as string;
 
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0) {
-            return Unauthorized("Invalid user ID."); }
+        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
+        {
+            return Unauthorized("Invalid user ID."); 
+        }
 
         var deletedUserResult = await _userService.DeleteAsync(userId);
 
-        return deletedUserResult != null 
-            ? Ok(deletedUserResult) 
-            : BadRequest("Unable to delete user");
+        // Returnerer slettet brukerdata, eller en feilmelding hvis sletting mislykkes
+        return deletedUserResult != null
+            ? Ok(deletedUserResult)
+            : BadRequest("Unable to delete user"); 
     }
 }

@@ -7,12 +7,12 @@ public interface IService<TDto>
     Task<TDto?> CreateAsync(TDto dto);
 
     // READ
-    Task<TDto?> GetByIdAndUserIdAsync(int id, int userId);
+    Task<TDto?> GetByIdAsync(int userId, int id);
     Task<ICollection<TDto>> GetAllAsync(int pageNr, int pageSize);
 
     // UPDATE
-    Task<TDto?> UpdateAsync(int id, TDto dto);
+    Task<TDto?> UpdateAsync(int userId, int id, TDto dto);
 
     // DELETE
-    Task<TDto?> DeleteAsync(int id);
+    Task<TDto?> DeleteAsync(int userid, int id);
 }

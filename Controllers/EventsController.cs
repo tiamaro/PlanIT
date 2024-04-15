@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
-using System.Security.Claims;
 
 namespace PlanIT.API.Controllers;
 
@@ -78,19 +77,19 @@ public class EventsController : ControllerBase
     }
 
 
-    // Henter et arrangement basert på arrangementets ID
+    // Henter arrangementet basert på eventId
     // GET /api/v1/Events/1
     [HttpGet("{eventId}", Name = "GetEventsById")]
     public async Task<ActionResult<EventDTO>> GetEventsByIdASync(int eventId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!int.TryParse(userId, out var numericUserId))
+        var userIdValue = HttpContext.Items["UserId"] as string;
+        if (!int.TryParse(userIdValue, out var userId))
         {
             return Unauthorized("Invalid user ID.");
         }
 
         // Hent arrangement fra tjenesten, filtrert etter brukerens ID
-        var existingEvent = await _eventService.GetByIdAndUserIdAsync(eventId, numericUserId);
+        var existingEvent = await _eventService.GetByIdAsync(userId, eventId);
 
         return existingEvent != null
             ? Ok(existingEvent)
@@ -98,23 +97,26 @@ public class EventsController : ControllerBase
     }
 
 
-    // Oppdaterer et arrangement basert på arrangementets ID
+    // Oppdaterer arrangementet basert på eventId.
     // PUT /api/v1/Events/4
     [HttpPut("{eventId}", Name = "UpdateEvent")]
     public async Task<ActionResult<EventDTO>> UpdateEventAsync(int eventId, EventDTO updatedEventDTO)
     {
-        // Hent arrangement fra tjenesten
-        var existingEvent = await _eventService.GetByIdAsync(eventId);
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userIdValue = HttpContext.Items["UserId"] as string;
 
-        // Sjekk om arrangementet eksisterer
-        if (existingEvent == null) return NotFound("Event not found");
+        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
+        {
+            return Unauthorized("Invalid user ID.");
+        }
 
-        
-        // Hvis arrangement er riktig, fortsett med oppdateringen.
-        var updatedEventResult = await _eventService.UpdateAsync(eventId, updatedEventDTO);
+        // Prøver å oppdatere arrangementet med den nye informasjonen
+        var updatedEventResult = await _eventService.UpdateAsync(userId, eventId, updatedEventDTO);
+
+        // Returnerer oppdatert arrangementdata, eller en feilmelding hvis oppdateringen mislykkes
         return updatedEventResult != null
             ? Ok(updatedEventResult)
-            : NotFound("Unable to update the event");
+            : NotFound("Unable to update the event or the event does not belong to the user");
     }
 
 
@@ -123,17 +125,18 @@ public class EventsController : ControllerBase
     [HttpDelete("{eventId}", Name = "DeleteEvent")]
     public async Task<ActionResult<EventDTO>> DeleteEventAsync(int eventId)
     {
-        // Hent arrangement fra tjenesten
-        var existingEvent = await _eventService.GetByIdAsync(eventId);
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userIdValue = HttpContext.Items["UserId"] as string;
+        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
+        {
+            return Unauthorized("Invalid user ID.");
+        }
 
-        // Sjekk om arrangement eksisterer
-        if (existingEvent == null) return NotFound("Event not found");
-
-        
         // Hvis arrangement er riktig, fortsett med slettingen.
-        var deletedEventResult = await _eventService.DeleteAsync(eventId);
+        var deletedEventResult = await _eventService.DeleteAsync(userId, eventId);
+
         return deletedEventResult != null
             ? Ok(deletedEventResult)
-            : BadRequest("Unable to delete event");
+            : BadRequest("Unable to delete event or event does not belong to the user");
     }
 }
