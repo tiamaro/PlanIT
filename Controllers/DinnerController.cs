@@ -1,13 +1,26 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
-using PlanIT.API.Services;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
+
+// DinnerController - API Controller for middagsplanlegginghåndtering:
+// - Kontrolleren håndterer alle forespørsler relatert til middagsdata, inkludert registrering,
+//   oppdatering, sletting og henting av middagsinformasjon. Den tar imot en instans av IService
+//   som en del av konstruktøren for å utføre operasjoner relatert til middager.
+//
+// Policy:
+// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
+//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
+//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+//
+// HandleExceptionFilter:
+// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+//
+// Forespørsler som starter med "api/v1/Dinner" vil bli rutet til metoder definert i denne kontrolleren.
 
 
 [Authorize(Policy = "Bearer")]
@@ -19,12 +32,16 @@ public class DinnerController : ControllerBase
     private readonly ILogger<DinnerController> _logger;
     private readonly IService<DinnerDTO> _dinnerService;
 
-    public DinnerController(ILogger<DinnerController> logger, IService<DinnerDTO> dinnerService)
+    public DinnerController(ILogger<DinnerController> logger, 
+        IService<DinnerDTO> dinnerService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _dinnerService = dinnerService ?? throw new ArgumentNullException(nameof(dinnerService));
+        _logger = logger;
+        _dinnerService = dinnerService;
     }
 
+
+    // Endepunkt for registrering av ny middag
+    // POST /api/v1/Dinner/register
     [HttpPost("register", Name = "AddEvent")]
     public async Task<ActionResult<DinnerDTO>> AddDinnerAsync(DinnerDTO newDinnerDTO)
     {
@@ -35,15 +52,18 @@ public class DinnerController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Registrer arrangementet
-        var addedEvent = await _dinnerService.CreateAsync(newDinnerDTO);
+        // Registrer middagen
+        var addedDinner = await _dinnerService.CreateAsync(newDinnerDTO);
 
-        // Sjekk om arrangementsregistreringen var vellykket
-        return addedEvent != null
-            ? Ok(addedEvent)
+        // Sjekk om middagsregistreringen var vellykket
+        return addedDinner != null
+            ? Ok(addedDinner)
             : BadRequest("Failed to register new dinner");
     }
 
+
+    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
+    //
     [HttpGet(Name = "GetDinners")]
     public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync(int pageNr, int pageSize)
     {
@@ -55,44 +75,56 @@ public class DinnerController : ControllerBase
     }
 
 
+
+    // Henter middag basert på dinnerId
+    // GET /api/v1/Dinner/1
     [HttpGet("{dinnerId}", Name = "GetDinnerById")]
     public async Task<ActionResult<DinnerDTO>> GetDinnerByIdAsync(int dinnerId)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
+        // Hent middag fra tjenesten, filtrert etter brukerens ID
         var exsistingDinner = await _dinnerService.GetByIdAsync(userId, dinnerId);
 
         return exsistingDinner != null
             ? Ok(exsistingDinner)
             : NotFound("Dinner not found");
-
     }
 
 
-
+    // Oppdaterer middag basert på dinnerID.
+    // PUT /api/v1/Dinner/4
     [HttpPut("{dinnerId}", Name = "UpdateDinner")]
     public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int dinnerId, DinnerDTO updatedDinnerDTO)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
+        // Prøver å oppdatere middag med den nye informasjonen
+        var updatedDinnerResult = await _dinnerService.UpdateAsync(userId, dinnerId, updatedDinnerDTO);
 
-        var updatedEventResult = await _dinnerService.UpdateAsync(userId, dinnerId, updatedDinnerDTO);
-
-        // Returnerer oppdatert arrangementdata, eller en feilmelding hvis oppdateringen mislykkes
-        return updatedEventResult != null
-            ? Ok(updatedEventResult)
-            : NotFound("Unable to update the event or the event does not belong to the user");
-
+        // Returnerer oppdatert middagsdata, eller en feilmelding hvis oppdateringen mislykkes
+        return updatedDinnerResult != null
+            ? Ok(updatedDinnerResult)
+            : NotFound("Unable to update dinner or the dinner does not belong to the user");
     }
 
-    [HttpDelete("{eventId}", Name = "DeleteDinner")]
+
+    // Sletter en middag basert på dinnerID
+    // DELETE /api/v1/Dinner/2
+    [HttpDelete("{dinnerId}", Name = "DeleteDinner")]
     public async Task<ActionResult<DinnerDTO>> DeleteDinnerAsync(int dinnerId)
     {
-
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
+        // Prøver å slette middagen
+        var deletedDinnerResult = await _dinnerService.DeleteAsync(userId, dinnerId);
 
-        var deletedDinner = await _eventService.UpdateAsync(userId, eventId, updatedEventDTO);
+        return deletedDinnerResult != null
+            ? Ok(deletedDinnerResult)
+            : BadRequest("Unable to delete dinner or the dinner does not belong to the user");
 
     }
 }
