@@ -98,7 +98,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
             throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update ImportantDate ID {importantDateId}.");
 
         }
-        
+
         var importantDateToUpdate = _dateMapper.MapToModel(dateDTO);
         importantDateToUpdate.Id = importantDateId;
 
@@ -129,7 +129,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
             throw new KeyNotFoundException($"ImportantDate with ID {importantDateId} not found.");
         }
 
-        if (importantDateToDelete.Id != userIdFromToken) 
+        if (importantDateToDelete.Id != userIdFromToken)
         {
             _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on ImportantDate ID {ImportantDateId}.", userIdFromToken, importantDateId);
             throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete ImportantDate ID {importantDateId}.");
@@ -138,7 +138,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
 
         var deltedImportantDate = await _dateRepository.DeleteAsync(importantDateId);
-        if ( deltedImportantDate == null)
+        if (deltedImportantDate == null)
         {
             _logger.LogError("Failed to delete ImportantDate with ID {ImportantDateId}.", importantDateId);
             throw new InvalidOperationException("Deletion failed, could not complete operation on the database.");

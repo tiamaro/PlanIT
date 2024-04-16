@@ -49,14 +49,14 @@ public class DinnerRepository : IRepository<Dinner>
 
     }
 
-    
+
 
     public async Task<Dinner?> DeleteAsync(int dinnerId)
     {
         var existingDinner = await _dbContext.Dinners.FindAsync(dinnerId);
         if (existingDinner == null) return null;
 
-        var deletedDinner =_dbContext.Dinners.Remove(existingDinner);
+        var deletedDinner = _dbContext.Dinners.Remove(existingDinner);
         await _dbContext.SaveChangesAsync();
 
         return deletedDinner?.Entity;

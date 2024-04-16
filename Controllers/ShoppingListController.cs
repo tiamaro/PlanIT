@@ -33,7 +33,7 @@ public class ShoppingListController : ControllerBase
     private readonly ILogger<ShoppingListController> _logger;
     private readonly IService<ShoppingListDTO> _shoppingListService;
 
-    public ShoppingListController(ILogger<ShoppingListController> logger, 
+    public ShoppingListController(ILogger<ShoppingListController> logger,
         IService<ShoppingListDTO> shoppingListService)
     {
         _logger = logger;

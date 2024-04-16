@@ -61,7 +61,7 @@ public class UserRepository : IUserRepository
 
         exsistingUser.Name = string.IsNullOrEmpty(updatedUser.Name) ? exsistingUser.Name : updatedUser.Name;
         exsistingUser.Email = string.IsNullOrEmpty(updatedUser.Email) ? exsistingUser.Email : updatedUser.Email;
-      
+
         await _dbContext.SaveChangesAsync();
         return exsistingUser;
 

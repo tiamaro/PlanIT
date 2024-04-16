@@ -3,6 +3,7 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
@@ -13,140 +14,140 @@ public class ShoppingListService : IService<ShoppingListDTO>
 {
     private readonly IRepository<ShoppingList> _shoppingListRepository;
     private readonly IMapper<ShoppingList, ShoppingListDTO> _shoppingListMapper;
-    private readonly ILogger<ShoppingListService> _logger;
+    private readonly LoggerService _logger;
 
     public ShoppingListService(
         IRepository<ShoppingList> shoppingListRepository,
         IMapper<ShoppingList, ShoppingListDTO> shoppingListMapper,
-        ILogger<ShoppingListService> logger)
+        LoggerService logger)
     {
         _shoppingListRepository = shoppingListRepository;
         _shoppingListMapper = shoppingListMapper;
         _logger = logger;
     }
 
-
-    // Oppretter ny handleliste
+    // Oppretter en ny handleliste basert på data mottatt fra klienten og lagrer den i databasen.
     public async Task<ShoppingListDTO?> CreateAsync(ShoppingListDTO newShoppingListDto)
     {
-        _logger.LogInformation("Starting to create a new shoppinglist.");
-
+        _logger.LogCreationStart("shopping list");
         var newShoppingList = _shoppingListMapper.MapToModel(newShoppingListDto);
 
-        // Legger til den nye handlelisten i databasen og henter resultatet
+        // Lagrer den nye handlelisten i databasen
         var addedShoppingList = await _shoppingListRepository.AddAsync(newShoppingList);
         if (addedShoppingList == null)
         {
-            _logger.LogWarning("Failed to create new shoppinglist.");
-            throw new InvalidOperationException("The shoppinglist could not be created due to invalid data or state.");
+            _logger.LogCreationFailure("shopping list");
+            throw ExceptionHelper.CreateOperationException("shopping list", 0, "create");
         }
 
-        _logger.LogInformation("New shoppinglist created successfully with ID {shoppingListId}.", addedShoppingList.Id);
+        _logger.LogOperationSuccess("created", "shopping list", addedShoppingList.Id);
         return _shoppingListMapper.MapToDTO(addedShoppingList);
     }
 
-    // *********NB!! FJERNE??? *************
+
+    // ''''''''''''''''''''''''''''''''''FJERNE?????? '''''''''''''''''''''''''''''''''
     //
-    // Henter alle handlelister med paginering
+    // Henter alle handlelister fra databasen med støtte for paginering.
     public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int pageNr, int pageSize)
     {
-        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(1, 10);
-
-        // Mapper til eventDTO-format
-        var shoppingListDTOs = shoppingListsFromRepository.Select(shoppingListEntity => _shoppingListMapper.MapToDTO(shoppingListEntity)).ToList();
+        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(pageNr, pageSize);
+        var shoppingListDTOs = shoppingListsFromRepository.Select(shoppingList => _shoppingListMapper.MapToDTO(shoppingList)).ToList();
         return shoppingListDTOs;
     }
+    // -------------------------------------------------------------------------------------
 
 
-    // Henter ShoppingList basert på shoppingListId og brukerID
+
+    // Henter en spesifikk handleliste basert på ID og sjekker at brukeren har tilgang.
     public async Task<ShoppingListDTO?> GetByIdAsync(int userIdFromToken, int shoppingListId)
     {
         _logger.LogDebug("Attempting to retrieve shopping list with ID {ShoppingListId} for user ID {UserId}.", shoppingListId, userIdFromToken);
 
+        // Henter handleliste basert på ID
         var shoppingListFromRepository = await _shoppingListRepository.GetByIdAsync(shoppingListId);
-
-        // Sjekker om handlelisten eksisterer
         if (shoppingListFromRepository == null)
         {
-            _logger.LogWarning("Shopping list with ID {ShoppingListId} not found.", shoppingListId);
-            throw new KeyNotFoundException($"Shopping list with ID {shoppingListId} not found.");
+            _logger.LogNotFound("shopping list", shoppingListId);
+            throw ExceptionHelper.CreateNotFoundException("shopping list", shoppingListId);
         }
 
-        // Sjekker om brukeren er autorisert
+        // Sjekker om brukeren er den samme.
         if (shoppingListFromRepository.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized attempt to access shopping list with ID {ShoppingListId} by user ID {UserId}.", shoppingListId, userIdFromToken);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access shopping list ID {shoppingListId}.");
+            _logger.LogUnauthorizedAccess("shopping list", shoppingListId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("shopping list", shoppingListId);
         }
 
-        _logger.LogInformation("Shopping list with ID {ShoppingListId} retrieved successfully for user ID {UserId}.", shoppingListId, userIdFromToken);
+        _logger.LogOperationSuccess("retrieved", "shopping list", shoppingListId);
         return _shoppingListMapper.MapToDTO(shoppingListFromRepository);
     }
 
 
-    // Oppdaterer handleliste
+    // Oppdaterer en eksisterende handleliste basert på data mottatt fra klienten.
     public async Task<ShoppingListDTO?> UpdateAsync(int userIdFromToken, int shoppingListId, ShoppingListDTO shoppingListDTO)
     {
         _logger.LogDebug("Attempting to update shopping list with ID {ShoppingListId} by user ID {UserId}.", shoppingListId, userIdFromToken);
 
+        // Forsøker å hente et handleliste basert på ID for å sikre at det faktisk eksisterer før oppdatering.
         var existingShoppingList = await _shoppingListRepository.GetByIdAsync(shoppingListId);
         if (existingShoppingList == null)
         {
-            _logger.LogWarning("Shopping list with ID {ShoppingListId} not found.", shoppingListId);
-            throw new KeyNotFoundException($"Shopping list with ID {shoppingListId} not found.");
+            _logger.LogNotFound("shopping list", shoppingListId);
+            throw ExceptionHelper.CreateNotFoundException("shopping list", shoppingListId);
         }
 
+        // Sjekker om brukeren som prøver å oppdatere handlelisten er den samme brukeren som opprettet den.
         if (existingShoppingList.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized update attempt by User ID {UserId} on shopping list ID {ShoppingListId}.", userIdFromToken, shoppingListId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update shopping list ID {shoppingListId}.");
+            _logger.LogUnauthorizedAccess("shopping list", shoppingListId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("shopping list", shoppingListId);
         }
 
-        // Mapper og forsikrer at ID blir det samme under opopdatering
         var shoppingListToUpdate = _shoppingListMapper.MapToModel(shoppingListDTO);
-        shoppingListToUpdate.Id = shoppingListId;
+        shoppingListToUpdate.Id = shoppingListId; // Sikrer at ID ikke endres
 
-        // Prøver å oppdatere handlelisten
+        // Utfører oppdateringen av handlelisten fra databasen.
         var updatedShoppingList = await _shoppingListRepository.UpdateAsync(shoppingListId, shoppingListToUpdate);
         if (updatedShoppingList == null)
         {
-            _logger.LogError("Failed to update shopping list with ID {ShoppingListId}.", shoppingListId);
-            throw new InvalidOperationException($"Failed to update shopping list with ID {shoppingListId}.");
+            _logger.LogOperationFailure("update", "shopping list", shoppingListId);
+            throw ExceptionHelper.CreateOperationException("shopping list", shoppingListId, "update");
         }
 
-        _logger.LogInformation("Shopping list with ID {ShoppingListId} updated successfully.", shoppingListId);
+        _logger.LogOperationSuccess("updated", "shopping list", shoppingListId);
         return _shoppingListMapper.MapToDTO(updatedShoppingList);
     }
 
 
-    // Sletter handleliste
+    // Sletter en handleliste basert på ID etter å ha sjekket at brukeren har tilgang.
     public async Task<ShoppingListDTO?> DeleteAsync(int userIdFromToken, int shoppingListId)
     {
         _logger.LogDebug("Attempting to delete shopping list with ID {ShoppingListId} by user ID {UserId}.", shoppingListId, userIdFromToken);
 
-        // Henter handleliste for å sjekke om den eksisterer og hvem som eier den
+        // Forsøker å hente et handleliste basert på ID for å sikre at det faktisk eksisterer før sletting.
         var existingShoppingList = await _shoppingListRepository.GetByIdAsync(shoppingListId);
         if (existingShoppingList == null)
         {
-            _logger.LogWarning("Shopping list with ID {ShoppingListId} not found.", shoppingListId);
-            throw new KeyNotFoundException($"Shopping list with ID {shoppingListId} not found.");
+            _logger.LogNotFound("shopping list", shoppingListId);
+            throw ExceptionHelper.CreateNotFoundException("shopping list", shoppingListId);
         }
 
+        // Sjekker om brukeren som prøver å slette handlelisten er den samme brukeren som opprettet den.
         if (existingShoppingList.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on shopping list ID {ShoppingListId}.", userIdFromToken, shoppingListId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete shopping list ID {shoppingListId}.");
+            _logger.LogUnauthorizedAccess("shopping list", shoppingListId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("shopping list", shoppingListId);
         }
 
-        // Prøver å slette handlelisten
+        // Utfører sletting av handlelisten fra databasen.
         var deletedShoppingList = await _shoppingListRepository.DeleteAsync(shoppingListId);
         if (deletedShoppingList == null)
         {
-            _logger.LogError("Failed to delete shopping list with ID {ShoppingListId}.", shoppingListId);
-            throw new InvalidOperationException($"Failed to delete shopping list with ID {shoppingListId}.");
+            _logger.LogOperationFailure("delete", "shopping list", shoppingListId);
+            throw ExceptionHelper.CreateOperationException("shopping list", shoppingListId, "delete");
         }
 
-        _logger.LogInformation("Shopping list with ID {ShoppingListId} deleted successfully.", shoppingListId);
+        _logger.LogOperationSuccess("deleted", "shopping list", shoppingListId);
         return _shoppingListMapper.MapToDTO(deletedShoppingList);
     }
 }

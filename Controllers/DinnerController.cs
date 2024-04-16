@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
-using PlanIT.API.Services;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;

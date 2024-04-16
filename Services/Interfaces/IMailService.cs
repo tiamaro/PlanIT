@@ -8,5 +8,5 @@ public interface IMailService
 
     Task SendReminderEmail(Invite invite);
 
-    
+
 }

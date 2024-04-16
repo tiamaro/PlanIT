@@ -54,14 +54,14 @@ public class TodoRepository : IRepository<ToDo>
     // Deletes a todo item by its ID
     public async Task<ToDo?> DeleteAsync(int toDoId)
     {
-        
+
         var exsistingToDO = await _dbContext.Todos.FindAsync(toDoId);
         if (exsistingToDO == null) return null;
-       
+
         var deletedToDo = _dbContext.Todos.Remove(exsistingToDO);
         await _dbContext.SaveChangesAsync();
 
-       
+
         return deletedToDo?.Entity;
     }
 }

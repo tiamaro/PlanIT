@@ -33,7 +33,7 @@ public class EventsController : ControllerBase
     private readonly IService<EventDTO> _eventService;
     private readonly ILogger<EventsController> _logger;
 
-    public EventsController(IService<EventDTO> eventService, 
+    public EventsController(IService<EventDTO> eventService,
         ILogger<EventsController> logger)
     {
         _eventService = eventService;
@@ -46,7 +46,7 @@ public class EventsController : ControllerBase
     [HttpPost("register", Name = "AddEvent")]
     public async Task<ActionResult<EventDTO>> AddEventAsync(EventDTO newEventDTO)
     {
-       
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -60,7 +60,7 @@ public class EventsController : ControllerBase
         // Sjekk om arrangementsregistreringen var vellykket
         return addedEvent != null
             ? Ok(addedEvent)
-            : BadRequest("Failed to register new event");        
+            : BadRequest("Failed to register new event");
     }
 
 
@@ -121,7 +121,7 @@ public class EventsController : ControllerBase
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
-        
+
         // Prøver å slette arrangementet
         var deletedEventResult = await _eventService.DeleteAsync(userId, eventId);
 

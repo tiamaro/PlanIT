@@ -74,7 +74,7 @@ public class MailService : IMailService
 
         if (invite == null || invite.Event == null)
         {
-            
+
             _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
             throw new ArgumentNullException("Email could not be sent with missing Invite data");
         }
