@@ -35,6 +35,18 @@ public static class WebAppExtensions
     }
 
 
+    // Metode for å hente og validere brukerID fra HttpContext
+    public static int GetValidUserId(HttpContext httpContext)
+    {
+        var userIdValue = httpContext.Items["UserId"] as string;
+        if (int.TryParse(userIdValue, out var userId) && userId != 0)
+        {
+            return userId;
+        }
+        throw new ArgumentException("Invalid user ID.");
+    }
+
+
     // Metode for å konfigurere Swagger med json web token autentisering
     public static void AddSwaggerWithJwtAuthentication(this WebApplicationBuilder builder)
     {

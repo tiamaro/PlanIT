@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
@@ -9,7 +10,7 @@ namespace PlanIT.API.Controllers;
 
 // EventController - API Controller for arrangementhåndtering:
 // - Kontrolleren håndterer alle forespørsler relatert til arrangementdata, inkludert registrering,
-//   oppdatering, sletting og henting av arrangementinformasjon. Den tar imot en instans av eventService
+//   oppdatering, sletting og henting av arrangementinformasjon. Den tar imot en instans av IService
 //   som en del av konstruktøren for å utføre operasjoner relatert til arrangementer.
 //
 // Policy:
@@ -32,7 +33,8 @@ public class EventsController : ControllerBase
     private readonly IService<EventDTO> _eventService;
     private readonly ILogger<EventsController> _logger;
 
-    public EventsController(IService<EventDTO> eventService, ILogger<EventsController> logger)
+    public EventsController(IService<EventDTO> eventService, 
+        ILogger<EventsController> logger)
     {
         _eventService = eventService;
         _logger = logger;
@@ -82,11 +84,8 @@ public class EventsController : ControllerBase
     [HttpGet("{eventId}", Name = "GetEventsById")]
     public async Task<ActionResult<EventDTO>> GetEventsByIdASync(int eventId)
     {
-        var userIdValue = HttpContext.Items["UserId"] as string;
-        if (!int.TryParse(userIdValue, out var userId))
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Hent arrangement fra tjenesten, filtrert etter brukerens ID
         var existingEvent = await _eventService.GetByIdAsync(userId, eventId);
@@ -97,18 +96,13 @@ public class EventsController : ControllerBase
     }
 
 
-    // Oppdaterer arrangementet basert på eventId.
+    // Oppdaterer arrangementet basert på eventID.
     // PUT /api/v1/Events/4
     [HttpPut("{eventId}", Name = "UpdateEvent")]
     public async Task<ActionResult<EventDTO>> UpdateEventAsync(int eventId, EventDTO updatedEventDTO)
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Prøver å oppdatere arrangementet med den nye informasjonen
         var updatedEventResult = await _eventService.UpdateAsync(userId, eventId, updatedEventDTO);
@@ -126,13 +120,9 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<EventDTO>> DeleteEventAsync(int eventId)
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
-
-        // Hvis arrangement er riktig, fortsett med slettingen.
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+        
+        // Prøver å slette arrangementet
         var deletedEventResult = await _eventService.DeleteAsync(userId, eventId);
 
         return deletedEventResult != null

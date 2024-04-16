@@ -26,6 +26,16 @@ public class HandleExceptionFilter : ExceptionFilterAttribute
 
         switch (context.Exception)
         {
+            case ArgumentException ex:
+                result = new ObjectResult(new
+                {
+                    status = StatusCodes.Status400BadRequest,
+                    message = ex.Message ?? "Invalid parameters."
+                })
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+                break;
             case KeyNotFoundException ex:
                 result = new ObjectResult(new
                 {
