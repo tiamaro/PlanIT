@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
@@ -91,13 +92,8 @@ public class UsersController : ControllerBase
     [HttpGet("profile", Name = "GetUserProfile")]
     public async Task<ActionResult<UserDTO>> GetUserProfileAsync()
     {
-        // Henter UserId fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         var user = await _userService.GetByIdAsync(userId);
 
@@ -114,12 +110,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDTO>> UpdateUserAsync(UserDTO updatedUserDTO)
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Prøver å oppdatere brukeren med den nye informasjonen
         var updatedUserResult = await _userService.UpdateAsync(userId, updatedUserDTO);
@@ -138,12 +129,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> DeleteUserAsync()
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID."); 
-        }
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         var deletedUserResult = await _userService.DeleteAsync(userId);
 
