@@ -14,8 +14,15 @@ public class MailService : IMailService
         _logger = logger;
     }
 
-    public void SendInviteEmail(Invite invite)
+    public async Task SendInviteEmail(Invite invite)
     {
+        if (invite == null || invite.Event == null)
+        {
+
+            _logger.LogError("Failed to send email: Invite or event data is missing.");
+            throw new ArgumentNullException("Email could not be sent with missing Invite data");
+        }
+
         try
         {
             using (var client = new SmtpClient("smtp-mail.outlook.com", 587))
@@ -30,12 +37,21 @@ public class MailService : IMailService
                 message.Subject = "You have been invited to an event!";
 
                 // Insert guest information 
-                message.Body = $"<h1>Hello {invite.Name} you have been invited to {invite?.Event?.Name} on {invite?.Event?.Date} at {invite?.Event?.Time} at {invite?.Event?.Location}, best wishes {invite?.Event?.User?.Name}</h1>";
+                message.Body = $"<h1>Hello {invite.Name},</h1>" +
+                  $"<p>You have been invite to '{invite.Event.Name}'.</p>" +
+                  $"<p>The event details are:</p>" +
+                  $"<ul>" +
+                  $"<li>Date: {invite.Event.Date}</li>" +
+                  $"<li>Time: {invite.Event.Time}</li>" +
+                  $"<li>Location: {invite.Event.Location}</li>" +
+                  $"</ul>" +
+                  $"<p>We look forward to seeing you there!</p>" +
+                  $"Sincerely,<br>{invite.Event.User?.Name}</p>";
+
+
+
                 message.IsBodyHtml = true;
-
-
-                //await Task.Run(() => client.Send(message));
-                client.Send(message);
+                await client.SendMailAsync(message);
 
 
             }
@@ -46,7 +62,7 @@ public class MailService : IMailService
         catch (Exception ex)
         {
             _logger.LogError($"An error occured trying to send invite email:{ex.ToString()}");
-            Console.WriteLine($"Error sending email:");
+            throw;
 
         }
 
@@ -55,33 +71,48 @@ public class MailService : IMailService
 
     public async Task SendReminderEmail(Invite invite)
     {
-        if (invite?.Event?.Date.CompareTo(DateTime.Today) <= 3)
-            try
+
+        if (invite == null || invite.Event == null)
+        {
+            
+            _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
+            throw new ArgumentNullException("Email could not be sent with missing Invite data");
+        }
+
+        try
+        {
+            using (var client = new SmtpClient("smtp-mail.outlook.com", 587))
             {
-                using (var client = new SmtpClient("smtp-mail.outlook.com", 587))
-                {
-                    var message = new MailMessage("planit-event@outlook.com", $"{invite.Email}");
-                    message.Subject = $"Reminder {invite.Name} in 3 days!";
+                var message = new MailMessage("planit-event@outlook.com", $"{invite.Email}");
+                message.Subject = $"Reminder {invite.Event.Name} in 3 days";
 
-                    message.Body = $"<h1>Hello {invite.Name},</h1>" +
-                        $"<p>This is a reminder that the event '{invite?.Event?.Name}' is happening on {invite?.Event?.Date} at {invite?.Event?.Time} at {invite?.Event?.Location}.</p>" +
-                        $"<p>We look forward to seeing you there!</p>" +
-                        $"Sincerely,<br>{invite?.Event?.User?.Name}</p>";
-                    message.IsBodyHtml = true;
+                message.Body = $"<h1>Hello {invite.Name},</h1>" +
+                  $"<p>This is a friendly reminder about the event '{invite.Event.Name}'.</p>" +
+                  $"<p>The event details are:</p>" +
+                  $"<ul>" +
+                  $"<li>Date: {invite.Event.Date}</li>" +
+                  $"<li>Time: {invite.Event.Time}</li>" +
+                  $"<li>Location: {invite.Event.Location}</li>" +
+                  $"</ul>" +
+                  $"<p>We look forward to seeing you there!</p>" +
+                  $"Sincerely,<br>{invite.Event.User?.Name}</p>";
 
 
-                    // cant await 'void' error, wrap in Task block ?? 
-                    await Task.Run(() => client.Send(message));
+
+                message.IsBodyHtml = true;
+                await client.SendMailAsync(message);
 
 
-                }
             }
+        }
 
-            catch (Exception ex)
-            {
-                _logger.LogError($"An error occured trying to send reminder email:{ex.ToString()}");
-                Console.WriteLine($"Error sending reminder email");
-            }
+        catch (Exception ex)
+        {
+            _logger.LogError($"An error occured trying to send reminder email:{ex.ToString()}");
+            throw;
+        }
+
+
     }
 }
 

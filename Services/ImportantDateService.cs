@@ -23,12 +23,24 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
 
     // Oppretter nytt ImportantDate
-    public async Task<ImportantDateDTO?> CreateAsync(ImportantDateDTO importantDateDTO)
+    public async Task<ImportantDateDTO?> CreateAsync(ImportantDateDTO newImportantDateDTO)
     {
+        _logger.LogInformation("Starting to create a new ImportantDate.");
 
-        var newImportantDate = _dateMapper.MapToModel(importantDateDTO);
+        var newImportantDate = _dateMapper.MapToModel(newImportantDateDTO);
+
+
         var addedImportantDate = await _dateRepository.AddAsync(newImportantDate);
-        return addedImportantDate != null ? _dateMapper.MapToDTO(addedImportantDate) : null;
+        if (addedImportantDate == null)
+        {
+            _logger.LogWarning("Failed to create new ImportantDate.");
+            throw new InvalidOperationException("The ImportantDate could not be created due to invalid data or state.");
+        }
+
+        _logger.LogInformation("New event created successfully with ID {ImportantDateId}.", addedImportantDate.Id);
+        return _dateMapper.MapToDTO(addedImportantDate);
+
+
     }
 
 
@@ -42,34 +54,100 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
 
     // Henter ImportantDate basert på ID
-    public async Task<ImportantDateDTO?> GetByIdAsync(int importantDateId)
+    public async Task<ImportantDateDTO?> GetByIdAsync(int userIdFromToken, int importantDateId)
     {
-        var importantDatesFromRepository = await _dateRepository.GetByIdAsync(importantDateId);
-        return importantDatesFromRepository != null ? _dateMapper.MapToDTO(importantDatesFromRepository) : null;
+        _logger.LogDebug("Attempting to retrieve event with ID {ImportantDateId} for user ID {UserId}.", importantDateId, userIdFromToken);
+
+
+        var importantDateFromRepository = await _dateRepository.GetByIdAsync(importantDateId);
+        if (importantDateFromRepository == null)
+        {
+            _logger.LogWarning("ImportantDate with ID {ImportantDate} not found.", importantDateId);
+            throw new KeyNotFoundException($"ImportantDate with ID {importantDateId} not found.");
+        }
+
+        if (importantDateFromRepository.Id != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized attempt to access ImportantDate with ID {ImportantDateId} by user ID {UserId}.", importantDateId, userIdFromToken);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access ImportantDate ID {importantDateId}.");
+        }
+
+        _logger.LogInformation("Event with ID {ImportantDateId} retrieved successfully for user ID {UserId}.", importantDateId, userIdFromToken);
+        return _dateMapper.MapToDTO(importantDateFromRepository);
+
+
+
+
     }
 
     // Oppdaterer ImportantDate
-    public async Task<ImportantDateDTO?> UpdateAsync(int importantDateId, ImportantDateDTO dateDTO)
+    public async Task<ImportantDateDTO?> UpdateAsync(int userIdFromToken, int importantDateId, ImportantDateDTO dateDTO)
     {
-        var exsistingImportantDate = await _dateRepository.GetByIdAsync(importantDateId);
+        _logger.LogDebug("Attempting to update ImportantDate with ID {ImportantDateId} for user ID {UserId}.", importantDateId, userIdFromToken);
 
-        if (exsistingImportantDate == null) return null;
+        var exsistingImportantDate = await _dateRepository.GetByIdAsync(importantDateId);
+        if (exsistingImportantDate == null)
+        {
+            _logger.LogWarning("ImportantDate with ID {ImportantDateId} not found.", importantDateId);
+            throw new KeyNotFoundException($"ImportantDate with ID {importantDateId} not found.");
+        }
+
+        if (exsistingImportantDate.Id != userIdFromToken)
+        {
+            _logger.LogWarning("Unauthorized update attempt by User ID {UserId} on ImportantDate ID {ImportantDateId}", userIdFromToken, importantDateId);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update ImportantDate ID {importantDateId}.");
+
+        }
         
         var importantDateToUpdate = _dateMapper.MapToModel(dateDTO);
         importantDateToUpdate.Id = importantDateId;
 
+
         var updatedImportantDate = await _dateRepository.UpdateAsync(importantDateId, importantDateToUpdate);
-        return updatedImportantDate != null ? _dateMapper.MapToDTO(updatedImportantDate) : null;
+        if (updatedImportantDate == null)
+        {
+            _logger.LogError("Failed to update ImportantDate with ID {ImportantDateId}", importantDateId);
+            throw new InvalidOperationException($"Failed to update ImportantDate with ID {importantDateId}.");
+
+        }
+
+        _logger.LogInformation("Event with ID {ImportantDateId} updated successfully by User ID {UserId}.", importantDateId, userIdFromToken);
+        return _dateMapper.MapToDTO(updatedImportantDate);
+
     }
 
 
     // Sletter ImportantDate
-    public async Task<ImportantDateDTO?> DeleteAsync(int importantDateId)
+    public async Task<ImportantDateDTO?> DeleteAsync(int userIdFromToken, int importantDateId)
     {
+        _logger.LogDebug("Attempting to delete event with ID {ImportantDateId} by user ID {UserId}.", userIdFromToken, userIdFromToken);
+
         var importantDateToDelete = await _dateRepository.GetByIdAsync(importantDateId);
-        if (importantDateToDelete == null) return null;
+        if (importantDateToDelete == null)
+        {
+            _logger.LogWarning("Attempt to delete a non-existent ImportantDate with ID {ImportantDateId}.", importantDateId);
+            throw new KeyNotFoundException($"ImportantDate with ID {importantDateId} not found.");
+        }
+
+        if (importantDateToDelete.Id != userIdFromToken) 
+        {
+            _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on ImportantDate ID {ImportantDateId}.", userIdFromToken, importantDateId);
+            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete ImportantDate ID {importantDateId}.");
+
+        }
+
 
         var deltedImportantDate = await _dateRepository.DeleteAsync(importantDateId);
-        return deltedImportantDate != null ? _dateMapper.MapToDTO(importantDateToDelete) : null;
+        if ( deltedImportantDate == null)
+        {
+            _logger.LogError("Failed to delete ImportantDate with ID {ImportantDateId}.", importantDateId);
+            throw new InvalidOperationException("Deletion failed, could not complete operation on the database.");
+
+        }
+
+
+        _logger.LogInformation("Event with ID {ImportantDateId} deleted successfully by User ID {UserId}.", importantDateId, userIdFromToken);
+        return _dateMapper.MapToDTO(importantDateToDelete);
+
     }
 }

@@ -1,11 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
+
+[Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
+[ServiceFilter(typeof(HandleExceptionFilter))]
 public class ImportantDateController : ControllerBase
 {
     private readonly IService<ImportantDateDTO> _dateService;
@@ -19,29 +24,15 @@ public class ImportantDateController : ControllerBase
     }
 
     [HttpPost("register", Name = "AddImportantDate")]
-    public async Task<ActionResult<ImportantDateDTO>> AddImportantDateAsync(ImportantDateDTO newDateDTO)
+    public async Task<ActionResult<ImportantDateDTO>> AddImportantDateAsync(ImportantDateDTO newImportantDateDTO)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state in AddImportantDateAsync");
-                return BadRequest(ModelState);
-
-            }
-
-            var addedImportantDate = await _dateService.CreateAsync(newDateDTO);
-            return addedImportantDate != null ? Ok(addedImportantDate) : BadRequest("Failed to register new ImportantDate");
-
+            _logger.LogError("Invalid model state in AddImportantDateAsync");
+            return BadRequest(ModelState);
         }
+        var addedImportantDate = await _dateService.CreateAsync(newImportantDateDTO);
 
-        catch (Exception ex)
-        {
-            _logger.LogError($"An unknown error occured: {ex.Message}", ex);
-            return StatusCode(500, "An unknown error occured, please try again later");
-
-
-        }
     }
 
     [HttpGet(Name = "GetImportantDates")]
