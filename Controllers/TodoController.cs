@@ -57,8 +57,8 @@ public class TodoController : ControllerBase
 
         // Sjekk om registreringen var vellykket
         return addedToDo != null
-            ? Ok(addedToDo) 
-            : BadRequest("Failed to register new todo item");   
+            ? Ok(addedToDo)
+            : BadRequest("Failed to register new todo item");
     }
 
 
@@ -66,7 +66,7 @@ public class TodoController : ControllerBase
     //
     // Henter en liste over gjøremål
     // GET: /api/v1/Todo?pageNr=1&pageSize=10
-    [HttpGet( Name = "GetToDoLists")]
+    [HttpGet(Name = "GetToDoLists")]
     public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync(int pageNr, int pageSize)
     {
         var allToDos = await _todoService.GetAllAsync(pageNr, pageSize);

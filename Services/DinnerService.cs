@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
@@ -54,7 +52,7 @@ public class DinnerService : IService<DinnerDTO>
 
         var dinnerFromRepostiroy = await _dinnerRepository.GetByIdAsync(dinnerId);
 
-        if (dinnerFromRepostiroy == null) 
+        if (dinnerFromRepostiroy == null)
         {
             _logger.LogWarning("Unauthorized attempt to access Dinner with ID {DinnerId} by user ID {UserId}.", dinnerId, userIdFromToken);
             throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access dinner ID {dinnerId}.");
@@ -72,7 +70,7 @@ public class DinnerService : IService<DinnerDTO>
 
 
     }
-        
+
     // Updates a dinner asynchronously.
     public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
     {

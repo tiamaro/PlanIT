@@ -3,164 +3,138 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Utilities; // For LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
+// Serviceklasse for håndtering av brukerinformasjon.
+// Exceptions blir fanget av en middleware: HandleExceptionFilter
 public class UserService : IUserService
 {
     private readonly IMapper<User, UserDTO> _userMapper;
     private readonly IMapper<User, UserRegDTO> _userRegMapper;
     private readonly IUserRepository _userRepository;
-    private readonly ILogger<UserService> _logger;
+    private readonly LoggerService _logger;
 
-    public UserService(IMapper<User, UserDTO> userMapper
-        , IMapper<User, UserRegDTO> UserRegMapper,
+    public UserService(IMapper<User, UserDTO> userMapper,
+        IMapper<User, UserRegDTO> userRegMapper,
         IUserRepository userRepository,
-        ILogger<UserService> logger)
+        LoggerService logger) 
     {
         _userMapper = userMapper;
-        _userRegMapper = UserRegMapper;
+        _userRegMapper = userRegMapper;
         _userRepository = userRepository;
         _logger = logger;
     }
 
-
-    // Registrerer en ny bruker
+    // Registrerer en ny bruker i systemet og returnerer brukerdata hvis vellykket.
     public async Task<UserDTO?> RegisterUserAsync(UserRegDTO userRegDTO)
     {
-        _logger.LogDebug("Starting registration process for new user.");
+        _logger.LogCreationStart("user");
 
-        // Mapper UserRegDTO til User-modellen
         var newUser = _userRegMapper.MapToModel(userRegDTO);
-        _logger.LogDebug("User data mapped from DTO to User model.");
-
-        // Genererer salt og hash-verdi for passordet
         newUser.Salt = BCrypt.Net.BCrypt.GenerateSalt();
         newUser.HashedPassword = BCrypt.Net.BCrypt.HashPassword(userRegDTO.Password, newUser.Salt);
-        _logger.LogDebug("Password hashing completed.");
 
-        // Legger til den nye brukeren i databasen og henter resultatet
         var addedUser = await _userRepository.AddAsync(newUser);
         if (addedUser == null)
         {
-            _logger.LogError("Failed to add new user to the database.");
-            return null;
+            _logger.LogCreationFailure("user");
+            throw ExceptionHelper.CreateOperationException("user", newUser.Id, "register");
         }
 
-        _logger.LogInformation("New user registered successfully with ID {UserId}.", addedUser.Id);
-
-        // Mapper den nye brukeren til UserDto og returnerer den
-        var userDTO = _userMapper.MapToDTO(addedUser);
-        _logger.LogDebug("New user data mapped to UserDTO.");
-
-        return userDTO;
+        _logger.LogOperationSuccess("registered", "user", addedUser.Id);
+        return _userMapper.MapToDTO(addedUser);
     }
 
-
-    // Henter alle brukere, med paginering
+    // Henter en liste over alle brukere, støtter paginering.
     public async Task<ICollection<UserDTO>> GetAllAsync(int pageNr, int pageSize)
     {
-        _logger.LogDebug("Fetching all users with pagination: Page {PageNumber}, Size {PageSize}", pageNr, pageSize);
+        _logger.LogInfo($"Fetching all users with pagination: Page {pageNr}, Size {pageSize}");
 
         var usersFromRepository = await _userRepository.GetAllAsync(pageNr, pageSize);
-
-        if (usersFromRepository == null || usersFromRepository.Count == 0)
+        if (!usersFromRepository.Any())
         {
-            _logger.LogWarning("No users found for page {PageNumber} with page size {PageSize}.", pageNr, pageSize);
-            return new List<UserDTO>(); // Returner en tom liste hvis ingen brukere finnes
+            _logger.LogWarning("No users found during pagination retrieval.");
+            return new List<UserDTO>();
         }
 
-        _logger.LogInformation("Successfully retrieved {Count} users for page {PageNumber}.", usersFromRepository.Count, pageNr);
-
-        // Mapper brukerdataene til DTO-format
         var userDTOs = usersFromRepository.Select(user => _userMapper.MapToDTO(user)).ToList();
-        _logger.LogDebug("Completed mapping of users to DTOs.");
-
         return userDTOs;
     }
 
-
-
-    // Henter bruker basert på ID
+    // Henter en spesifikk bruker basert på brukerens ID og sjekker tilgang.
     public async Task<UserDTO?> GetByIdAsync(int userId)
     {
-        _logger.LogDebug("Attempting to retrieve user with ID: {UserId}", userId);
+        _logger.LogDebug($"Attempting to retrieve user with ID: {userId}");
 
         var userFromRepository = await _userRepository.GetByIdAsync(userId);
         if (userFromRepository == null)
         {
-            _logger.LogWarning("User with ID {UserId} not found.", userId);
-            return null;
+            _logger.LogNotFound("user", userId);
+            throw ExceptionHelper.CreateNotFoundException("user", userId);
         }
 
-        _logger.LogInformation("User with ID {UserId} retrieved successfully.", userId);
         return _userMapper.MapToDTO(userFromRepository);
     }
 
-
-    // Oppdaterer bruker
-    public async Task<UserDTO?> UpdateAsync(int userIdFromToken, UserDTO userDTO)
+    // Oppdaterer brukerinformasjonen for en eksisterende bruker og sjekker tilgangsrettigheter.
+    public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
     {
-        _logger.LogInformation("Attempting to update user: {UserId} by requester: {RequesterId}", userDTO.Id, userIdFromToken);
+        _logger.LogDebug($"Attempting to update user with ID: {userId}");
 
-        var existingUser = await _userRepository.GetByIdAsync(userDTO.Id);
-
-        // Sjekker om bruker eksisterer og om den etterspurte brukeren er lik brukeren som skal oppdateres
+        var existingUser = await _userRepository.GetByIdAsync(userId);
         if (existingUser == null)
         {
-            _logger.LogWarning("User not found during update attempt: {UserId}", userDTO.Id);
-            return null;
+            _logger.LogNotFound("user", userId);
+            throw ExceptionHelper.CreateNotFoundException("user", userId);
         }
 
-        if (existingUser.Id != userIdFromToken)
+        if (existingUser.Id != userId)
         {
-            _logger.LogWarning("Unauthorized update attempt by {RequesterId} on user: {UserId}", userIdFromToken, userDTO.Id);
-            return null;
+            _logger.LogUnauthorizedAccess("user", userId, userId);
+            throw ExceptionHelper.CreateUnauthorizedException("user", userId);
         }
 
         var userToUpdate = _userMapper.MapToModel(userDTO);
-        var updatedUser = await _userRepository.UpdateAsync(userDTO.Id, userToUpdate);
-
+        var updatedUser = await _userRepository.UpdateAsync(userId, userToUpdate);
         if (updatedUser == null)
         {
-            _logger.LogError("Failed to update user: {UserId}", userDTO.Id);
-            return null;
+            _logger.LogOperationFailure("update", "user", userId);
+            throw ExceptionHelper.CreateOperationException("user", userId, "update");
         }
 
-        _logger.LogInformation("Successfully updated user: {UserId}", userDTO.Id);
+        _logger.LogOperationSuccess("updated", "user", userId);
         return _userMapper.MapToDTO(updatedUser);
     }
 
 
-
-    // Sletter en bruker
-    public async Task<UserDTO?> DeleteAsync(int userIdFromToken)
+    // Sletter en bruker basert på brukerens ID og utfører sjekker for tilgang.
+    public async Task<UserDTO?> DeleteAsync(int userId)
     {
-        _logger.LogInformation("Delete attempt by user: {RequesterId}", userIdFromToken);
+        _logger.LogDebug($"Attempting to delete user with ID: {userId}");
 
-        var userToDelete = await _userRepository.GetByIdAsync(userIdFromToken);
-
+        var userToDelete = await _userRepository.GetByIdAsync(userId);
         if (userToDelete == null)
         {
-            _logger.LogWarning("User not found: {UserId}", userIdFromToken);
-            return null;
+            _logger.LogNotFound("user", userId);
+            throw ExceptionHelper.CreateNotFoundException("user", userId);
         }
 
-        // Sjekker om brukeren skal slette sin egen konto
-        if (userToDelete.Id != userIdFromToken)
+        if (userToDelete.Id != userId)
         {
-            _logger.LogWarning("Unauthorized delete attempt by {RequesterId} on user: {UserId}", userIdFromToken, userToDelete.Id);
-            return null;
+            _logger.LogUnauthorizedAccess("user", userId, userId);
+            throw ExceptionHelper.CreateUnauthorizedException("user", userId);
         }
 
-        var isDeleted = await _userRepository.DeleteAsync(userIdFromToken);
+        var isDeleted = await _userRepository.DeleteAsync(userId);
         if (isDeleted == null)
         {
-            _logger.LogError("Failed to delete user: {UserId}", userIdFromToken);
-            return null;
+            _logger.LogOperationFailure("delete", "user", userId);
+            throw ExceptionHelper.CreateOperationException("user", userId, "delete");
         }
 
-        _logger.LogInformation("Successfully deleted user: {UserId}", userIdFromToken);
+        _logger.LogOperationSuccess("deleted", "user", userId);
         return _userMapper.MapToDTO(userToDelete);
     }
 }

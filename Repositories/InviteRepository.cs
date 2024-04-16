@@ -61,8 +61,8 @@ public class InviteRepository : IRepository<Invite>
     }
 
 
-        // Sletter invitasjon
-        public async Task<Invite?> DeleteAsync(int inviteId)
+    // Sletter invitasjon
+    public async Task<Invite?> DeleteAsync(int inviteId)
     {
         var existingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
         if (existingInvite == null) return null;

@@ -3,6 +3,7 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
@@ -12,140 +13,134 @@ public class TodoService : IService<ToDoDTO>
 {
     private readonly IRepository<ToDo> _todoRepository;
     private readonly IMapper<ToDo, ToDoDTO> _todoMapper;
-    private readonly ILogger<TodoService> _logger;
+    private readonly LoggerService _logger;
 
     public TodoService(
         IRepository<ToDo> todoRepository,
         IMapper<ToDo, ToDoDTO> todoMapper,
-        ILogger<TodoService> logger)
+        LoggerService logger)
     {
         _todoRepository = todoRepository;
         _todoMapper = todoMapper;
         _logger = logger;
     }
 
-    // Oppretter nytt gjøremål
+    // // Oppretter et nytt gjøremål basert på data mottatt fra klienten
     public async Task<ToDoDTO?> CreateAsync(ToDoDTO newToDoDTO)
     {
-        _logger.LogInformation("Starting to create a new todo item.");
+        _logger.LogCreationStart("todo");
 
         var newToDo = _todoMapper.MapToModel(newToDoDTO);
-
-        // Legger til det nye gjøremålet i databasen og henter resultatet
         var addedToDo = await _todoRepository.AddAsync(newToDo);
         if (addedToDo == null)
         {
-            _logger.LogWarning("Failed to create new todo item.");
-            throw new InvalidOperationException("The todo item could not be created due to invalid data or state.");
+            _logger.LogCreationFailure("todo");
+            throw ExceptionHelper.CreateOperationException("todo", 0, "create");
         }
 
-        _logger.LogInformation("New todo item created successfully with ID {ToDoId}.", addedToDo.Id);
+        _logger.LogOperationSuccess("created", "todo", addedToDo.Id);
         return _todoMapper.MapToDTO(addedToDo);
     }
 
 
-    // *********NB!! FJERNE??? *************
+    // ''''''''''''''''''''''''' FJERNE ????????? ''''''''''''''''''''''''
     //
     // Henter alle gjøremål med paginering
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int pageNr, int pageSize)
     {
         var toDosFromRepository = await _todoRepository.GetAllAsync(pageNr, pageSize);
-        var todDoDTOs = toDosFromRepository.Select(todoEntity => _todoMapper.MapToDTO(todoEntity)).ToList();
-        return todDoDTOs;
+        return toDosFromRepository.Select(todoEntity => _todoMapper.MapToDTO(todoEntity)).ToList();
     }
 
 
-    // Henter gjøremål basert på toDoID og brukerID
+    // Henter et spesifikt gjøremål basert på ID og validerer brukerens tilgang
     public async Task<ToDoDTO?> GetByIdAsync(int userIdFromToken, int toDoId)
     {
         _logger.LogDebug("Attempting to retrieve Todo item with ID {ToDoId} for user ID {UserId}.", toDoId, userIdFromToken);
 
         var toDoFromRepository = await _todoRepository.GetByIdAsync(toDoId);
-
-        // Sjekker om gjøremålet eksisterer
         if (toDoFromRepository == null)
         {
-            _logger.LogWarning("Todo itemn with ID {ToDoId} not found.", toDoId);
-            throw new KeyNotFoundException($"Todo item with ID {toDoId} not found.");
+            _logger.LogNotFound("todo", toDoId);
+            throw ExceptionHelper.CreateNotFoundException("todo", toDoId);
         }
 
-        // Sjekker om brukeren er autorisert til å få tilgang til gjøremålet
         if (toDoFromRepository.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized attempt to access Todo item with ID {ToDoId} by user ID {UserId}.", toDoId, userIdFromToken);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access ToDoID {toDoId}.");
+            _logger.LogUnauthorizedAccess("todo", toDoId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("todo", toDoId);
         }
 
-        _logger.LogInformation("Todo item with ID {ToDoId} retrieved successfully for user ID {UserId}.", toDoId, userIdFromToken);
+        _logger.LogOperationSuccess("retrieved", "todo", toDoId);
         return _todoMapper.MapToDTO(toDoFromRepository);
     }
 
 
-    // Oppdaterer gjøremål
+    // Oppdaterer et eksisterende gjøremål etter å ha validert brukerens autorisasjon
     public async Task<ToDoDTO?> UpdateAsync(int userIdFromToken, int toDoId, ToDoDTO todoDto)
     {
         _logger.LogDebug("Attempting to update Todo item with ID {ToDoId} by user ID {UserId}.", toDoId, userIdFromToken);
 
+        // Forsøker å hente et gjøremål basert på ID for å sikre at det faktisk eksisterer før oppdatering.
         var existingTodo = await _todoRepository.GetByIdAsync(toDoId);
         if (existingTodo == null)
         {
-            _logger.LogWarning("Todo item with ID {ToDoId} not found.", toDoId);
-            throw new KeyNotFoundException($"Todo item with ID {toDoId} not found.");
+            _logger.LogNotFound("todo", toDoId);
+            throw ExceptionHelper.CreateNotFoundException("todo", toDoId);
         }
 
-        // Sjekker om brukeren er autorisert til å få tilgang til gjøremålet
+        // Sjekker om brukeren som prøver å oppdatere gjøremålet er den samme brukeren som opprettet det.
         if (existingTodo.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized update attempt by User ID {UserId} on ToDoID {ToDoId}.", userIdFromToken, toDoId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update ToDoID {toDoId}.");
+            _logger.LogUnauthorizedAccess("todo", toDoId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("todo", toDoId);
         }
 
-        // Mapper og passer på at ID blir uforandret under oppdatering
         var todoToUpdate = _todoMapper.MapToModel(todoDto);
         todoToUpdate.Id = toDoId;
 
-        // Prøver å oppdatere gjøremålet
+        // Utfører oppdateringen av gjøremålet fra databasen.
         var updatedTodo = await _todoRepository.UpdateAsync(toDoId, todoToUpdate);
         if (updatedTodo == null)
         {
-            _logger.LogError("Failed to update Todo item with ID {ToDoId}.", toDoId);
-            throw new InvalidOperationException($"Failed to update Todo item with ID {toDoId}.");
+            _logger.LogOperationFailure("update", "todo", toDoId);
+            throw ExceptionHelper.CreateOperationException("todo", toDoId, "update");
         }
 
-        _logger.LogInformation("Todo item with ID {ToDoId} updated successfully.", toDoId);
+        _logger.LogOperationSuccess("updated", "todo", toDoId);
         return _todoMapper.MapToDTO(updatedTodo);
     }
 
 
-
-    // Sletter gjøremålet
+    // Sletter et gjøremål etter å ha sjekket at brukeren er autorisert
     public async Task<ToDoDTO?> DeleteAsync(int userIdFromToken, int toDoId)
     {
         _logger.LogDebug("Attempting to delete Todo item with ID {ToDoId} by user ID {UserId}.", toDoId, userIdFromToken);
 
+        // Forsøker å hente et gjøremål basert på ID for å sikre at det faktisk eksisterer før sletting.
         var toDoToDelete = await _todoRepository.GetByIdAsync(toDoId);
         if (toDoToDelete == null)
         {
-            _logger.LogWarning("Todo item with ID {ToDoId} not found.", toDoId);
-            throw new KeyNotFoundException($"Todo item with ID {toDoId} not found.");
+            _logger.LogNotFound("todo", toDoId);
+            throw ExceptionHelper.CreateNotFoundException("todo", toDoId);
         }
 
-        // Sjekker om brukeren er autorisert til å få tilgang til gjøremålet
+        // Sjekker om brukeren som prøver å slette gjøremålet er den samme brukeren som opprettet det.
         if (toDoToDelete.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on ToDoID {ToDoId}.", userIdFromToken, toDoId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete ToDoID {toDoId}.");
+            _logger.LogUnauthorizedAccess("todo", toDoId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("todo", toDoId);
         }
 
-        // Prøver å slette gjøremålet
+        // Utfører slettingen av gjøremålet fra databasen.
         var deletedToDo = await _todoRepository.DeleteAsync(toDoId);
         if (deletedToDo == null)
         {
-            _logger.LogError("Failed to delete Todo item with ID {ToDoId}.", toDoId);
-            throw new InvalidOperationException($"Failed to delete Todo item with ID {toDoId}.");
+            _logger.LogOperationFailure("delete", "todo", toDoId);
+            throw ExceptionHelper.CreateOperationException("todo", toDoId, "delete");
         }
 
-        _logger.LogInformation("Todo item with ID {ToDoId} deleted successfully.", toDoId);
+        _logger.LogOperationSuccess("deleted", "todo", toDoId);
         return _todoMapper.MapToDTO(toDoToDelete);
     }
 }

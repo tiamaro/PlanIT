@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PlanIT.API.Data;
+﻿using PlanIT.API.Data;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Services.BackgroundWorkerServices;
@@ -27,10 +26,10 @@ public class BackgroundWorkerService : IHostedService, IDisposable
 
 
         return Task.CompletedTask;
-        
+
     }
 
-    
+
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
@@ -53,13 +52,13 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         {
             var invitesToCheck = _dbContext.Invites.Where(x => !x.IsReminderSent && x.Event!.Date.CompareTo(DateTime.Today) <= 3).ToList();
 
-            foreach(var invite in invitesToCheck)
+            foreach (var invite in invitesToCheck)
             {
                 await _mailService.SendReminderEmail(invite);
                 invite.IsReminderSent = true;
                 _dbContext.Update(invite);
                 await _dbContext.SaveChangesAsync();
-                
+
             }
 
 

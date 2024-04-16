@@ -54,8 +54,8 @@ public class UsersController : ControllerBase
         var userDTO = await _userService.RegisterUserAsync(userRegDTO);
 
         // Sjekk om brukerregistreringen var vellykket
-        return userDTO != null 
-            ? Ok(userDTO) 
+        return userDTO != null
+            ? Ok(userDTO)
             : BadRequest("Failed to register new user");
     }
 
@@ -81,8 +81,8 @@ public class UsersController : ControllerBase
     {
         var user = await _userService.GetByIdAsync(userId);
 
-        return user != null 
-            ? Ok(user) 
+        return user != null
+            ? Ok(user)
             : NotFound("User not found");
     }
 
@@ -136,6 +136,6 @@ public class UsersController : ControllerBase
         // Returnerer slettet brukerdata, eller en feilmelding hvis sletting mislykkes
         return deletedUserResult != null
             ? Ok(deletedUserResult)
-            : BadRequest("Unable to delete user"); 
+            : BadRequest("Unable to delete user");
     }
 }

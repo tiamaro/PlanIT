@@ -46,11 +46,11 @@ public class InvitesController : ControllerBase
     [HttpPost("register", Name = "AddInvites")]
     public async Task<ActionResult<InviteDTO>> AddInviteAsync(InviteDTO newInviteDTO)
     {
-        
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
-            _logger.LogError("Invalid model state in AddInviteAsync");            
+            _logger.LogError("Invalid model state in AddInviteAsync");
             return BadRequest(ModelState);
         }
 
@@ -60,7 +60,7 @@ public class InvitesController : ControllerBase
         // Sjekk om invitasjonsregistreringen var vellykket
         return addedInvite != null
             ? Ok(addedInvite)
-            : BadRequest("Failed to register new invite");        
+            : BadRequest("Failed to register new invite");
     }
 
 
@@ -114,11 +114,11 @@ public class InvitesController : ControllerBase
 
         // Prøver å oppdatere invitasjonen med den nye informasjonen
         var updatedInviteResult = await _inviteService.UpdateAsync(userId, inviteId, updatedInviteDTO);
-        
+
         // Returnerer oppdatert invitasjonsdata, eller en feilmelding hvis oppdateringen mislykkes
         return updatedInviteResult != null
             ? Ok(updatedInviteResult)
-            : NotFound("Unable to update the invite or the invite does not belong to the user");      
+            : NotFound("Unable to update the invite or the invite does not belong to the user");
     }
 
 
@@ -136,7 +136,7 @@ public class InvitesController : ControllerBase
 
         // Prøver å slette invitasjonen.
         var deletedInviteResult = await _inviteService.DeleteAsync(userId, inviteId);
-        
+
         return deletedInviteResult != null
             ? Ok(deletedInviteResult)
             : BadRequest("Unable to delete invite or the invite does not belong to the user");
