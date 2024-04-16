@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
+using PlanIT.API.Services;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
@@ -68,7 +70,7 @@ public class DinnerController : ControllerBase
 
 
 
-    [HttpPut("{dinnerId}", Name = "UpdateEvent")]
+    [HttpPut("{dinnerId}", Name = "UpdateDinner")]
     public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int dinnerId, DinnerDTO updatedDinnerDTO)
     {
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
@@ -83,22 +85,14 @@ public class DinnerController : ControllerBase
 
     }
 
-    [HttpDelete("{eventId}", Name = "DeleteEvent")]
+    [HttpDelete("{eventId}", Name = "DeleteDinner")]
     public async Task<ActionResult<DinnerDTO>> DeleteDinnerAsync(int dinnerId)
     {
-        try
-        {
-            var deletedDinner = await _dinnerService.DeleteAsync(dinnerId);
-            if (deletedDinner == null)
-            {
-                return NotFound();
-            }
-            return Ok(deletedDinner);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete dinner with ID {id}", dinnerId);
-            return StatusCode(500, "An error occurred while deleting dinner");
-        }
+
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+
+        var deletedDinner = await _eventService.UpdateAsync(userId, eventId, updatedEventDTO);
+
     }
 }
