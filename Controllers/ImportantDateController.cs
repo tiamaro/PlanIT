@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
@@ -33,13 +34,20 @@ public class ImportantDateController : ControllerBase
         }
         var addedImportantDate = await _dateService.CreateAsync(newImportantDateDTO);
 
+        return addedImportantDate != null
+            ? Ok(addedImportantDate)
+            : BadRequest("Failed to register new ImportantDate");
+
     }
 
     [HttpGet(Name = "GetImportantDates")]
     public async Task<ActionResult<IEnumerable<ImportantDateDTO>>> GetImportantDatesAsync(int pageNr, int pageSize)
     {
         var allImportantDates = await _dateService.GetAllAsync(pageNr, pageSize);
-        return allImportantDates != null ? Ok(allImportantDates) : NotFound("No registrated ImportantDates found");
+
+        return allImportantDates != null
+            ? Ok(allImportantDates)
+            : NotFound("No registered ImportantDates found.");
 
     }
 
@@ -47,31 +55,31 @@ public class ImportantDateController : ControllerBase
     [HttpGet("{importantDateId}", Name = "GetImportantDatesById")]
     public async Task<ActionResult<ImportantDateDTO>> GetImportantDatesByIdAsync(int importantDateId)
     {
-        var exsistingImportantDate = await _dateService.GetByIdAsync(importantDateId);
-        return exsistingImportantDate != null ? Ok(importantDateId) : NotFound("ImportantDate not found");
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+
+        var exsistingImportantDate = await _dateService.GetByIdAsync(userId, importantDateId);
+
+        return exsistingImportantDate != null
+            ? Ok(exsistingImportantDate)
+            : NotFound("ImportantDate not found");
 
     }
 
     [HttpPut("{importantDateId}", Name = "UpdateImportantDate")]
     public async Task<ActionResult<ImportantDateDTO>> updateImportantDateAsync(int importantDateId, ImportantDateDTO updatedImportantDateDTO)
     {
-        var exsistingImportantDate = await _dateService.GetByIdAsync(importantDateId);
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        if (updatedImportantDateDTO == null) return NotFound("ImportantDate not found");
+        var updatedImportantDate = await _dateService.GetByIdAsync(userId,importantDateId);
 
 
-        try
-        {
-            var updatedImportantDate = await _dateService.UpdateAsync(importantDateId, updatedImportantDateDTO);
-            return updatedImportantDate != null ? Ok(updatedImportantDate) : NotFound("Unable to update the ImportantDate");
-        }
+        return updatedEventResult != null
+            ? Ok(updatedEventResult)
+            : NotFound("Unable to update the event or the event does not belong to the user");
 
-        catch (Exception ex)
-        {
-            _logger.LogError($"An unknown error occured: {ex.Message}", ex);
-            return StatusCode(500, "An unknown error occured, please try again later");
 
-        }
+
 
     }
 
