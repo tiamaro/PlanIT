@@ -46,12 +46,12 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         _timer?.Dispose();
     }
 
-    // async Task ?? 
+    // changing this to async Task gives errors in StartAsync() saying DoWork has the wrong return type and that system.TimeSpan cannot be converted to INT. 
     private async void DoWork(object? state)
     {
         try
         {
-            var invitesToCheck = _dbContext.Invites.Where(x => !x.IsReminderSent).ToList();
+            var invitesToCheck = _dbContext.Invites.Where(x => !x.IsReminderSent && x.Event!.Date.CompareTo(DateTime.Today) <= 3).ToList();
 
             foreach(var invite in invitesToCheck)
             {

@@ -1,11 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using PlanIT.API.Extensions;
+using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
+using PlanIT.API.Services;
 using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
+
+[Authorize(Policy = "Bearer")]
 [ApiController]
 [Route("api/v1/[controller]")]
+[ServiceFilter(typeof(HandleExceptionFilter))]
 public class DinnerController : ControllerBase
 {
     private readonly ILogger<DinnerController> _logger;
@@ -17,74 +25,72 @@ public class DinnerController : ControllerBase
         _dinnerService = dinnerService ?? throw new ArgumentNullException(nameof(dinnerService));
     }
 
-    [HttpPost]
-    public async Task<ActionResult<DinnerDTO>> CreateDinnerAsync(DinnerDTO newDinnerDto)
+    [HttpPost("register", Name = "AddEvent")]
+    public async Task<ActionResult<DinnerDTO>> AddDinnerAsync(DinnerDTO newDinnerDTO)
+    {
+        // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
+        if (!ModelState.IsValid)
+        {
+            _logger.LogError("Invalid model state in AddDinnerAsync");
+            return BadRequest(ModelState);
+        }
+
+        // Registrer arrangementet
+        var addedEvent = await _dinnerService.CreateAsync(newDinnerDTO);
+
+        // Sjekk om arrangementsregistreringen var vellykket
+        return addedEvent != null
+            ? Ok(addedEvent)
+            : BadRequest("Failed to register new dinner");
+    }
+
+    [HttpGet(Name = "GetDinners")]
+    public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync(int pageNr, int pageSize)
+    {
+        var allDinners = await _dinnerService.GetAllAsync(pageNr, pageSize);
+
+        return allDinners != null
+            ? Ok(allDinners)
+            : NotFound("No registered dinners found.");
+    }
+
+
+    [HttpGet("{dinnerId}", Name = "GetDinnerById")]
+    public async Task<ActionResult<DinnerDTO>> GetDinnerByIdAsync(int dinnerId)
+    {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var exsistingDinner = await _dinnerService.GetByIdAsync(userId, dinnerId);
+
+        return exsistingDinner != null
+            ? Ok(exsistingDinner)
+            : NotFound("Dinner not found");
+
+    }
+
+
+
+    [HttpPut("{dinnerId}", Name = "UpdateEvent")]
+    public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int dinnerId, DinnerDTO updatedDinnerDTO)
+    {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+
+        var updatedEventResult = await _dinnerService.UpdateAsync(userId, dinnerId, updatedDinnerDTO);
+
+        // Returnerer oppdatert arrangementdata, eller en feilmelding hvis oppdateringen mislykkes
+        return updatedEventResult != null
+            ? Ok(updatedEventResult)
+            : NotFound("Unable to update the event or the event does not belong to the user");
+
+    }
+
+    [HttpDelete("{eventId}", Name = "DeleteEvent")]
+    public async Task<ActionResult<DinnerDTO>> DeleteDinnerAsync(int dinnerId)
     {
         try
         {
-            var createdDinner = await _dinnerService.CreateAsync(newDinnerDto);
-            if (createdDinner == null)
-            {
-                return StatusCode(500, "Failed to create dinner");
-            }
-
-            return Ok(createdDinner);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create dinner");
-            return StatusCode(500, "An error occurred while creating dinner");
-        }
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<DinnerDTO>> GetDinnerByIdAsync(int id)
-    {
-        var dinner = await _dinnerService.GetByIdAsync(id);
-        if (dinner == null)
-        {
-            return NotFound();
-        }
-        return Ok(dinner);
-    }
-
-    [HttpGet]
-    public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync([FromQuery] int pageNr, [FromQuery] int pageSize)
-    {
-        if (pageNr <= 0 || pageSize <= 0)
-        {
-            return BadRequest("Invalid page number or page size");
-        }
-
-        var dinners = await _dinnerService.GetAllAsync(pageNr, pageSize);
-        return Ok(dinners);
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int id, DinnerDTO updatedDinnerDto)
-    {
-        try
-        {
-            var updatedDinner = await _dinnerService.UpdateAsync(id, updatedDinnerDto);
-            if (updatedDinner == null)
-            {
-                return NotFound();
-            }
-            return Ok(updatedDinner);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to update dinner with ID {id}", id);
-            return StatusCode(500, "An error occurred while updating dinner");
-        }
-    }
-
-    [HttpDelete("{id:int}")]
-    public async Task<ActionResult<DinnerDTO>> DeleteDinnerAsync(int id)
-    {
-        try
-        {
-            var deletedDinner = await _dinnerService.DeleteAsync(id);
+            var deletedDinner = await _dinnerService.DeleteAsync(dinnerId);
             if (deletedDinner == null)
             {
                 return NotFound();
@@ -93,7 +99,7 @@ public class DinnerController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete dinner with ID {id}", id);
+            _logger.LogError(ex, "Failed to delete dinner with ID {id}", dinnerId);
             return StatusCode(500, "An error occurred while deleting dinner");
         }
     }
