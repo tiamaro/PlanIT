@@ -42,7 +42,7 @@ public class DinnerController : ControllerBase
 
     // Endepunkt for registrering av ny middag
     // POST /api/v1/Dinner/register
-    [HttpPost("register", Name = "AddEvent")]
+    [HttpPost("register", Name = "AddDinner")]
     public async Task<ActionResult<DinnerDTO>> AddDinnerAsync(DinnerDTO newDinnerDTO)
     {
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering

@@ -2,66 +2,66 @@
 
 public class LoggerService
 {
-    private readonly Serilog.ILogger _logger;  // Bruker Serilog
+    private readonly ILogger<LoggerService> _logger;
 
-    public LoggerService(Serilog.ILogger logger)
+    public LoggerService(ILogger<LoggerService> logger)
     {
         _logger = logger;
     }
 
     public void LogInfo(string message, params object[] args)
     {
-        _logger.Information(message, args);
+        _logger.LogInformation(message, args);
     }
 
     public void LogDebug(string message, params object[] args)
     {
-        _logger.Debug(message, args);
+        _logger.LogDebug(message, args);
     }
 
     public void LogWarning(string message, params object[] args)
     {
-        _logger.Warning(message, args);
+        _logger.LogWarning(message, args);
     }
 
     public void LogError(string message, params object[] args)
     {
-        _logger.Error(message, args);
+        _logger.LogError(message, args);
     }
 
     public void LogException(Exception ex, string message, params object[] args)
     {
-        _logger.Error(ex, message, args);
+        _logger.LogError(ex, message, args);
     }
 
-    // Spesifikke loggmetoder for standardoppgaver
+    // Spesifiserte logging metoder for standard oppgaver
     public void LogCreationStart(string entity)
     {
-        _logger.Information($"Starting to create a new {entity}.");
+        _logger.LogInformation($"Starting to create a new {entity}.");
     }
 
     public void LogCreationFailure(string entity)
     {
-        _logger.Warning($"Failed to create new {entity}.");
+        _logger.LogWarning($"Failed to create new {entity}.");
     }
 
     public void LogNotFound(string entity, int entityId)
     {
-        _logger.Warning($"{entity} with ID {entityId} not found.");
+        _logger.LogWarning($"{entity} with ID {entityId} not found.");
     }
 
     public void LogUnauthorizedAccess(string entity, int entityId, int userId)
     {
-        _logger.Warning($"Unauthorized attempt to access {entity} with ID {entityId} by user ID {userId}.");
+        _logger.LogWarning($"Unauthorized attempt to access {entity} with ID {entityId} by user ID {userId}.");
     }
 
     public void LogOperationSuccess(string operation, string entity, int entityId)
     {
-        _logger.Information($"{entity} with ID {entityId} {operation} successfully.");
+        _logger.LogInformation($"{entity} with ID {entityId} {operation} successfully.");
     }
 
     public void LogOperationFailure(string operation, string entity, int entityId)
     {
-        _logger.Error($"Failed to {operation} {entity} with ID {entityId}.");
+        _logger.LogError($"Failed to {operation} {entity} with ID {entityId}.");
     }
 }
