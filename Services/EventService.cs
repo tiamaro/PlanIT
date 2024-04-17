@@ -3,7 +3,7 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
+using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
@@ -29,7 +29,11 @@ public class EventService : IService<EventDTO>
     public async Task<EventDTO?> CreateAsync(EventDTO newEventDTO)
     {
         _logger.LogCreationStart("event");
+
+        // Konverterer newEventDTO til event-modellen for lagring
         var newEvent = _eventMapper.MapToModel(newEventDTO);
+
+        // Forsøker å legge til det nye arrangementet i databasen
         var addedEvent = await _eventRepository.AddAsync(newEvent);
         if (addedEvent == null)
         {
@@ -37,7 +41,10 @@ public class EventService : IService<EventDTO>
             throw ExceptionHelper.CreateOperationException("event", 0, "create");
         }
 
+        // Logger at arrangementet ble vellykket opprettet med tilhørende ID
         _logger.LogOperationSuccess("created", "event", addedEvent.Id);
+
+        // Returnerer arrangementet konvertert tilbake til DTO-format
         return _eventMapper.MapToDTO(addedEvent);
     }
 

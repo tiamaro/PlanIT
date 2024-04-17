@@ -3,137 +3,148 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Utilities;  // Inkluderer tilgang til LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
+
+// Serviceklasse for håndtering av middagsinformasjon.
+// Exceptions blir fanget av en middleware: HandleExceptionFilter
 public class DinnerService : IService<DinnerDTO>
 {
     private readonly IMapper<Dinner, DinnerDTO> _dinnerMapper;
     private readonly IRepository<Dinner> _dinnerRepository;
-    private readonly ILogger<DinnerService> _logger;
+    private readonly LoggerService _logger;
 
-    public DinnerService(IMapper<Dinner,
-        DinnerDTO> dinnerMapper,
+    public DinnerService(IMapper<Dinner, DinnerDTO> dinnerMapper,
         IRepository<Dinner> dinnerRepository,
-        ILogger<DinnerService> logger)
+        LoggerService logger)
     {
         _dinnerMapper = dinnerMapper;
         _dinnerRepository = dinnerRepository;
         _logger = logger;
     }
 
-    // Creates a new dinner asynchronously.
+
+    // Oppretter ny middag
     public async Task<DinnerDTO?> CreateAsync(DinnerDTO dinnerDTO)
     {
+        _logger.LogCreationStart("dinner");
+
         var newDinner = _dinnerMapper.MapToModel(dinnerDTO);
+
+        // Forsøker å legge til den nye middagen i databasen
         var addedDinner = await _dinnerRepository.AddAsync(newDinner);
         if (addedDinner == null)
         {
-            _logger.LogWarning("Failed to create new Dinner.");
-            throw new InvalidOperationException("The Dinner could not be created due to invalid data or state");
+            _logger.LogCreationFailure("dinner");
+            throw ExceptionHelper.CreateOperationException("dinner", 0, "create");
         }
 
-        _logger.LogInformation("New Dinner created sucessfully with ID {DinnerId}.", addedDinner.Id);
+        _logger.LogOperationSuccess("created", "dinner", addedDinner.Id);
+
         return _dinnerMapper.MapToDTO(addedDinner);
     }
 
-    // Retrieves all dinners with pagination asynchronously.
+
+    // Henter alle middager med paginering
     public async Task<ICollection<DinnerDTO>> GetAllAsync(int pageNr, int pageSize)
     {
-        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(1, 10);
-        var dinnerDTOs = dinnersFromRepository.Select(dinnerEntity => _dinnerMapper.MapToDTO(dinnerEntity)).ToList();
-        return dinnerDTOs;
+        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(pageNr, pageSize);
+        return dinnersFromRepository.Select(d => _dinnerMapper.MapToDTO(d)).ToList();
     }
 
-    // Retrieves a dinner by ID asynchronously.
+
+    // Henter en middag basert på ID
     public async Task<DinnerDTO?> GetByIdAsync(int userIdFromToken, int dinnerId)
     {
-        _logger.LogDebug("Attempting to retrieve Dinner with ID {EventId} for user ID {UserId}", dinnerId, userIdFromToken);
+        _logger.LogDebug($"Henter middag med ID {dinnerId} for bruker {userIdFromToken}.");
 
-        var dinnerFromRepostiroy = await _dinnerRepository.GetByIdAsync(dinnerId);
-
-        if (dinnerFromRepostiroy == null)
+        var dinnerFromRepository = await _dinnerRepository.GetByIdAsync(dinnerId);
+        if (dinnerFromRepository == null)
         {
-            _logger.LogWarning("Unauthorized attempt to access Dinner with ID {DinnerId} by user ID {UserId}.", dinnerId, userIdFromToken);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access dinner ID {dinnerId}.");
+            _logger.LogNotFound("dinner", dinnerId);
+            throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        if (dinnerFromRepostiroy.UserId != userIdFromToken)
+        // Sjekker om brukerens ID stemmer overens med brukerID tilknyttet middagen
+        if (dinnerFromRepository.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized attempt to access event with ID {DinnerId} by user ID {UserId}.", dinnerId, userIdFromToken);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to access dinner ID {dinnerId}.");
-
+            _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
-        _logger.LogInformation("Event with ID {DinnerId} retrieved successfully for user ID {UserId}.", dinnerId, userIdFromToken);
-        return _dinnerMapper.MapToDTO(dinnerFromRepostiroy);
-
-
+        // Logger vellykket henting av middagen
+        _logger.LogOperationSuccess("retrieved", "dinner", dinnerId);
+        return _dinnerMapper.MapToDTO(dinnerFromRepository);
     }
 
-    // Updates a dinner asynchronously.
+
+    // Oppdaterer en middag
     public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
     {
-        _logger.LogDebug("Attempting to update event with ID {DinnerId} for user ID {UserId}.", dinnerId, userIdFromToken);
+        _logger.LogDebug($"Oppdaterer middag med ID {dinnerId} for bruker {userIdFromToken}.");
 
+        // Forsøker å hente den eksisterende middagen fra databasen
         var existingDinner = await _dinnerRepository.GetByIdAsync(dinnerId);
         if (existingDinner == null)
         {
-            _logger.LogWarning("Event with ID {DinnerId} not found.", dinnerId);
-            throw new KeyNotFoundException($"Event with ID {dinnerId} not found.");
+            _logger.LogNotFound("dinner", dinnerId);
+            throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
+        // Sjekker om brukeren har autorisasjon til å oppdatere middagen
         if (existingDinner.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized update attempt by User ID {UserId} on Event ID {Dinner}", userIdFromToken, dinnerId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to update event ID {dinnerId}.");
+            _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
         var dinnerToUpdate = _dinnerMapper.MapToModel(dinnerDTO);
-        dinnerToUpdate.Id = dinnerId;
+        dinnerToUpdate.Id = dinnerId;  // Sikrer at ID ikke endres under oppdateringen
 
+        // Utfører oppdateringen i databasen
         var updatedDinner = await _dinnerRepository.UpdateAsync(dinnerId, dinnerToUpdate);
         if (updatedDinner == null)
         {
-            _logger.LogError("Failed to update Dinner with ID {DinnerId}", dinnerId);
-            throw new InvalidOperationException($"Failed to update Dinner with ID {dinnerId}.");
+            _logger.LogOperationFailure("update", "dinner", dinnerId);
+            throw ExceptionHelper.CreateOperationException("dinner", dinnerId, "update");
         }
 
-        _logger.LogInformation("Dinner with ID {DinnerId} updated successfully by User ID {UserId}.", dinnerId, userIdFromToken);
+        _logger.LogOperationSuccess("updated", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(updatedDinner);
-
     }
 
-    // Deletes a dinner asynchronously.
+
+    // Sletter en middag
     public async Task<DinnerDTO?> DeleteAsync(int userIdFromToken, int dinnerId)
     {
-        _logger.LogDebug("Attempting to Dinner dinner with ID {DinnerId} by user ID {UserId}.", dinnerId, userIdFromToken);
+        _logger.LogDebug($"Forsøker å slette middag med ID {dinnerId} av bruker {userIdFromToken}.");
 
+        // Henter middagen fra databasen for å sikre at den eksisterer før sletting
         var dinnerToDelete = await _dinnerRepository.GetByIdAsync(dinnerId);
-
         if (dinnerToDelete == null)
         {
-            _logger.LogWarning("Attempt to delete a non-existent Dinner with ID {DinnerId}.", dinnerId);
-            throw new KeyNotFoundException($"Dinner with ID {dinnerId} not found.");
+            _logger.LogNotFound("dinner", dinnerId);
+            throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        if (dinnerToDelete.Id != userIdFromToken)
+        // Sjekker om brukeren har riktig autorisasjon til å slette middagen
+        if (dinnerToDelete.UserId != userIdFromToken)
         {
-            _logger.LogWarning("Unauthorized delete attempt by User ID {UserId} on Event ID {DinnerId}.", userIdFromToken, dinnerId);
-            throw new UnauthorizedAccessException($"User ID {userIdFromToken} is not authorized to delete Dinner ID {dinnerId}.");
+            _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
+        // Utfører slettingen av middagen fra databasen
         var deletedDinner = await _dinnerRepository.DeleteAsync(dinnerId);
-
         if (deletedDinner == null)
         {
-            _logger.LogError("Failed to delete Dinner with ID {DinnerId}.", dinnerId);
-            throw new InvalidOperationException("Deletion failed, could not complete operation on the database.");
+            _logger.LogOperationFailure("delete", "dinner", dinnerId);
+            throw ExceptionHelper.CreateOperationException("dinner", dinnerId, "delete");
         }
 
-        _logger.LogInformation("Dinner with ID {DinnerId} deleted successfully by User ID {UserId}.", dinnerId, userIdFromToken);
-        return _dinnerMapper.MapToDTO(dinnerToDelete);
-
-
+        _logger.LogOperationSuccess("deleted", "dinner", dinnerId);
+        return _dinnerMapper.MapToDTO(deletedDinner);
     }
 }

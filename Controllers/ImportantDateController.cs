@@ -7,7 +7,7 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
-// ImportantDaetController - API Controller for håndtering av viktige datoer:
+// ImportantDateController - API Controller for håndtering av viktige datoer:
 // - Kontrolleren håndterer alle forespørsler relatert til vikitge datoer, inkludert registrering,
 //   oppdatering, sletting og henting av datoinformasjon. Den tar imot en instans av IService
 //   som en del av konstruktøren for å utføre operasjoner relatert til viktige datoer.

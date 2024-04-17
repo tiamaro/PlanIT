@@ -3,7 +3,7 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
+using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
@@ -32,7 +32,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
         _logger.LogCreationStart("shopping list");
         var newShoppingList = _shoppingListMapper.MapToModel(newShoppingListDto);
 
-        // Lagrer den nye handlelisten i databasen
+        // Forsøker å legge til den nye handlelisten i databasen
         var addedShoppingList = await _shoppingListRepository.AddAsync(newShoppingList);
         if (addedShoppingList == null)
         {
@@ -40,6 +40,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
             throw ExceptionHelper.CreateOperationException("shopping list", 0, "create");
         }
 
+        // Logger at handleliseten ble vellykket opprettet med tilhørende ID
         _logger.LogOperationSuccess("created", "shopping list", addedShoppingList.Id);
         return _shoppingListMapper.MapToDTO(addedShoppingList);
     }
@@ -71,7 +72,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
             throw ExceptionHelper.CreateNotFoundException("shopping list", shoppingListId);
         }
 
-        // Sjekker om brukeren er den samme.
+        // Sjekker om brukerens ID stemmer overens med brukerID tilknyttet handlelisten
         if (shoppingListFromRepository.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("shopping list", shoppingListId, userIdFromToken);
