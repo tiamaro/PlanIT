@@ -3,7 +3,7 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
+using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
 
 namespace PlanIT.API.Services;
 
