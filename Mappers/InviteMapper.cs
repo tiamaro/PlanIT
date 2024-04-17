@@ -6,6 +6,9 @@ namespace PlanIT.API.Mappers;
 
 public class InviteMapper : IMapper<Invite, InviteDTO>
 {
+    // IsReminderSent 
+
+
     public InviteDTO MapToDTO(Invite model)
     {
         return new InviteDTO(model.Id, model.EventId, model.Name, model.Email, model.Coming);

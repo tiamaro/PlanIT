@@ -17,7 +17,7 @@ public class Event
     public DateOnly Date { get; set; }
 
     [Required]
-    public string Time { get; set; } = string.Empty;
+    public TimeOnly Time { get; set; } 
 
     [Required]
     public string Location { get; set; } = string.Empty;

@@ -30,5 +30,7 @@ public class User
 
     public virtual ICollection<ShoppingList> ShoppingList { get; set; } = new HashSet<ShoppingList>();
 
+    public virtual ICollection<Contact> Contacts { get; set; } = new HashSet<Contact>();
+
 
 }

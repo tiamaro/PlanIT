@@ -17,13 +17,18 @@ public class PlanITDbContext : DbContext
     public DbSet<ToDo> Todos { get; set; }
     public DbSet<ShoppingList> ShoppingLists { get; set; }
     public DbSet<ImportantDate> ImportantDates { get; set; }
+    public DbSet<Contact> Contacts { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        // ensures unique email addresses for user, contact and invite. 
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
+        modelBuilder.Entity<Invite>().HasIndex(i => i.Email).IsUnique();
+
 
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         modelBuilder.Entity<User>().HasData(
