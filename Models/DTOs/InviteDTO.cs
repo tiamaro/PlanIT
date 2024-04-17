@@ -20,4 +20,7 @@ public class InviteDTO
     public string Email { get; init; } = string.Empty;
 
     public bool Coming { get; init; }
+
+
+    //public bool IsReminderSent { get; set; }
 }

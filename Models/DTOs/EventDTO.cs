@@ -2,7 +2,7 @@
 
 public class EventDTO
 {
-    public EventDTO(int id, int userId, string name, DateOnly date, string time, string location)
+    public EventDTO(int id, int userId, string name, DateOnly date, TimeOnly time, string location)
     {
         Id = id;
         UserId = userId;
@@ -20,7 +20,7 @@ public class EventDTO
 
     public DateOnly Date { get; init; }
 
-    public string Time { get; init; } = string.Empty;
+    public TimeOnly Time { get; init; } 
 
     public string Location { get; init; } = string.Empty;
 }
