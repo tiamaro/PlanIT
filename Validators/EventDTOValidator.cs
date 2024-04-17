@@ -15,11 +15,9 @@ public class EventDTOValidator : AbstractValidator<EventDTO>
 
 
         RuleFor(x => x.Time)
-            .NotEmpty().WithMessage("Event Time cannot be empty")
-            .Must(BeAValidTime).WithMessage("Invalid time format, use HH:MM ");
+            .NotEmpty().WithMessage("Event Time cannot be empty");
 
 
-        // Not sure if needed
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Event Date cannot be empty");
 

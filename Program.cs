@@ -4,45 +4,34 @@ using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Configurations;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
-using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Middleware;
-using PlanIT.API.Repositories.Interfaces;
-using PlanIT.API.Services;
-using PlanIT.API.Services.AuthenticationService;
-using PlanIT.API.Services.BackgroundWorkerServices;
-using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 using Serilog;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrer HandleExceptionFilter for controllers
-builder.Services.AddScoped<HandleExceptionFilter>();
 
 // Legg til tjenester i beholderen (DI-containeren).
+builder.Services.AddScoped<HandleExceptionFilter>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-
-// Tilpassede metoder for utvidelser
-builder.RegisterOpenGenericTypeAndDerivatives(typeof(IMapper<,>));    // Registrerer mappere
-builder.RegisterOpenGenericTypeAndDerivatives(typeof(IService<>));    // Registrerer services
-builder.RegisterOpenGenericTypeAndDerivatives(typeof(IRepository<>)); // Registrerer repositories
-builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
-
-// Registerer Services uten generisk interface
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IMailService, MailService>();
-builder.Services.AddScoped<IAuthService, AuthenticationService>();
+// Legger til tjenester fra utilities folder
+builder.Services.AddScoped<PaginationUtility>();
 builder.Services.AddScoped<LoggerService>();
 
+
+
+// Tilpassede metoder for utvidelser
+builder.Services.RegisterServicesFromConfiguration(Assembly.GetExecutingAssembly(), builder.Configuration);
+builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
 //// background service 
 //builder.Services.AddHostedService<BackgroundWorkerService>();
 
 
-// Register HttpContextAccessor
+// Registerer HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
 
@@ -55,6 +44,7 @@ builder.Services.AddFluentValidationAutoValidation(config => config.DisableDataA
 builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
+
 
 // Legg til CORS-policy
 builder.Services.AddCors(options =>
@@ -69,18 +59,12 @@ builder.Services.AddCors(options =>
 });
 
 
-// Tillegg for paginering
-builder.Services.AddScoped<PaginationUtility>();
-
-
-
 // Bruk av Serilog logger
 builder.Host.UseSerilog((context, configuration) =>
 {
     // Konfigurer logger fra appens konfigurasjonsfiler
     configuration.ReadFrom.Configuration(context.Configuration);
 });
-
 
 
 builder.Services.ConfigureAuthentication(builder.Configuration, Log.Logger);
