@@ -23,7 +23,6 @@ builder.Services.AddScoped<HandleExceptionFilter>();
 // Legg til tjenester i beholderen (DI-containeren).
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
 
 
 // Tilpassede metoder for utvidelser
@@ -32,14 +31,15 @@ builder.RegisterOpenGenericTypeAndDerivatives(typeof(IService<>));    // Registr
 builder.RegisterOpenGenericTypeAndDerivatives(typeof(IRepository<>)); // Registrerer repositories
 builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
-// Registerer UserService
+// Registerer Services uten generisk interface
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
+builder.Services.AddScoped<LoggerService>();
 
 
-// background service 
-builder.Services.AddHostedService<BackgroundWorkerService>();
+//// background service 
+//builder.Services.AddHostedService<BackgroundWorkerService>();
 
 
 // Register HttpContextAccessor
@@ -72,12 +72,15 @@ builder.Services.AddCors(options =>
 // Tillegg for paginering
 builder.Services.AddScoped<PaginationUtility>();
 
+
+
 // Bruk av Serilog logger
 builder.Host.UseSerilog((context, configuration) =>
 {
     // Konfigurer logger fra appens konfigurasjonsfiler
     configuration.ReadFrom.Configuration(context.Configuration);
 });
+
 
 
 builder.Services.ConfigureAuthentication(builder.Configuration, Log.Logger);
