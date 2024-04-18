@@ -43,8 +43,6 @@ public class TodoService : IService<ToDoDTO>
     }
 
 
-    // ''''''''''''''''''''''''' FJERNE ????????? ''''''''''''''''''''''''
-    //
     // Henter alle gjøremål med paginering
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int pageNr, int pageSize)
     {

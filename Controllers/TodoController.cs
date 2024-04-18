@@ -45,6 +45,9 @@ public class TodoController : ControllerBase
     [HttpPost("register", Name = "AddToDo")]
     public async Task<ActionResult<ToDoDTO>> AddToDoAsync(ToDoDTO newTodoDto)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -62,14 +65,18 @@ public class TodoController : ControllerBase
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
     // Henter en liste over gjøremål
     // GET: /api/v1/Todo?pageNr=1&pageSize=10
     [HttpGet(Name = "GetToDoLists")]
     public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync(int pageNr, int pageSize)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         var allToDos = await _todoService.GetAllAsync(pageNr, pageSize);
+
+        // Filtrer gjøremål basert på brukerens ID
+        var userToDos = allToDos.Where(todo => todo.UserId == userId).ToList();
 
         return allToDos != null
            ? Ok(allToDos)
