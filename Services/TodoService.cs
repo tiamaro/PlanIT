@@ -26,11 +26,14 @@ public class TodoService : IService<ToDoDTO>
     }
 
     // // Oppretter et nytt gjøremål basert på data mottatt fra klienten
-    public async Task<ToDoDTO?> CreateAsync(ToDoDTO newToDoDTO)
+    public async Task<ToDoDTO?> CreateAsync(int userIdFromToken, ToDoDTO newToDoDTO)
     {
         _logger.LogCreationStart("todo");
 
         var newToDo = _todoMapper.MapToModel(newToDoDTO);
+
+        newToDo.UserId = userIdFromToken;
+
         var addedToDo = await _todoRepository.AddAsync(newToDo);
         if (addedToDo == null)
         {
@@ -43,11 +46,15 @@ public class TodoService : IService<ToDoDTO>
     }
 
 
+
     // Henter alle gjøremål med paginering
-    public async Task<ICollection<ToDoDTO>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<ToDoDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        var toDosFromRepository = await _todoRepository.GetAllAsync(pageNr, pageSize);
-        return toDosFromRepository.Select(todoEntity => _todoMapper.MapToDTO(todoEntity)).ToList();
+        var ToDosFromRepository = await _todoRepository.GetAllAsync(1, 10);
+
+        var filteredToDos = ToDosFromRepository.Where(todo => todo.UserId == userIdFromToken);
+
+        return filteredToDos.Select(todoEntity => _todoMapper.MapToDTO(todoEntity)).ToList();
     }
 
 

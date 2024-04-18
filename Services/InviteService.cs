@@ -1,4 +1,5 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Extensions;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -32,12 +33,25 @@ public class InviteService : IService<InviteDTO>
     }
 
     // Oppretter ny invitasjon basert på data mottatt fra klienten
-    public async Task<InviteDTO?> CreateAsync(InviteDTO newInviteDTO)
+    public async Task<InviteDTO?> CreateAsync(int userIdFromToken, InviteDTO newInviteDTO)
     {
         _logger.LogCreationStart("invite");
-        var newInvite = _inviteMapper.MapToModel(newInviteDTO);
 
-        // Legger til den nye invitasjonen i databasen og henter resultatet
+        // Henter det assosierte arrangementet for å kunne sjekke mot riktig brukerID
+        var eventAssociated = await _eventRepository.GetByIdAsync(newInviteDTO.EventId);
+        if (eventAssociated == null)
+        {
+            _logger.LogNotFound("event", newInviteDTO.EventId);
+            throw ExceptionHelper.CreateNotFoundException("event", newInviteDTO.EventId);
+        }
+
+        if (eventAssociated.UserId != userIdFromToken)
+        {
+            _logger.LogUnauthorizedAccess("event", newInviteDTO.EventId, userIdFromToken);
+            throw ExceptionHelper.CreateUnauthorizedException("event", newInviteDTO.EventId);
+        }
+
+        var newInvite = _inviteMapper.MapToModel(newInviteDTO);
         var addedInvite = await _inviteRepository.AddAsync(newInvite);
         if (addedInvite == null)
         {
@@ -52,16 +66,27 @@ public class InviteService : IService<InviteDTO>
     }
 
 
-    // *********NB!! FJERNE??? *************
-    //
-    // Henter alle invitasjoner
-    public async Task<ICollection<InviteDTO>> GetAllAsync(int pageNr, int pageSize)
+    // Henter alle invitasjoner som tilhører den innloggede brukeren
+    public async Task<ICollection<InviteDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
         // Henter invitasjonsinformasjon fra repository med paginering
         var invitesFromRepository = await _inviteRepository.GetAllAsync(1, 10);
 
+        // Liste som lagrer invites basert på filtreringen
+        List<Invite> filteredInvites = new List<Invite>();
+
+        // Sjekker hver invite for å se om det assosierte arrangementet er koblet til den innloggede brukeren
+        foreach (var invite in invitesFromRepository)
+        {
+            var eventAssociated = await _eventRepository.GetByIdAsync(invite.EventId);
+            if (eventAssociated != null && eventAssociated.UserId == userIdFromToken)
+            {
+                filteredInvites.Add(invite);
+            }
+        }
+
         // Mapper invitasjonsdataene til inviteDTO-format
-        var inviteDTOs = invitesFromRepository.Select(inviteEntity => _inviteMapper.MapToDTO(inviteEntity)).ToList();
+        var inviteDTOs = filteredInvites.Select(invite => _inviteMapper.MapToDTO(invite)).ToList();
         return inviteDTOs;
     }
 

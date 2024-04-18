@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Services.Interfaces;
@@ -46,6 +47,8 @@ public class InvitesController : ControllerBase
     [HttpPost("register", Name = "AddInvites")]
     public async Task<ActionResult<InviteDTO>> AddInviteAsync(InviteDTO newInviteDTO)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
@@ -55,7 +58,7 @@ public class InvitesController : ControllerBase
         }
 
         // Registrer invitasjonen
-        var addedInvite = await _inviteService.CreateAsync(newInviteDTO);
+        var addedInvite = await _inviteService.CreateAsync(userId, newInviteDTO);
 
         // Sjekk om invitasjonsregistreringen var vellykket
         return addedInvite != null
@@ -64,14 +67,15 @@ public class InvitesController : ControllerBase
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
     // Henter en liste over invitasjoner
     // GET: /api/v1/Invites?pageNr=1&pageSize=10
     [HttpGet(Name = "GetInvites")]
     public async Task<ActionResult<IEnumerable<InviteDTO>>> GetInvitesAsync(int pageNr, int pageSize)
     {
-        var invites = await _inviteService.GetAllAsync(pageNr, pageSize);
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var invites = await _inviteService.GetAllAsync(userId, pageNr, pageSize);
 
         return invites != null
             ? Ok(invites)
@@ -84,11 +88,8 @@ public class InvitesController : ControllerBase
     [HttpGet("{inviteId}", Name = "GetInvitesById")]
     public async Task<ActionResult<InviteDTO>> GetInvitesByIdASync(int inviteId)
     {
-        var userIdValue = HttpContext.Items["UserId"] as string;
-        if (!int.TryParse(userIdValue, out var userId))
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Hent invitasjonen fra tjenesten
         var existingInvite = await _inviteService.GetByIdAsync(userId, inviteId);
@@ -105,12 +106,7 @@ public class InvitesController : ControllerBase
     public async Task<ActionResult<InviteDTO>> UpdateInviteAsync(int inviteId, InviteDTO updatedInviteDTO)
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Prøver å oppdatere invitasjonen med den nye informasjonen
         var updatedInviteResult = await _inviteService.UpdateAsync(userId, inviteId, updatedInviteDTO);
@@ -128,11 +124,7 @@ public class InvitesController : ControllerBase
     public async Task<ActionResult<InviteDTO>> DeleteInviteAsync(int inviteId)
     {
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
-        var userIdValue = HttpContext.Items["UserId"] as string;
-        if (!int.TryParse(userIdValue, out var userId) || userId == 0)
-        {
-            return Unauthorized("Invalid user ID.");
-        }
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Prøver å slette invitasjonen.
         var deletedInviteResult = await _inviteService.DeleteAsync(userId, inviteId);
