@@ -46,6 +46,7 @@ public class EventsController : ControllerBase
     [HttpPost("register", Name = "AddEvent")]
     public async Task<ActionResult<EventDTO>> AddEventAsync(EventDTO newEventDTO)
     {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
@@ -55,7 +56,7 @@ public class EventsController : ControllerBase
         }
 
         // Registrer arrangementet
-        var addedEvent = await _eventService.CreateAsync(newEventDTO);
+        var addedEvent = await _eventService.CreateAsync(userId, newEventDTO);
 
         // Sjekk om arrangementsregistreringen var vellykket
         return addedEvent != null
@@ -71,7 +72,9 @@ public class EventsController : ControllerBase
     [HttpGet(Name = "GetEvents")]
     public async Task<ActionResult<IEnumerable<EventDTO>>> GetEventsAsync(int pageNr, int pageSize)
     {
-        var allEvents = await _eventService.GetAllAsync(pageNr, pageSize);
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var allEvents = await _eventService.GetAllAsync(userId,pageNr, pageSize);
 
         return allEvents != null
             ? Ok(allEvents)

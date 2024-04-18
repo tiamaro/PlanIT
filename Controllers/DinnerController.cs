@@ -45,6 +45,8 @@ public class DinnerController : ControllerBase
     [HttpPost("register", Name = "AddDinner")]
     public async Task<ActionResult<DinnerDTO>> AddDinnerAsync(DinnerDTO newDinnerDTO)
     {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -53,7 +55,7 @@ public class DinnerController : ControllerBase
         }
 
         // Registrer middagen
-        var addedDinner = await _dinnerService.CreateAsync(newDinnerDTO);
+        var addedDinner = await _dinnerService.CreateAsync(userId, newDinnerDTO);
 
         // Sjekk om middagsregistreringen var vellykket
         return addedDinner != null
@@ -67,7 +69,9 @@ public class DinnerController : ControllerBase
     [HttpGet(Name = "GetDinners")]
     public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync(int pageNr, int pageSize)
     {
-        var allDinners = await _dinnerService.GetAllAsync(pageNr, pageSize);
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var allDinners = await _dinnerService.GetAllAsync(userId,pageNr, pageSize);
 
         return allDinners != null
             ? Ok(allDinners)
