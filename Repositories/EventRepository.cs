@@ -54,7 +54,7 @@ public class EventRepository : IRepository<Event>
 
         exsistingEvent.Name = string.IsNullOrEmpty(updatedEvent.Name) ? exsistingEvent.Name : updatedEvent.Name;
         exsistingEvent.Date = updatedEvent.Date != DateOnly.MinValue ? updatedEvent.Date : exsistingEvent.Date;
-        exsistingEvent.Time = updatedEvent.Time != TimeOnly.MinValue ? exsistingEvent.Time : updatedEvent.Time;
+        exsistingEvent.Time = updatedEvent.Time != TimeOnly.MinValue ? updatedEvent.Time : exsistingEvent.Time;
         exsistingEvent.Location = string.IsNullOrEmpty(updatedEvent.Location) ? exsistingEvent.Location : updatedEvent.Location;
 
         await _dbContext.SaveChangesAsync();
