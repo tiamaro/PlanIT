@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240411112010_PlanITMigrations")]
+    [Migration("20240418090724_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -24,6 +24,35 @@ namespace PlanIT.API.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("PlanIT.API.Models.Entities.Contact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Contacts");
+                });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Dinner", b =>
                 {
@@ -69,9 +98,8 @@ namespace PlanIT.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Time")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<TimeOnly>("Time")
+                        .HasColumnType("time(6)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -121,16 +149,22 @@ namespace PlanIT.API.Data.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("EventId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsReminderSent")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("EventId");
 
@@ -217,26 +251,37 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy",
+                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee",
                             Name = "Per",
-                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
+                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
                         },
                         new
                         {
                             Id = 2,
                             Email = "olanordmann@mail.com",
-                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy",
+                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee",
                             Name = "Ola",
-                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
+                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
                         },
                         new
                         {
                             Id = 3,
                             Email = "karinordmann@mail.com",
-                            HashedPassword = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO29dfuJb9b9I6INvpgd0mO/nW0IKVYtS",
+                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.6swBwBK6lLes1.yoFgz0D2D2vLGv7Se",
                             Name = "Kari",
-                            Salt = "$2a$11$0DnrNnWPJlIJYFcPrFvoCO"
+                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
                         });
+                });
+
+            modelBuilder.Entity("PlanIT.API.Models.Entities.Contact", b =>
+                {
+                    b.HasOne("PlanIT.API.Models.Entities.User", "User")
+                        .WithMany("Contacts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Dinner", b =>
@@ -312,6 +357,8 @@ namespace PlanIT.API.Data.Migrations
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.User", b =>
                 {
+                    b.Navigation("Contacts");
+
                     b.Navigation("Dinners");
 
                     b.Navigation("Events");
