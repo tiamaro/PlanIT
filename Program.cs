@@ -67,6 +67,7 @@ builder.Host.UseSerilog((context, configuration) =>
 });
 
 
+// Tilpasset JWT-autentisering konfigurasjon
 builder.Services.ConfigureAuthentication(builder.Configuration, Log.Logger);
 builder.Services.ConfigureAuthorization();
 

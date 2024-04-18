@@ -13,11 +13,15 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthenticationController> _logger;
+    private readonly IWebHostEnvironment _environment;
 
-    public AuthenticationController(IAuthService authService, ILogger<AuthenticationController> logger)
+    public AuthenticationController(IAuthService authService, 
+        ILogger<AuthenticationController> logger,
+        IWebHostEnvironment environment)
     {
         _authService = authService;
         _logger = logger;
+        _environment = environment;
     }
 
     [AllowAnonymous]
@@ -40,7 +44,20 @@ public class AuthenticationController : ControllerBase
             var token = await _authService.GenerateJwtTokenAsync(user);
 
             _logger.LogInformation("Successful login for user {userEmail}", userLoginDTO.Email);
-            return Ok(new { Token = token });
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_environment.IsDevelopment() ? true : false, // Dynamisk justering basert på miljø
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("jwtToken", token, cookieOptions);
+
+            return Ok(new { Message = "Login successful" });
+
+            // return Ok(new { Token = token });
 
         }
         catch (Exception ex)
