@@ -45,6 +45,8 @@ public class ImportantDateController : ControllerBase
     [HttpPost("register", Name = "AddImportantDate")]
     public async Task<ActionResult<ImportantDateDTO>> AddImportantDateAsync(ImportantDateDTO newImportantDateDTO)
     {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -53,7 +55,7 @@ public class ImportantDateController : ControllerBase
         }
 
         // Registrerer vikitg dato
-        var addedImportantDate = await _dateService.CreateAsync(newImportantDateDTO);
+        var addedImportantDate = await _dateService.CreateAsync(userId, newImportantDateDTO);
 
         return addedImportantDate != null
             ? Ok(addedImportantDate)
@@ -67,7 +69,10 @@ public class ImportantDateController : ControllerBase
     [HttpGet(Name = "GetImportantDates")]
     public async Task<ActionResult<IEnumerable<ImportantDateDTO>>> GetImportantDatesAsync(int pageNr, int pageSize)
     {
-        var allImportantDates = await _dateService.GetAllAsync(pageNr, pageSize);
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+
+        var allImportantDates = await _dateService.GetAllAsync(userId, pageNr, pageSize);
 
         return allImportantDates != null
             ? Ok(allImportantDates)

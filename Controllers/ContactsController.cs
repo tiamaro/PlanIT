@@ -33,6 +33,8 @@ public class ContactsController : ControllerBase
     [HttpPost("register", Name = "addContact")]
     public async Task<ActionResult<ContactDTO>> AddContactAsync(ContactDTO newContactDTO)
     {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -41,7 +43,7 @@ public class ContactsController : ControllerBase
         }
 
         // Registrer Contact
-        var addedContact = await _contactService.CreateAsync(newContactDTO);
+        var addedContact = await _contactService.CreateAsync(userId,newContactDTO);
 
 
         // Sjekk om Contactregistreringen var vellykket
@@ -56,7 +58,9 @@ public class ContactsController : ControllerBase
     [HttpGet(Name = "GetContacts")]
     public async Task <ActionResult<IEnumerable<ContactDTO>>> GetContactsAsync(int pageNr, int pageSize)
     {
-        var allContacts = await _contactService.GetAllAsync(pageNr, pageSize);
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var allContacts = await _contactService.GetAllAsync(userId,pageNr, pageSize);
 
         return allContacts != null
             ? Ok(allContacts)

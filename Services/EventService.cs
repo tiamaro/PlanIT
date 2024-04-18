@@ -1,6 +1,8 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Mappers;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
@@ -26,12 +28,13 @@ public class EventService : IService<EventDTO>
 
 
     // Oppretter et nytt arrangement basert på DTO fra klienten.
-    public async Task<EventDTO?> CreateAsync(EventDTO newEventDTO)
+    public async Task<EventDTO?> CreateAsync(int userIdFromToken,EventDTO newEventDTO)
     {
         _logger.LogCreationStart("event");
 
         // Konverterer newEventDTO til event-modellen for lagring
         var newEvent = _eventMapper.MapToModel(newEventDTO);
+        newEvent.UserId = userIdFromToken;
 
         // Forsøker å legge til det nye arrangementet i databasen
         var addedEvent = await _eventRepository.AddAsync(newEvent);
@@ -52,14 +55,16 @@ public class EventService : IService<EventDTO>
     // *********NB!! FJERNE??? *************
     //
     // Henter alle arrangementer med paginering
-    public async Task<ICollection<EventDTO>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<EventDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
         // Henter arrangementinformasjon fra repository med paginering
         var eventsFromRepository = await _eventRepository.GetAllAsync(1, 10);
 
-        // Mapper arrangementdataene til eventDTO-format
-        var eventDTOs = eventsFromRepository.Select(eventEntity => _eventMapper.MapToDTO(eventEntity)).ToList();
-        return eventDTOs;
+        // filter
+        var filteredDinners = eventsFromRepository.Where(@event => @event.UserId == userIdFromToken);
+
+        // Mapper Contactsinformasjon til contactsDTO-format
+        return filteredDinners.Select(eventEntity => _eventMapper.MapToDTO(eventEntity)).ToList();
     }
 
 

@@ -1,6 +1,8 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Mappers;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;
@@ -23,12 +25,13 @@ public class ContactService : IService<ContactDTO>
     }
 
     // Oppretter en ny Contact basert på DTO fra klienten.
-    public async Task<ContactDTO?> CreateAsync(ContactDTO newContactDTO)
+    public async Task<ContactDTO?> CreateAsync(int userIdFromToken,ContactDTO newContactDTO)
     {
         _logger.LogCreationStart("contact");
 
         // Konverterer newContactDTO til Contact-modellen for lagring
         var newContact = _contactMapper.MapToModel(newContactDTO);
+        newContact.UserId = userIdFromToken;
 
         // Forsøker å legge til ny Contact i databasen
         var addedContact = await _contactRepository.AddAsync(newContact);
@@ -47,15 +50,18 @@ public class ContactService : IService<ContactDTO>
     }
 
     // Henter alle Contacts med paginering
-    public async Task<ICollection<ContactDTO>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<ContactDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
         // Henter Contacts fra repository med paginering
         var contactsFromRepository = await _contactRepository.GetAllAsync(1, 10);
-
+        
+        //filter
+        var filteredContacts = contactsFromRepository.Where(contact => contact.UserId == userIdFromToken);
 
         // Mapper Contactsinformasjon til contactsDTO-format
-        var contactDTOs = contactsFromRepository.Select(contactEntity => _contactMapper.MapToDTO(contactEntity)).ToList();
-        return contactDTOs;
+        return filteredContacts.Select(contactEntity => _contactMapper.MapToDTO(contactEntity)).ToList();
+
+        
     }
 
 

@@ -1,6 +1,8 @@
+using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;  // Inkluderer tilgang til LoggerService og ExceptionHelper
@@ -27,11 +29,12 @@ public class DinnerService : IService<DinnerDTO>
 
 
     // Oppretter ny middag
-    public async Task<DinnerDTO?> CreateAsync(DinnerDTO dinnerDTO)
+    public async Task<DinnerDTO?> CreateAsync(int userIdFromToken, DinnerDTO dinnerDTO)
     {
         _logger.LogCreationStart("dinner");
 
         var newDinner = _dinnerMapper.MapToModel(dinnerDTO);
+        newDinner.UserId = userIdFromToken;
 
         // Forsøker å legge til den nye middagen i databasen
         var addedDinner = await _dinnerRepository.AddAsync(newDinner);
@@ -48,10 +51,18 @@ public class DinnerService : IService<DinnerDTO>
 
 
     // Henter alle middager med paginering
-    public async Task<ICollection<DinnerDTO>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<DinnerDTO>> GetAllAsync(int userIdFromToken,int pageNr, int pageSize)
     {
-        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(pageNr, pageSize);
-        return dinnersFromRepository.Select(d => _dinnerMapper.MapToDTO(d)).ToList();
+        // Henter Contacts fra repository med paginering
+        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(1, 10);
+        
+        // filter
+        var filteredDinners = dinnersFromRepository.Where(dinner => dinner.UserId == userIdFromToken);
+
+        // Mapper Contactsinformasjon til contactsDTO-format
+        return filteredDinners.Select(dinnerEntity => _dinnerMapper.MapToDTO(dinnerEntity)).ToList();
+
+
     }
 
 

@@ -1,6 +1,8 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Mappers;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
@@ -26,12 +28,13 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
 
     // Oppretter en ny viktig dato
-    public async Task<ImportantDateDTO?> CreateAsync(ImportantDateDTO newImportantDateDTO)
+    public async Task<ImportantDateDTO?> CreateAsync(int userIdFromToken, ImportantDateDTO newImportantDateDTO)
     {
         _logger.LogCreationStart("important date");
 
         // Mapper DTO til domenemodell
         var newImportantDate = _dateMapper.MapToModel(newImportantDateDTO);
+        newImportantDate.UserId = userIdFromToken;
 
         // Legger til den nye viktige datoen i databasen
         var addedImportantDate = await _dateRepository.AddAsync(newImportantDate);
@@ -47,10 +50,19 @@ public class ImportantDateService : IService<ImportantDateDTO>
 
 
     // Henter alle viktige datoer med paginering
-    public async Task<ICollection<ImportantDateDTO>> GetAllAsync(int pageNr, int pageSize)
+    public async Task<ICollection<ImportantDateDTO>> GetAllAsync(int userIdFromToken,int pageNr, int pageSize)
     {
-        var importantDatesFromRepository = await _dateRepository.GetAllAsync(pageNr, pageSize);
-        return importantDatesFromRepository.Select(_dateMapper.MapToDTO).ToList();
+
+        // Henter arrangementinformasjon fra repository med paginering
+        var importantDatesFromRepository = await _dateRepository.GetAllAsync(1, 10);
+      
+        // filter
+        var filteredImportantDates = importantDatesFromRepository.Where(importantDate => importantDate.UserId == userIdFromToken);
+
+        // Mapper Contactsinformasjon til contactsDTO-format
+        return filteredImportantDates.Select(importantDateEntity => _dateMapper.MapToDTO(importantDateEntity)).ToList();
+
+
     }
 
 
