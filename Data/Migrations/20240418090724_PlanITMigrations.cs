@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -38,6 +39,30 @@ namespace PlanIT.API.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Contacts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Contacts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Contacts_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Dinners",
                 columns: table => new
                 {
@@ -70,8 +95,7 @@ namespace PlanIT.API.Data.Migrations
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    Time = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Time = table.Column<TimeOnly>(type: "time(6)", nullable: false),
                     Location = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
@@ -163,8 +187,9 @@ namespace PlanIT.API.Data.Migrations
                     EventId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsReminderSent = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Coming = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
@@ -184,10 +209,21 @@ namespace PlanIT.API.Data.Migrations
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
                 values: new object[,]
                 {
-                    { 1, "perhansen@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy", "Per", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" },
-                    { 2, "olanordmann@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCOv3vD8ga.GAO/Ir0sKIHvJkTI5aQb.Yy", "Ola", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" },
-                    { 3, "karinordmann@mail.com", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO29dfuJb9b9I6INvpgd0mO/nW0IKVYtS", "Kari", "$2a$11$0DnrNnWPJlIJYFcPrFvoCO" }
+                    { 1, "perhansen@mail.com", "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee", "Per", "$2a$11$SDAc068CAM7zbUHHBGiYl." },
+                    { 2, "olanordmann@mail.com", "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee", "Ola", "$2a$11$SDAc068CAM7zbUHHBGiYl." },
+                    { 3, "karinordmann@mail.com", "$2a$11$SDAc068CAM7zbUHHBGiYl.6swBwBK6lLes1.yoFgz0D2D2vLGv7Se", "Kari", "$2a$11$SDAc068CAM7zbUHHBGiYl." }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Contacts_Email",
+                table: "Contacts",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Contacts_UserId",
+                table: "Contacts",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Dinners_UserId",
@@ -203,6 +239,12 @@ namespace PlanIT.API.Data.Migrations
                 name: "IX_ImportantDates_UserId",
                 table: "ImportantDates",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invites_Email",
+                table: "Invites",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Invites_EventId",
@@ -229,6 +271,9 @@ namespace PlanIT.API.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Contacts");
+
             migrationBuilder.DropTable(
                 name: "Dinners");
 
