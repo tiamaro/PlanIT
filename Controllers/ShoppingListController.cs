@@ -45,6 +45,9 @@ public class ShoppingListController : ControllerBase
     [HttpPost("register", Name = "AddShoppingList")]
     public async Task<IActionResult> AddShoppingListAsync(ShoppingListDTO newShoppingListDto)
     {
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
         if (!ModelState.IsValid)
         {
@@ -53,7 +56,7 @@ public class ShoppingListController : ControllerBase
         }
 
         // Registrer handlelisten
-        var addedShoppingList = await _shoppingListService.CreateAsync(newShoppingListDto);
+        var addedShoppingList = await _shoppingListService.CreateAsync(userId, newShoppingListDto);
 
         // Sjekk om handlelisteregistreringen var vellykket
         return addedShoppingList != null
@@ -62,14 +65,15 @@ public class ShoppingListController : ControllerBase
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
     // Henter en liste over handlelister
     // GET: /api/v1/ShoppingList?pageNr=1&pageSize=10
     [HttpGet(Name = "GetShoppingLists")]
     public async Task<ActionResult<IEnumerable<ShoppingListDTO>>> GetShoppingListsAsync(int pageNr, int pageSize)
     {
-        var allShoppingLists = await _shoppingListService.GetAllAsync(pageNr, pageSize);
+        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var allShoppingLists = await _shoppingListService.GetAllAsync(userId, pageNr, pageSize);
 
         return allShoppingLists != null
             ? Ok(allShoppingLists)

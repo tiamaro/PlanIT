@@ -56,7 +56,7 @@ public class TodoController : ControllerBase
         }
 
         // Registrer gjøremålet
-        var addedToDo = await _todoService.CreateAsync(newTodoDto);
+        var addedToDo = await _todoService.CreateAsync(userId, newTodoDto);
 
         // Sjekk om registreringen var vellykket
         return addedToDo != null
@@ -73,7 +73,7 @@ public class TodoController : ControllerBase
         // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        var allToDos = await _todoService.GetAllAsync(pageNr, pageSize);
+        var allToDos = await _todoService.GetAllAsync(userId, pageNr, pageSize);
 
         // Filtrer gjøremål basert på brukerens ID
         var userToDos = allToDos.Where(todo => todo.UserId == userId).ToList();

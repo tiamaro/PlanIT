@@ -1,3 +1,4 @@
+using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
@@ -27,10 +28,12 @@ public class ShoppingListService : IService<ShoppingListDTO>
     }
 
     // Oppretter en ny handleliste basert på data mottatt fra klienten og lagrer den i databasen.
-    public async Task<ShoppingListDTO?> CreateAsync(ShoppingListDTO newShoppingListDto)
+    public async Task<ShoppingListDTO?> CreateAsync(int userIdFromToken, ShoppingListDTO newShoppingListDto)
     {
         _logger.LogCreationStart("shopping list");
         var newShoppingList = _shoppingListMapper.MapToModel(newShoppingListDto);
+
+        newShoppingList.UserId = userIdFromToken;
 
         // Forsøker å legge til den nye handlelisten i databasen
         var addedShoppingList = await _shoppingListRepository.AddAsync(newShoppingList);
@@ -46,16 +49,14 @@ public class ShoppingListService : IService<ShoppingListDTO>
     }
 
 
-    // ''''''''''''''''''''''''''''''''''FJERNE?????? '''''''''''''''''''''''''''''''''
-    //
-    // Henter alle handlelister fra databasen med støtte for paginering.
-    public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int pageNr, int pageSize)
+    // Henter alle handlelister for innlogget bruker fra databasen med støtte for paginering.
+    public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(pageNr, pageSize);
-        var shoppingListDTOs = shoppingListsFromRepository.Select(shoppingList => _shoppingListMapper.MapToDTO(shoppingList)).ToList();
-        return shoppingListDTOs;
+        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(1, 10);
+        var filteredShoppingList = shoppingListsFromRepository.Where(shopping => shopping.UserId == userIdFromToken);
+
+        return filteredShoppingList.Select(shoppingEntity => _shoppingListMapper.MapToDTO(shoppingEntity)).ToList();
     }
-    // -------------------------------------------------------------------------------------
 
 
 
