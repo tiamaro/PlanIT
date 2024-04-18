@@ -55,9 +55,9 @@ public class AuthenticationController : ControllerBase
 
             Response.Cookies.Append("jwtToken", token, cookieOptions);
 
-            return Ok(new { Message = "Login successful" });
+            // return Ok(new { Message = "Login successful" });
 
-            // return Ok(new { Token = token });
+            return Ok(new { Token = token });
 
         }
         catch (Exception ex)
