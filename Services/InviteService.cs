@@ -59,8 +59,7 @@ public class InviteService : IService<InviteDTO>
             throw ExceptionHelper.CreateOperationException("invite", 0, "create");
         }
 
-        //_mailService.SendInviteEmail(addedInvite);
-
+        await _mailService.SendInviteEmail(addedInvite);
         _logger.LogOperationSuccess("created", "invite", addedInvite.Id);
         return _inviteMapper.MapToDTO(addedInvite);
     }

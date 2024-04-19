@@ -28,7 +28,9 @@ builder.Services.RegisterServicesFromConfiguration(Assembly.GetExecutingAssembly
 builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
 //// background service 
-//builder.Services.AddHostedService<BackgroundWorkerService>();
+//builder.Services.AddScoped<IHostedService, BackgroundWorkerService>();
+builder.Services.AddHostedService<BackgroundWorkerService>();
+
 
 
 // Registerer HttpContextAccessor

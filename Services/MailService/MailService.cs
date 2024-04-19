@@ -1,5 +1,7 @@
-﻿using PlanIT.API.Models.Entities;
+﻿using PlanIT.API.Models.DTOs;
+using PlanIT.API.Models.Entities;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Utilities;
 using System.Net;
 using System.Net.Mail;
 
@@ -7,21 +9,23 @@ namespace PlanIT.API.Services.MailService;
 
 public class MailService : IMailService
 {
-    private readonly ILogger<MailService> _logger;
+   // private readonly ILogger<MailService> _logger;
+    private readonly LoggerService _logger;
 
-    public MailService(ILogger<MailService> logger)
+
+    public MailService(LoggerService logger)
     {
-        _logger = logger;
+        _logger = logger;      
     }
 
     public async Task SendInviteEmail(Invite invite)
     {
-        if (invite == null || invite.Event == null)
-        {
+        //if (invite == null || invite.Event == null)
+        //{
 
-            _logger.LogError("Failed to send email: Invite or event data is missing.");
-            throw new ArgumentNullException("Email could not be sent with missing Invite data");
-        }
+        //    _logger.LogError("Failed to send email: Invite or event data is missing.");
+        //    throw new ArgumentNullException("Email could not be sent with missing Invite data");
+        //}
 
         try
         {
@@ -43,10 +47,10 @@ public class MailService : IMailService
                   $"<ul>" +
                   $"<li>Date: {invite.Event.Date}</li>" +
                   $"<li>Time: {invite.Event.Time}</li>" +
-                  $"<li>Location: {invite.Event.Location}</li>" +
+                  $"<li>Location: {invite.Event.Location} </li>" +
                   $"</ul>" +
-                  $"<p>We look forward to seeing you there!</p>" +
-                  $"Sincerely,<br>{invite.Event.User?.Name}</p>";
+                  $"<p>We look forward to seeing you there! </p>" +
+                  $"Sincerely,<br>{invite.Event.User?.Name} </p>";
 
 
 
@@ -61,7 +65,7 @@ public class MailService : IMailService
 
         catch (Exception ex)
         {
-            _logger.LogError($"An error occured trying to send invite email:{ex.ToString()}");
+            _logger.LogException(ex, "An error occured trying to send reminder email");
             throw;
 
         }
@@ -72,30 +76,36 @@ public class MailService : IMailService
     public async Task SendReminderEmail(Invite invite)
     {
 
-        if (invite == null || invite.Event == null)
-        {
+        //if (invite == null || invite.Event == null)
+        //{
 
-            _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
-            throw new ArgumentNullException("Email could not be sent with missing Invite data");
-        }
+        //    _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
+        //    throw new ArgumentNullException("Email could not be sent with missing Invite data");
+        //}
 
         try
         {
             using (var client = new SmtpClient("smtp-mail.outlook.com", 587))
             {
-                var message = new MailMessage("planit-event@outlook.com", $"{invite.Email}");
-                message.Subject = $"Reminder {invite.Event.Name} in 3 days";
+                client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                client.UseDefaultCredentials = false;
+                client.Credentials = new NetworkCredential("planit-event@outlook.com", "yVh1to*VzM2c");
+                client.EnableSsl = true;
 
-                message.Body = $"<h1>Hello {invite.Name},</h1>" +
-                  $"<p>This is a friendly reminder about the event '{invite.Event.Name}'.</p>" +
+
+                var message = new MailMessage("planit-event@outlook.com", $"{invite.Email}");
+                message.Subject = $"Reminder {invite?.Event?.Name} in 3 days";
+
+                message.Body = $"<h1>Hello {invite?.Name},</h1>" +
+                  $"<p>This is a friendly reminder about the event '{invite?.Event?.Name}'.</p>" +
                   $"<p>The event details are:</p>" +
                   $"<ul>" +
-                  $"<li>Date: {invite.Event.Date}</li>" +
-                  $"<li>Time: {invite.Event.Time}</li>" +
-                  $"<li>Location: {invite.Event.Location}</li>" +
+                  $"<li>Date: {invite?.Event?.Date} </li>" +
+                  $"<li>Time: {invite?.Event?.Time} </li>" +
+                  $"<li>Location: {invite?.Event?.Location} </li>" +
                   $"</ul>" +
                   $"<p>We look forward to seeing you there!</p>" +
-                  $"Sincerely,<br>{invite.Event.User?.Name}</p>";
+                  $"Sincerely,<br> {invite?.Event?.User?.Name} </p>";
 
 
 
@@ -108,7 +118,7 @@ public class MailService : IMailService
 
         catch (Exception ex)
         {
-            _logger.LogError($"An error occured trying to send reminder email:{ex.ToString()}");
+            _logger.LogException(ex ,"An error occured trying to send reminder email");
             throw;
         }
 
