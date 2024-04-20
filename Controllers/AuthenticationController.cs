@@ -45,17 +45,17 @@ public class AuthenticationController : ControllerBase
 
             _logger.LogInformation("Successful login for user {userEmail}", userLoginDTO.Email);
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = !_environment.IsDevelopment() ? true : false, // Dynamisk justering basert på miljø
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
+            //var cookieOptions = new CookieOptions
+            //{
+            //    HttpOnly = true,
+            //    Secure = true,
+            //    SameSite = SameSiteMode.Strict,
+            //    Expires = DateTime.UtcNow.AddDays(7)
+            //};
 
-            Response.Cookies.Append("jwtToken", token, cookieOptions);
+            //Response.Cookies.Append("jwtToken", token, cookieOptions);
 
-            // return Ok(new { Message = "Login successful" });
+            //// return Ok(new { Message = "Login successful" });
 
             return Ok(new { Token = token });
 

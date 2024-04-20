@@ -54,7 +54,8 @@ builder.Services.AddCors(options =>
         {
             policyBuilder.WithOrigins("http://127.0.0.1:5500")
                          .AllowAnyHeader()
-                         .AllowAnyMethod();
+                         .AllowAnyMethod()
+                         .AllowCredentials();
         });
 });
 
@@ -84,11 +85,11 @@ if (app.Environment.IsDevelopment())
 // app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
 app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
 
-app.UseCors("AllowMyFrontend");
-
 app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.UseCors("AllowMyFrontend");
 
 app.UseAuthentication(); // Setter opp autentiseringssystemet og etablerer brukeridentiteten
 
