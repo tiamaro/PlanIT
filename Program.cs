@@ -7,6 +7,7 @@ using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 using Serilog;
 using System.Configuration;
@@ -19,6 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<HandleExceptionFilter>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<EmailService>();
 
 // Legger til tjenester fra utilities folder
 builder.Services.AddScoped<PaginationUtility>();

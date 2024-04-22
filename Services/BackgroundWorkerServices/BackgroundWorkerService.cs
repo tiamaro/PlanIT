@@ -1,84 +1,100 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
+using PlanIT.API.Models.Entities;
 using PlanIT.API.Services.MailService;
+using PlanIT.API.Utilities;
 
 public class BackgroundWorkerService : IHostedService, IDisposable
 {
-    private readonly ILogger<BackgroundService> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<BackgroundWorkerService> _logger;
     private Timer? _timer;
-    //private readonly PlanITDbContext _dbContext;
-    // private readonly IMailService _mailService;
 
-    public BackgroundWorkerService(
-        ILogger<BackgroundService> logger,
-        //IMailService mailService,
-        IServiceProvider serviceProvider)
-        //PlanITDbContext dbContext)
+    public BackgroundWorkerService(IServiceProvider serviceProvider, ILogger<BackgroundWorkerService> logger)
     {
-        _logger = logger;
-        //_dbContext = dbContext;
-        //_mailService = mailService;
         _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Background service started");
-
-        // Set up a timer to execute DoWork periodically
+        // Initialize the timer
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
-
         return Task.CompletedTask;
     }
 
-    private void DoWork(object? state)
+    private async void DoWork(object? state)
     {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PlanITDbContext>();
+        var mailService = scope.ServiceProvider.GetRequiredService<IMailService>();
+        var loggerService = scope.ServiceProvider.GetRequiredService<LoggerService>();
+
         try
         {
-            // Create a scope for this background task
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<PlanITDbContext>();
-                var mailService = scope.ServiceProvider.GetRequiredService<IMailService>();
-                var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-                // Get invites that need reminders
-                //var invitesToCheck = dbContext.Invites
-                //    .Where(x => !x.IsReminderSent && x.Event.Date <= today.AddDays(3))
-                //    .ToList();
-
-                var invitesToCheck = dbContext.Invites
-                .Include(i => i.Event)
-                .ThenInclude(e => e!.User)  // Include User data linked through Event
-                .Where(x => !x.IsReminderSent && x.Event!.Date <= today.AddDays(3))
-                .ToList();
-
-                foreach (var invite in invitesToCheck)
-                {
-                    // Send reminder email
-                    mailService.SendReminderEmail(invite);
-
-                    // Mark the invite as sent
-                    invite.IsReminderSent = true;
-                    dbContext.Update(invite);
-                }
-
-                // Save changes within the scope
-                dbContext.SaveChanges();
-            }
-
-            _logger.LogInformation($"Found email invites with IsReminderSent=false");
+            var invitesToCheck = await FetchInvites(dbContext);
+            await ProcessInvites(invitesToCheck, mailService, dbContext, loggerService);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred in background service");
+            loggerService.LogException(ex, "Error during the background work execution.");
+        }
+    }
+
+    private async Task<List<Invite>> FetchInvites(PlanITDbContext dbContext)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        return await dbContext.Invites
+            .Include(i => i.Event)
+            .ThenInclude(e => e!.User)
+            .Where(x => !x.IsReminderSent && x.Event!.Date <= today.AddDays(3))
+            .ToListAsync();
+    }
+
+    private async Task ProcessInvites(List<Invite> invites, IMailService mailService, PlanITDbContext dbContext, LoggerService loggerService)
+    {
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            foreach (var invite in invites)
+            {
+                if (await TrySendReminder(invite, mailService, loggerService))
+                {
+                    invite.IsReminderSent = true;
+                    dbContext.Update(invite);
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+            loggerService.LogInfo($"Transaction committed. Processed {invites.Count} invites.");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            loggerService.LogException(ex, "Transaction rolled back due to an error.");
+            throw; // Ensure to rethrow to maintain error visibility
+        }
+    }
+
+    private async Task<bool> TrySendReminder(Invite invite, IMailService mailService, LoggerService loggerService)
+    {
+        try
+        {
+            await mailService.SendReminderEmail(invite);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            loggerService.LogException(ex, $"Failed to send reminder for invite ID {invite.Id}");
+            return false;
         }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Background service stopped");
+        _logger.LogInformation("Background service stopping");
         _timer?.Dispose();
         return Task.CompletedTask;
     }

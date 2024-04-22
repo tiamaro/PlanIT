@@ -24,5 +24,9 @@ public class SmtpClientFactory
         };
     }
 
-
+    // Expose SMTP username safely
+    public string GetSmtpUsername()
+    {
+        return _smtpSettings.SmtpUsername;
+    }
 }
