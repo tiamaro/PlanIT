@@ -16,10 +16,10 @@ public static class AuthorizationConfiguration
                 // Spesifiserer at denne policyen bruker JwtBearerAuthenticationScheme.
                 policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
 
-
                 // Forespørsler som passerer gjennom endepunkter som bruker denne policyen,
                 // må inneholde en gyldig JWT-token for å få tilgang.
                 policy.RequireAuthenticatedUser();
+
             });
         });
     }

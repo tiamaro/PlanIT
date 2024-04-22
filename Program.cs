@@ -99,6 +99,8 @@ app.UseMiddleware<JWTClaimsValidationMiddleware>(); // Utfører tilpasset logikk
 
 app.UseAuthorization(); // Håndterer autorisasjon basert på brukeridentiteten og tilhørende claims
 
+
+
 app.MapControllers();
 
 app.Run();
