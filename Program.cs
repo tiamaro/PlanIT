@@ -1,12 +1,15 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PlanIT.API.Configurations;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
+using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;
 using Serilog;
+using System.Configuration;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,6 +71,10 @@ builder.Host.UseSerilog((context, configuration) =>
     // Konfigurer logger fra appens konfigurasjonsfiler
     configuration.ReadFrom.Configuration(context.Configuration);
 });
+
+// Configure SmtpSettings
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddSingleton<SmtpClientFactory>();
 
 
 // Tilpasset JWT-autentisering konfigurasjon

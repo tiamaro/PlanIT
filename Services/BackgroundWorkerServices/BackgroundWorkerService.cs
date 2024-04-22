@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PlanIT.API.Data;
-using PlanIT.API.Services.Interfaces;
+using PlanIT.API.Services.MailService;
 
 public class BackgroundWorkerService : IHostedService, IDisposable
 {
@@ -27,7 +27,7 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         _logger.LogInformation("Background service started");
 
         // Set up a timer to execute DoWork periodically
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
 
         return Task.CompletedTask;
     }
@@ -50,8 +50,8 @@ public class BackgroundWorkerService : IHostedService, IDisposable
 
                 var invitesToCheck = dbContext.Invites
                 .Include(i => i.Event)
-                .ThenInclude(e => e.User)  // Include User data linked through Event
-                .Where(x => !x.IsReminderSent && x.Event.Date <= today.AddDays(3))
+                .ThenInclude(e => e!.User)  // Include User data linked through Event
+                .Where(x => !x.IsReminderSent && x.Event!.Date <= today.AddDays(3))
                 .ToList();
 
                 foreach (var invite in invitesToCheck)
