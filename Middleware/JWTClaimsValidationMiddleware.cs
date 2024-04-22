@@ -12,6 +12,7 @@ public class JWTClaimsValidationMiddleware
         _next = next;
     }
 
+
     public async Task Invoke(HttpContext context)
     {
         // Sjekker kun for autentiserte forespørsler
