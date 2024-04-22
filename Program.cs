@@ -1,31 +1,30 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using PlanIT.API.Configurations;
 using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
-using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 using Serilog;
-using System.Configuration;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Legg til tjenester i beholderen (DI-containeren).
-builder.Services.AddScoped<HandleExceptionFilter>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSingleton<EmailService>();
+
+builder.Services.AddScoped<HandleExceptionFilter>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 // Legger til tjenester fra utilities folder
 builder.Services.AddScoped<PaginationUtility>();
 builder.Services.AddScoped<LoggerService>();
-
+builder.Services.AddSingleton<ILoggerServiceFactory, LoggerServiceFactory>();
 
 
 // Tilpassede metoder for utvidelser
