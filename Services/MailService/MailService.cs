@@ -15,7 +15,7 @@ public class MailService : IMailService
         _logger = logger;
     }
 
-    public async Task SendInviteEmail(Invite invite)
+    public async Task SendInviteEmail(Invite invite, string userName)
     {
         if (invite == null)
         {
@@ -34,7 +34,6 @@ public class MailService : IMailService
         var eventDate = invite.Event.Date.ToString("yyyy-MM-dd");   // Assuming Date is non-nullable
         var eventTime = invite.Event.Time.ToString("HH:mm");        // Assuming Time is non-nullable
         var eventLocation = invite.Event.Location ?? "Location not specified";
-        var eventHost = invite.Event.User?.Name ?? "Host not specified";
 
         try
         {
@@ -52,7 +51,7 @@ public class MailService : IMailService
                            $"<li>Location: {eventLocation}</li>" +
                            $"</ul>" +
                            $"<p>We look forward to seeing you there!</p>" +
-                           $"Sincerely,<br>{eventHost}",
+                           $"Sincerely,<br>{userName}",
                     IsBodyHtml = true
                 };
                 await client.SendMailAsync(message);
@@ -102,4 +101,3 @@ public class MailService : IMailService
         }
     }
 }
-
