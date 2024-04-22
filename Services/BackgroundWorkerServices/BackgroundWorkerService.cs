@@ -4,21 +4,23 @@ using PlanIT.API.Models.Entities;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 
+
 public class BackgroundWorkerService : IHostedService, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<BackgroundWorkerService> _logger;
+    private readonly ILoggerServiceFactory _loggerFactory;
     private Timer? _timer;
 
-    public BackgroundWorkerService(IServiceProvider serviceProvider, ILogger<BackgroundWorkerService> logger)
+    public BackgroundWorkerService(IServiceProvider serviceProvider, ILoggerServiceFactory loggerFactory)
     {
         _serviceProvider = serviceProvider;
-        _logger = logger;
+        _loggerFactory = loggerFactory;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Background service started");
+        var logger = _loggerFactory.CreateLogger();
+        logger.LogInfo("Background service started");
         // Initialize the timer
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
         return Task.CompletedTask;
@@ -26,19 +28,19 @@ public class BackgroundWorkerService : IHostedService, IDisposable
 
     private async void DoWork(object? state)
     {
+        var logger = _loggerFactory.CreateLogger();
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PlanITDbContext>();
         var mailService = scope.ServiceProvider.GetRequiredService<IMailService>();
-        var loggerService = scope.ServiceProvider.GetRequiredService<LoggerService>();
 
         try
         {
             var invitesToCheck = await FetchInvites(dbContext);
-            await ProcessInvites(invitesToCheck, mailService, dbContext, loggerService);
+            await ProcessInvites(invitesToCheck, mailService, dbContext, logger);
         }
         catch (Exception ex)
         {
-            loggerService.LogException(ex, "Error during the background work execution.");
+            logger.LogException(ex, "Error during the background work execution.");
         }
     }
 
@@ -52,14 +54,14 @@ public class BackgroundWorkerService : IHostedService, IDisposable
             .ToListAsync();
     }
 
-    private async Task ProcessInvites(List<Invite> invites, IMailService mailService, PlanITDbContext dbContext, LoggerService loggerService)
+    private async Task ProcessInvites(List<Invite> invites, IMailService mailService, PlanITDbContext dbContext, LoggerService logger)
     {
         using var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
             foreach (var invite in invites)
             {
-                if (await TrySendReminder(invite, mailService, loggerService))
+                if (await TrySendReminder(invite, mailService, logger))
                 {
                     invite.IsReminderSent = true;
                     dbContext.Update(invite);
@@ -68,17 +70,17 @@ public class BackgroundWorkerService : IHostedService, IDisposable
 
             await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
-            loggerService.LogInfo($"Transaction committed. Processed {invites.Count} invites.");
+            logger.LogInfo($"Transaction committed. Processed {invites.Count} invites.");
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            loggerService.LogException(ex, "Transaction rolled back due to an error.");
+            logger.LogException(ex, "Transaction rolled back due to an error.");
             throw; // Ensure to rethrow to maintain error visibility
         }
     }
 
-    private async Task<bool> TrySendReminder(Invite invite, IMailService mailService, LoggerService loggerService)
+    private async Task<bool> TrySendReminder(Invite invite, IMailService mailService, LoggerService logger)
     {
         try
         {
@@ -87,14 +89,15 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         }
         catch (Exception ex)
         {
-            loggerService.LogException(ex, $"Failed to send reminder for invite ID {invite.Id}");
+            logger.LogException(ex, $"Failed to send reminder for invite ID {invite.Id}");
             return false;
         }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Background service stopping");
+        var logger = _loggerFactory.CreateLogger();
+        logger.LogInfo("Background service stopping");
         _timer?.Dispose();
         return Task.CompletedTask;
     }
