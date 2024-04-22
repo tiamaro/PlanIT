@@ -6,26 +6,34 @@ namespace PlanIT.API.Services.MailService;
 public class EmailService : IEmailService
 {
     private readonly SmtpClientFactory _smtpClientFactory;
-    private readonly ILogger<EmailService> _logger;
+    private readonly LoggerService _logger;
 
-    public EmailService(SmtpClientFactory smtpClientFactory, ILogger<EmailService> logger)
+    public EmailService(SmtpClientFactory smtpClientFactory, LoggerService logger)
     {
         _smtpClientFactory = smtpClientFactory;
         _logger = logger;
     }
 
-
     public async Task SendEmailAsync(string recipient, string subject, string body)
     {
-        using (var client = _smtpClientFactory.CreateSmtpClient())
+        try
         {
-            var message = new MailMessage(_smtpClientFactory._smtpSettings.SmtpUsername, recipient)
+            using (var client = _smtpClientFactory.CreateSmtpClient())
             {
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            await client.SendMailAsync(message);
+                var message = new MailMessage(_smtpClientFactory.GetSmtpUsername(), recipient)
+                {
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                await client.SendMailAsync(message);
+                _logger.LogInfo($"Email sent successfully to {recipient}. Subject: {subject}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogException(ex, $"Failed to send email to {recipient}");
+            throw;
         }
     }
 }
