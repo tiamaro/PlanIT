@@ -2,10 +2,12 @@
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
+using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
-using PlanIT.API.Utilities; // For å inkludere LoggerService og ExceptionHelper
+using PlanIT.API.Utilities;
+using System.Runtime.CompilerServices; // For å inkludere LoggerService og ExceptionHelper
 
 
 namespace PlanIT.API.Services;
@@ -17,18 +19,23 @@ public class InviteService : IService<InviteDTO>
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
     private readonly IRepository<Event> _eventRepository;
+    private readonly IUserRepository _userRepository;
+
     private readonly LoggerService _logger;
     private readonly IMailService _mailService;
 
     public InviteService(IMapper<Invite, InviteDTO> inviteMapper,
         IRepository<Invite> inviteRepository,
         IRepository<Event> eventRepository,
+        IUserRepository userRepository,
+
         LoggerService logger,
         IMailService mailService)
     {
         _inviteMapper = inviteMapper;
         _inviteRepository = inviteRepository;
         _eventRepository = eventRepository;
+        _userRepository = userRepository;
         _logger = logger;
         _mailService = mailService;
     }
@@ -38,7 +45,6 @@ public class InviteService : IService<InviteDTO>
     {
         _logger.LogCreationStart("invite");
 
-        // Henter det assosierte arrangementet for å kunne sjekke mot riktig brukerID
         var eventAssociated = await _eventRepository.GetByIdAsync(newInviteDTO.EventId);
         if (eventAssociated == null)
         {
@@ -52,6 +58,14 @@ public class InviteService : IService<InviteDTO>
             throw ExceptionHelper.CreateUnauthorizedException("event", newInviteDTO.EventId);
         }
 
+        // Fetch user details
+        var user = await _userRepository.GetByIdAsync(userIdFromToken);
+        if (user == null)
+        {
+            _logger.LogError("User not found with ID {UserId}", userIdFromToken);
+            throw new InvalidOperationException("User not found.");
+        }
+
         var newInvite = _inviteMapper.MapToModel(newInviteDTO);
         var addedInvite = await _inviteRepository.AddAsync(newInvite);
         if (addedInvite == null)
@@ -60,7 +74,8 @@ public class InviteService : IService<InviteDTO>
             throw ExceptionHelper.CreateOperationException("invite", 0, "create");
         }
 
-        await _mailService.SendInviteEmail(addedInvite);
+        // Pass user details to the mail service
+        await _mailService.SendInviteEmail(addedInvite, user.Name);
         _logger.LogOperationSuccess("created", "invite", addedInvite.Id);
         return _inviteMapper.MapToDTO(addedInvite);
     }
