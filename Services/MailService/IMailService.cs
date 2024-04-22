@@ -1,6 +1,6 @@
 ﻿using PlanIT.API.Models.Entities;
 
-namespace PlanIT.API.Services.Interfaces;
+namespace PlanIT.API.Services.MailService;
 
 public interface IMailService
 {

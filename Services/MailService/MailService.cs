@@ -1,6 +1,5 @@
 ﻿using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
-using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;
 using System.Net;
 using System.Net.Mail;
@@ -42,15 +41,15 @@ public class MailService : IMailService
 
                 // Insert guest information 
                 message.Body = $"<h1>Hello {invite.Name},</h1>" +
-                  $"<p>You have been invite to '{invite.Event.Name}'.</p>" +
+                  $"<p>You have been invite to '{invite.Event?.Name}'.</p>" +
                   $"<p>The event details are:</p>" +
                   $"<ul>" +
-                  $"<li>Date: {invite.Event.Date}</li>" +
-                  $"<li>Time: {invite.Event.Time}</li>" +
-                  $"<li>Location: {invite.Event.Location} </li>" +
+                  $"<li>Date: {invite.Event?.Date}</li>" +
+                  $"<li>Time: {invite.Event?.Time}</li>" +
+                  $"<li>Location: {invite.Event?.Location} </li>" +
                   $"</ul>" +
                   $"<p>We look forward to seeing you there! </p>" +
-                  $"Sincerely,<br>{invite.Event.User?.Name} </p>";
+                  $"Sincerely,<br>{invite.Event?.User?.Name} </p>";
 
 
 
@@ -76,12 +75,12 @@ public class MailService : IMailService
     public async Task SendReminderEmail(Invite invite)
     {
 
-        //if (invite == null || invite.Event == null)
-        //{
+        if (invite == null || invite.Event == null)
+        {
 
-        //    _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
-        //    throw new ArgumentNullException("Email could not be sent with missing Invite data");
-        //}
+            _logger.LogError("Failed to send reminder email: Invite or event data is missing.");
+            throw new ArgumentNullException("Email could not be sent with missing Invite data");
+        }
 
         try
         {
