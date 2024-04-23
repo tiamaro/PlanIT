@@ -7,6 +7,7 @@ using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
+using System.ComponentModel;
 using System.Runtime.CompilerServices; // For å inkludere LoggerService og ExceptionHelper
 
 
@@ -14,7 +15,7 @@ namespace PlanIT.API.Services;
 
 // Serviceklasse for håndtering av invitasjonsinformasjon.
 // Exceptions blir fanget av en middleware: HandleExceptionFilter
-public class InviteService : IService<InviteDTO>
+public class InviteService : IService<InviteDTO> , IInviteService
 {
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
@@ -200,4 +201,18 @@ public class InviteService : IService<InviteDTO>
         _logger.LogOperationSuccess("deleted", "invite", inviteId);
         return _inviteMapper.MapToDTO(deletedInvite);
     }
+
+    public async Task<bool> ConfirmInvite(int inviteId, int eventId)
+    {
+        var invitedGuest = await _inviteRepository.GetByIdAsync(inviteId);
+        if (invitedGuest != null && !invitedGuest.Coming)
+        {
+            invitedGuest.Coming = true;
+            await _inviteRepository.UpdateAsync(inviteId, invitedGuest);
+            return true;
+        }
+
+        return false;
+    }
 }
+
