@@ -205,14 +205,24 @@ public class InviteService : IService<InviteDTO> , IInviteService
     public async Task<bool> ConfirmInvite(int inviteId, int eventId)
     {
         var invitedGuest = await _inviteRepository.GetByIdAsync(inviteId);
-        if (invitedGuest != null && !invitedGuest.Coming)
+
+        // Check if the invited guest exists and the event ID matches if necessary.
+        if (invitedGuest == null || invitedGuest.EventId != eventId)
         {
-            invitedGuest.Coming = true;
-            await _inviteRepository.UpdateAsync(inviteId, invitedGuest);
-            return true;
+            throw ExceptionHelper.CreateNotFoundException("Invite or Event", inviteId);
         }
 
-        return false;
+        // Check if the guest has already confirmed coming.
+        if (invitedGuest.Coming)
+        {
+            _logger.LogWarning($"Invite ID {inviteId} for Event ID {eventId} is already confirmed.");
+            return false; 
+        }
+
+        // Mark the guest as coming.
+        invitedGuest.Coming = true;
+        await _inviteRepository.UpdateAsync(inviteId, invitedGuest);
+        _logger.LogInfo($"Invite ID {inviteId} for Event ID {eventId} has been confirmed successfully.");
+        return true;
     }
 }
-
