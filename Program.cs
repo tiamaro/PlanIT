@@ -6,8 +6,6 @@ using PlanIT.API.Data;
 using PlanIT.API.Extensions;
 using PlanIT.API.Middleware;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Services;
-using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 using Serilog;
 using System.Reflection;
@@ -21,13 +19,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<HandleExceptionFilter>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-
-
-// Interface for invite
-builder.Services.AddScoped<IInviteService, InviteService>();
-
 
 // Legger til tjenester fra utilities folder
 builder.Services.AddScoped<PaginationUtility>();
@@ -39,8 +30,7 @@ builder.Services.AddSingleton<ILoggerServiceFactory, LoggerServiceFactory>();
 builder.Services.RegisterServicesFromConfiguration(Assembly.GetExecutingAssembly(), builder.Configuration);
 builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
-//// background service 
-//builder.Services.AddScoped<IHostedService, BackgroundWorkerService>();
+// Background service 
 builder.Services.AddHostedService<BackgroundWorkerService>();
 
 // EMAIL AUTH 
