@@ -29,6 +29,10 @@ public class PlanITDbContext : DbContext
         modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
         modelBuilder.Entity<Invite>().HasIndex(i => i.Email).IsUnique();
 
+        // uncomment before new migrations, replace unique invite email with this to make sure
+        // that invite email is unique per event.
+       // modelBuilder.Entity<Invite>().HasIndex(i => new { i.Email, i.EventId }).IsUnique();
+
 
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         modelBuilder.Entity<User>().HasData(

@@ -9,8 +9,8 @@ public class ShoppingListDTOValidator : AbstractValidator<ShoppingListDTO>
     public ShoppingListDTOValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("ShoppingList Name cannot be empty")
-            .MaximumLength(50).WithMessage("ShoppingList Name cannot exceed 50 characters")
-            .MinimumLength(3).WithMessage("ShoppingList Name must be a least 3 characters");
+            .NotEmpty().WithMessage("Shoppinglist Name cannot be empty")
+            .MaximumLength(50).WithMessage("Shoppinglist Name cannot exceed 50 characters")
+            .MinimumLength(3).WithMessage("Shoppinglist Name must be a least 3 characters");
     }
 }

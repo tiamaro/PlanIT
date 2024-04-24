@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using PlanIT.API.Models.DTOs;
+using System.Text.RegularExpressions;
 
 namespace PlanIT.API.Validators;
 
@@ -16,7 +17,7 @@ public class UserRegistrationDtoValidator : AbstractValidator<UserRegDTO>
 
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("User email cannot be empty")
-            .EmailAddress().WithMessage("Valid email is required")
+            .Must(BeAValidEmail).WithMessage("Valid email is required, including domain and extension")
             .MaximumLength(100).WithMessage(" User Name cannot exceed 100 characters");
 
 
@@ -29,5 +30,11 @@ public class UserRegistrationDtoValidator : AbstractValidator<UserRegDTO>
             .Matches(@"[a-z]+").WithMessage("Password needs atleast 1 lowercase letter")
             .Matches(@"[!?*#_]+").WithMessage("Password needs atleast 1 special character (! ? * # _)");
 
+    }
+
+    private bool BeAValidEmail(string email)
+    {
+        // checks that the email has atleast 1 . after the @
+        return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 }
