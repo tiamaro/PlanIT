@@ -27,37 +27,37 @@ public class InviteResponseController : ControllerBase
     }
 
 
-    [HttpGet("confirm-invite")]
-    public async IActionResult ConfirmInviteAsync(string token)
-    {
-        try
-        {
-            // method to decode token
-            //var claims = _authService.Decode(token);
-            int inviteId = int.Parse(claims["inviteId"]);  // Ensure the claim keys match those set during token creation
-            int eventId = int.Parse(claims["eventId"]);
+    //[HttpGet("confirm-invite")]
+    //public async Task<IActionResult> ConfirmInviteAsync(string token)
+    //{
+    //    //try
+    //    //{
+    //    //    //    // method to decode token
+    //    //    //    //var claims = _authService.Decode(token);
+    //    //    //    int inviteId = int.Parse(claims["inviteId"]);  // Ensure the claim keys match those set during token creation
+    //    //    //    int eventId = int.Parse(claims["eventId"]);
 
-            var result = await _service.ConfirmInvite(inviteId, eventId);
-            if (result)
-            {
-                return Ok("invite confirmed");
-            }
+    //    //    var result = await _service.ConfirmInvite(inviteId, eventId);
+    //    //    if (result)
+    //    //    {
+    //    //        return Ok("invite confirmed");
+    //    //    }
 
-            else
-            {
-                return BadRequest("Unableto confirm invite");
-            }
-        }
+    //    //    else
+    //    //    {
+    //    //        return BadRequest("Unableto confirm invite");
+    //    //    }
+    //    //}
 
-        catch
-        {
-            return BadRequest("Invalid or expired token.");
+    //    //catch
+    //    //{
+    //    //    return BadRequest("Invalid or expired token.");
 
-        }
+    //    //}
 
 
-        }
-    }
+    //    //}
+}
 
 
 
