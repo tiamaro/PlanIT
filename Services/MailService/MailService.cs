@@ -1,18 +1,22 @@
 ﻿using PlanIT.API.Models.Entities;
+using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;
 using System.Net.Mail;
-
 namespace PlanIT.API.Services.MailService;
 
 public class MailService : IMailService
 {
     private readonly SmtpClientFactory _smtpClientFactory;
     private readonly LoggerService _logger;
+    private readonly IJWTEmailAuth _emailAuth;
 
-    public MailService(SmtpClientFactory smtpClientFactory, LoggerService logger)
+    public MailService(SmtpClientFactory smtpClientFactory,
+        LoggerService logger,
+        IJWTEmailAuth emailAuth)
     {
         _smtpClientFactory = smtpClientFactory;
         _logger = logger;
+        _emailAuth = emailAuth;
     }
 
     public async Task SendInviteEmail(Invite invite, string userName)
@@ -35,8 +39,11 @@ public class MailService : IMailService
         var eventTime = invite.Event.Time.ToString("HH:mm");        // Assuming Time is non-nullable
         var eventLocation = invite.Event.Location ?? "Location not specified";
 
+        var token = _emailAuth.GenerateJwtToken(invite.Id, invite.EventId);
+        var confirmationLink = $"https://localhost:7019/api/v1/inviteresponse/confirm-invite?token={token}";
         try
         {
+
             using (var client = _smtpClientFactory.CreateSmtpClient())
             {
                 var message = new MailMessage(_smtpClientFactory.GetSmtpUsername(), invite.Email)
@@ -50,6 +57,7 @@ public class MailService : IMailService
                            $"<li>Time: {eventTime}</li>" +
                            $"<li>Location: {eventLocation}</li>" +
                            $"</ul>" +
+                           $"<p>Please confirm your attendance by clicking <a href='{confirmationLink}'>here</a>.</p>" +
                            $"<p>We look forward to seeing you there!</p>" +
                            $"Sincerely,<br>{userName}",
                     IsBodyHtml = true

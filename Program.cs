@@ -11,6 +11,7 @@ using PlanIT.API.Services.MailService;
 using PlanIT.API.Utilities;
 using Serilog;
 using System.Reflection;
+using PlanIT.API.Services.AuthenticationService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +43,8 @@ builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autent
 //builder.Services.AddScoped<IHostedService, BackgroundWorkerService>();
 builder.Services.AddHostedService<BackgroundWorkerService>();
 
-
+// EMAIL AUTH 
+builder.Services.AddSingleton<IJWTEmailAuth, JWTEmailAuth>();
 
 // Registerer HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
@@ -79,6 +81,7 @@ builder.Host.UseSerilog((context, configuration) =>
     // Konfigurer logger fra appens konfigurasjonsfiler
     configuration.ReadFrom.Configuration(context.Configuration);
 });
+
 
 // Configure SmtpSettings
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
