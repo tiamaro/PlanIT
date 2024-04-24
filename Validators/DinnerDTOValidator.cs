@@ -15,7 +15,7 @@ public class DinnerDTOValidator : AbstractValidator<DinnerDTO>
 
 
 
-        // Not sure if needed
+        // Should dinner be connected to date ?? 
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("Dinner Date cannot be empty");
 
