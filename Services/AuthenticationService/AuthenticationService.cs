@@ -46,7 +46,7 @@ public class AuthenticationService : IAuthService
         var tokenHandler = new JwtSecurityTokenHandler();
 
         // Henter den hemmelige nøkkelen for JWT fra appsettings.
-        var jwtSecret = _configuration["Jwt:Secret"];
+        var jwtSecret = _configuration["JwtSecret"];
 
         if (string.IsNullOrEmpty(jwtSecret))
         {
