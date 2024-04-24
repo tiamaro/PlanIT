@@ -9,6 +9,7 @@ public static class AuthenticationConfiguration
 {
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration, Serilog.ILogger logger)
     {
+
         // Henter og validerer den hemmelige nøkkelen for JWT fra secret manager.
         var jwtSecret = configuration["JwtSecret"];
         if (string.IsNullOrEmpty(jwtSecret))
