@@ -28,5 +28,3 @@ public class UserDTOValidator : AbstractValidator<UserDTO>
         return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 }
-
-}
