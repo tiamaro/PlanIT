@@ -50,7 +50,7 @@ public class TodoService : IService<ToDoDTO>
     // Henter alle gjøremål med paginering
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        var ToDosFromRepository = await _todoRepository.GetAllAsync(1, 10);
+        var ToDosFromRepository = await _todoRepository.GetAllAsync(pageNr, pageSize);
 
         var filteredToDos = ToDosFromRepository.Where(todo => todo.UserId == userIdFromToken);
 
