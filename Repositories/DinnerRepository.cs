@@ -6,7 +6,7 @@ using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
-public class DinnerRepository : IRepository<Dinner>
+public class DinnerRepository : IDinnerRepository
 {
     private readonly PlanITDbContext _dbContext;
     private readonly PaginationUtility _pagination;
@@ -24,6 +24,25 @@ public class DinnerRepository : IRepository<Dinner>
         return addedDinner.Entity;
     }
 
+
+    public async Task<bool> AddWeeklyDinnersAsync(IEnumerable<Dinner> dinners)
+    {
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            await _dbContext.Dinners.AddRangeAsync(dinners);
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+    }
+
+
     public async Task<ICollection<Dinner>> GetAllAsync(int pageNr, int pageSize)
     {
         IQueryable<Dinner> dinnersQuery = _dbContext.Dinners.OrderBy(x => x.Id);
@@ -35,6 +54,17 @@ public class DinnerRepository : IRepository<Dinner>
         var exsistingDinner = await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == dinnerId);
         return exsistingDinner is null ? null : exsistingDinner;
     }
+
+
+    public async Task<List<Dinner>?> GetByDateRangeAndUserAsync(int userId, DateOnly startDate, DateOnly endDate)
+    {
+        var exsistingDinner = await _dbContext.Dinners
+                               .Where(d => d.UserId == userId && d.Date >= startDate && d.Date <= endDate)
+                               .ToListAsync();
+
+        return exsistingDinner is null ? null : exsistingDinner;
+    }
+
 
     public async Task<Dinner?> UpdateAsync(int id, Dinner updatedDinner)
     {
@@ -48,7 +78,6 @@ public class DinnerRepository : IRepository<Dinner>
         return exsistingDinner;
 
     }
-
 
 
     public async Task<Dinner?> DeleteAsync(int dinnerId)

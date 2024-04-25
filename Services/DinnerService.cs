@@ -1,28 +1,29 @@
-using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
-using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities;  // Inkluderer tilgang til LoggerService og ExceptionHelper
+using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Services;
 
 
 // Serviceklasse for håndtering av middagsinformasjon.
 // Exceptions blir fanget av en middleware: HandleExceptionFilter
-public class DinnerService : IService<DinnerDTO>
+public class DinnerService : IDinnerService
 {
     private readonly IMapper<Dinner, DinnerDTO> _dinnerMapper;
-    private readonly IRepository<Dinner> _dinnerRepository;
+    private readonly IWeeklyDinnerPlanMapper _weeklyDinnerPlanMapper;
+    private readonly IDinnerRepository _dinnerRepository;
     private readonly LoggerService _logger;
 
     public DinnerService(IMapper<Dinner, DinnerDTO> dinnerMapper,
-        IRepository<Dinner> dinnerRepository,
+        IWeeklyDinnerPlanMapper weeklyDinnerPlanMapper,
+        IDinnerRepository dinnerRepository,
         LoggerService logger)
     {
         _dinnerMapper = dinnerMapper;
+        _weeklyDinnerPlanMapper = weeklyDinnerPlanMapper;
         _dinnerRepository = dinnerRepository;
         _logger = logger;
     }
@@ -47,6 +48,35 @@ public class DinnerService : IService<DinnerDTO>
         _logger.LogOperationSuccess("created", "dinner", addedDinner.Id);
 
         return _dinnerMapper.MapToDTO(addedDinner);
+    }
+
+
+    public async Task<bool> RegisterWeeklyDinnerPlanAsync(int userId, WeeklyDinnerPlanDTO weeklyPlanDTO)
+    {
+        var dinners = weeklyPlanDTO.ToDinnerDTOs().Select(dto => new Dinner
+        {
+            UserId = userId,
+            Date = dto.Date,
+            Name = dto.Name
+        }).ToList();
+
+        try
+        {
+            bool result = await _dinnerRepository.AddWeeklyDinnersAsync(dinners);
+            if (!result)
+            {
+                _logger.LogCreationFailure("weekly dinner plan");
+                throw ExceptionHelper.CreateOperationException("weekly dinner plan", userId, "register");
+            }
+
+            _logger.LogOperationSuccess("registered", "weekly dinner plan", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogException(ex, "Failed to register weekly dinner plan for user {UserId}.", userId);
+            throw; // Propagates the exception, ensuring it can be handled by middleware or further up the call stack
+        }
     }
 
 
@@ -88,6 +118,25 @@ public class DinnerService : IService<DinnerDTO>
         // Logger vellykket henting av middagen
         _logger.LogOperationSuccess("retrieved", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(dinnerFromRepository);
+    }
+
+
+    public async Task<WeeklyDinnerPlanDTO> GetWeeklyDinnerPlanAsync(int userIdFromToken, DateOnly startDate, DateOnly endDate)
+    {
+        _logger.LogDebug("Fetching weekly dinner plan for user {UserId} from {StartDate} to {EndDate}.", userIdFromToken, startDate, endDate);
+
+        // Fetching dinners within the specified date range for the given user
+        var dinnersFromRepository = await _dinnerRepository.GetByDateRangeAndUserAsync(userIdFromToken, startDate, endDate);
+
+        if (dinnersFromRepository == null)
+        {
+            _logger.LogNotFound("dinners", userIdFromToken);
+            throw ExceptionHelper.CreateNotFoundException("dinners for user", userIdFromToken);
+        }
+
+        _logger.LogOperationSuccess("retrieved", "weekly dinner plan", userIdFromToken);
+        return _weeklyDinnerPlanMapper.MapToDTO(dinnersFromRepository);
+
     }
 
 

@@ -30,10 +30,10 @@ namespace PlanIT.API.Controllers;
 public class DinnerController : ControllerBase
 {
     private readonly ILogger<DinnerController> _logger;
-    private readonly IService<DinnerDTO> _dinnerService;
+    private readonly IDinnerService _dinnerService;
 
     public DinnerController(ILogger<DinnerController> logger, 
-        IService<DinnerDTO> dinnerService)
+        IDinnerService dinnerService)
     {
         _logger = logger;
         _dinnerService = dinnerService;
@@ -64,14 +64,38 @@ public class DinnerController : ControllerBase
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
+    [HttpPost("register-weekly-plan", Name = "AddWeeklyDinnerPlan")]
+    public async Task<IActionResult> AddWeeklyDinnerPlanAsync([FromBody] WeeklyDinnerPlanDTO weeklyPlanDTO)
+    {
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        if (!ModelState.IsValid)
+        {
+            _logger.LogError("Invalid model state in AddWeeklyDinnerPlanAsync");
+            return BadRequest(ModelState);
+        }
+
+        
+        foreach (var dinnerDTO in weeklyPlanDTO.ToDinnerDTOs())
+        {
+            if (dinnerDTO != null) // Check if the dinner DTO is not null
+            {
+                var addedDinner = await _dinnerService.CreateAsync(userId, dinnerDTO);
+                if (addedDinner == null) return BadRequest($"Failed to register dinner for {dinnerDTO.Date}");
+                                
+            }
+        }
+            
+        return Ok("Weekly dinner plan registered successfully.");       
+    }
+
+
     [HttpGet(Name = "GetDinners")]
     public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync(int pageNr, int pageSize)
     {
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        var allDinners = await _dinnerService.GetAllAsync(userId,pageNr, pageSize);
+        var allDinners = await _dinnerService.GetAllAsync(userId, pageNr, pageSize);
 
         return allDinners != null
             ? Ok(allDinners)
@@ -95,6 +119,22 @@ public class DinnerController : ControllerBase
             ? Ok(exsistingDinner)
             : NotFound("Dinner not found");
     }
+
+
+    // GET: api/v1/WeeklyDinnerPlan
+    [HttpGet("weekly/{startDate}/{endDate}", Name = "GetWeeklyDinners")]
+    public async Task<IActionResult> GetWeeklyDinnerPlan(DateOnly startDate, DateOnly endDate)
+    {
+        
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+          
+        var weeklyPlan = await _dinnerService.GetWeeklyDinnerPlanAsync(userId, startDate, endDate);
+  
+        return weeklyPlan != null
+             ? Ok(weeklyPlan)
+             : NotFound($"No weekly dinner plan found from {startDate} to {endDate}.");         
+    }
+
 
 
     // Oppdaterer middag basert på dinnerID.
