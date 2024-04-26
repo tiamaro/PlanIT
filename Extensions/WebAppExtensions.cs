@@ -6,14 +6,14 @@ namespace PlanIT.API.Extensions;
 public static class WebAppExtensions
 {
 
-    // Metode for å registrere Services i Dependency Injection
+    // Method for registering Services in Dependency Injection
     public static void RegisterServicesFromConfiguration(this IServiceCollection services, Assembly assembly, IConfiguration configuration)
     {
-        // Last namespaces og exclusions fra konfigurasjon
+        // Load namespaces and exclusions from configuration
         var namespaces = configuration.GetSection("DependencyInjection:Namespaces").Get<string[]>() ?? [];
         var exclusions = configuration.GetSection("DependencyInjection:Exclusions").Get<string[]>() ?? [];
 
-        // // Behandle hver type og interface basert på de innlastede namespaces og exclusions
+        // Process each type and interface based on the loaded namespaces and exclusions
         var types = assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
             .ToList();
@@ -29,6 +29,7 @@ public static class WebAppExtensions
             if (!namespaces.Any(ns => type.Namespace?.Contains(ns) == true))
                 continue;
 
+            // Register each interface implemented by the class that is not system-defined.
             foreach (var interfaceType in type.GetInterfaces())
             {
                 if (interfaceType.Namespace == null || interfaceType.Namespace.StartsWith("System"))
@@ -41,7 +42,7 @@ public static class WebAppExtensions
     }
 
 
-    // Metode for å hente og validere brukerID fra HttpContext
+    // Retrieves and validates a user ID from HttpContext; throws an exception if invalid.
     public static int GetValidUserId(HttpContext httpContext)
     {
         var userIdValue = httpContext.Items["UserId"] as string;
@@ -53,7 +54,7 @@ public static class WebAppExtensions
     }
 
 
-    // Metode for å konfigurere Swagger med json web token autentisering
+    // Configures Swagger to include JWT authentication for secure API documentation and testing.
     public static void AddSwaggerWithJwtAuthentication(this WebApplicationBuilder builder)
     {
         builder.Services.AddSwaggerGen(c =>

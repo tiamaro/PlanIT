@@ -5,11 +5,11 @@ namespace PlanIT.API.Data;
 
 public class PlanITDbContext : DbContext
 {
-    // For konfigurering av databasen
+    
     public PlanITDbContext(DbContextOptions<PlanITDbContext> options)
         : base(options) { }
 
-    // Tabeller til databasen
+    
     public DbSet<User> Users { get; set; }
     public DbSet<Event> Events { get; set; }
     public DbSet<Invite> Invites { get; set; }
@@ -34,6 +34,8 @@ public class PlanITDbContext : DbContext
        // modelBuilder.Entity<Invite>().HasIndex(i => new { i.Email, i.EventId }).IsUnique();
 
 
+
+        // Adds pre made test users 
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         modelBuilder.Entity<User>().HasData(
             new User

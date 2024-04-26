@@ -23,9 +23,10 @@ public class InviteDTOValidator : AbstractValidator<InviteDTO>
     }
 
 
+    // Ensures that the email is in the correct format
     private bool BeAValidEmail(string email)
     {
-        // checks that the email has atleast 1 . after the @
+        
         return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 

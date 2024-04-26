@@ -18,7 +18,7 @@ public class InviteRepository : IRepository<Invite>
     }
 
 
-    // Legger til ny invitasjon
+    
     public async Task<Invite?> AddAsync(Invite newInvite)
     {
         var addedInviteEntry = await _dbContext.Invites.AddAsync(newInvite);
@@ -28,7 +28,7 @@ public class InviteRepository : IRepository<Invite>
     }
 
 
-    // Henter alle invitasjoner med paginering
+    
     public async Task<ICollection<Invite>> GetAllAsync(int pageNr, int pageSize)
     {
         var pagination = new PaginationUtility(_dbContext);
@@ -38,14 +38,14 @@ public class InviteRepository : IRepository<Invite>
     }
 
 
-    // Henter invitasjon basert på ID
+    
     public async Task<Invite?> GetByIdAsync(int inviteId)
     {
         var existingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
         return existingInvite is null ? null : existingInvite;
     }
 
-    // Oppdaterer invitasjon
+    
     public async Task<Invite?> UpdateAsync(int inviteId, Invite updatedInvite)
     {
         var exsistingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);
@@ -61,7 +61,7 @@ public class InviteRepository : IRepository<Invite>
     }
 
 
-    // Sletter invitasjon
+   
     public async Task<Invite?> DeleteAsync(int inviteId)
     {
         var existingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);

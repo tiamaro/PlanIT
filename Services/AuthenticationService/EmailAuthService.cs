@@ -6,8 +6,8 @@ using System.Security.Claims;
 using System.Text;
 
 namespace PlanIT.API.Services.AuthenticationService;
-
-public class JWTEmailAuth : IJWTEmailAuth
+// Service to manage email-based JWT authentication for invite and event operations.
+public class EmailAuthService : IEmailAuth
 {
     private readonly string _secretKey;
     private readonly string _issuer;
@@ -15,11 +15,12 @@ public class JWTEmailAuth : IJWTEmailAuth
     private readonly ILoggerServiceFactory _loggerFactory;
 
 
-    public JWTEmailAuth(IConfiguration configuration, ILoggerServiceFactory loggerFactory)
+    public EmailAuthService(IConfiguration configuration, ILoggerServiceFactory loggerFactory)
     {
         _loggerFactory = loggerFactory;
         var logger = _loggerFactory.CreateLogger();
 
+        // Default JWT settings.
         const string DefaultSecretKey = "default_secret_key";
         const string DefaultIssuer = "default_issuer";
         const string DefaultAudience = "default_audience";
@@ -36,6 +37,8 @@ public class JWTEmailAuth : IJWTEmailAuth
         }
     }
 
+    // Generates a JWT token containing invite and event identifiers.
+    // Returns a JWT token string
     public string GenerateJwtToken(int inviteId, int eventId)
     {
         var logger = _loggerFactory.CreateLogger();
@@ -59,13 +62,13 @@ public class JWTEmailAuth : IJWTEmailAuth
 
         var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-        // Log token generation
+        
         logger.LogInfo("JWT email-token generated successfully.");
 
         return jwtToken;
     }
 
-
+    // Decodes and validates a given JWT token, returning the associated claims principal.
     public ClaimsPrincipal DecodeToken(string token)
     {
         var logger = _loggerFactory.CreateLogger();
@@ -82,12 +85,13 @@ public class JWTEmailAuth : IJWTEmailAuth
                 ValidateAudience = true,
                 ValidIssuer = _issuer,
                 ValidAudience = _audience,
-                ClockSkew = TimeSpan.Zero  // Remove default clock skew of 5 minutes
+                ClockSkew = TimeSpan.Zero  
             }, out SecurityToken validatedToken);
 
             logger.LogInfo("JWT email-token validation successful.");
 
-            return principal;  // Correctly return the ClaimsPrincipal obtained from ValidateToken
+            // Correctly return the ClaimsPrincipal obtained from ValidateToken
+            return principal;  
         }
         catch (Exception ex)
         {
@@ -96,6 +100,7 @@ public class JWTEmailAuth : IJWTEmailAuth
         }
     }
 
+    // Validates the token and extracts the invite and event identifiers.
     public (int inviteId, int eventId) ValidateAndExtractClaims(string token)
     {
         var logger = _loggerFactory.CreateLogger();

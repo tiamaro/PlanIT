@@ -5,7 +5,11 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
-// Denne kontrolleren håndterer brukerinnlogging og generering av JWT (JSON Web Token) for autentiserte brukere.
+// The AuthenticationController manages the authentication process for users.
+// It supports login operations, handling user credentials to authenticate and generate JWT tokens.
+// This controller is responsible for logging important information about the login attempts,
+// successes, and failures. It also includes error handling to manage exceptions that occur during the login process.
+
 
 [Route("api/v1/[controller]")]
 [ApiController]
@@ -32,15 +36,17 @@ public class AuthenticationController : ControllerBase
 
         try
         {
-            // Autentiserer bruker
+            // Authenticate the user.
             var user = await _authService.AuthenticateUserAsync(userLoginDTO.Email, userLoginDTO.Password);
 
+
+            // Check if user authentication was successful.
             if (user == null)
             {
                 return Unauthorized("Invalid email or password");
             }
 
-            // Genererer JWT token
+            // Generate a JWT token for the authenticated user.
             var token = await _authService.GenerateJwtTokenAsync(user);
 
             _logger.LogInformation("Successful login for user {userEmail}", userLoginDTO.Email);
@@ -57,6 +63,8 @@ public class AuthenticationController : ControllerBase
 
             //return Ok(new { Message = "Login successful" });
 
+
+            // Return the generated token as a response.
             return Ok(new { Token = token });
 
         }

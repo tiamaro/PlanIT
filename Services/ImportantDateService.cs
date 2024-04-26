@@ -1,16 +1,14 @@
-﻿using PlanIT.API.Mappers;
-using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
-using PlanIT.API.Repositories;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
+using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Services;
 
-// Serviceklasse for håndtering av viktige datoer.
-// Exceptions blir fanget av en middleware: HandleExceptionFilter
+// Service class for handling important dates information.
+// Exceptions are caught by a middleware: HandleExceptionFilter
 public class ImportantDateService : IService<ImportantDateDTO>
 {
     private readonly IMapper<ImportantDate, ImportantDateDTO> _dateMapper;
@@ -27,16 +25,16 @@ public class ImportantDateService : IService<ImportantDateDTO>
     }
 
 
-    // Oppretter en ny viktig dato
+    
     public async Task<ImportantDateDTO?> CreateAsync(int userIdFromToken, ImportantDateDTO newImportantDateDTO)
     {
         _logger.LogCreationStart("important date");
 
-        // Mapper DTO til domenemodell
+        
         var newImportantDate = _dateMapper.MapToModel(newImportantDateDTO);
         newImportantDate.UserId = userIdFromToken;
 
-        // Legger til den nye viktige datoen i databasen
+        
         var addedImportantDate = await _dateRepository.AddAsync(newImportantDate);
         if (addedImportantDate == null)
         {
@@ -49,24 +47,24 @@ public class ImportantDateService : IService<ImportantDateDTO>
     }
 
 
-    // Henter alle viktige datoer med paginering
+   
     public async Task<ICollection<ImportantDateDTO>> GetAllAsync(int userIdFromToken,int pageNr, int pageSize)
     {
 
-        // Henter arrangementinformasjon fra repository med paginering
+        
         var importantDatesFromRepository = await _dateRepository.GetAllAsync(1, 10);
       
-        // filter
+        
         var filteredImportantDates = importantDatesFromRepository.Where(importantDate => importantDate.UserId == userIdFromToken);
 
-        // Mapper Contactsinformasjon til contactsDTO-format
+        
         return filteredImportantDates.Select(importantDateEntity => _dateMapper.MapToDTO(importantDateEntity)).ToList();
 
 
     }
 
 
-    // Henter en spesifikk viktig dato basert på ID
+    
     public async Task<ImportantDateDTO?> GetByIdAsync(int userIdFromToken, int importantDateId)
     {
         _logger.LogDebug("Henter viktig dato med ID {ImportantDateId} for bruker ID {UserId}.", importantDateId, userIdFromToken);
@@ -78,26 +76,26 @@ public class ImportantDateService : IService<ImportantDateDTO>
             throw ExceptionHelper.CreateNotFoundException("important date", importantDateId);
         }
 
-        // Sjekker om brukerens ID stemmer overens med brukerID tilknyttet den vikitge datoen
+        
         if (importantDateFromRepository.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("important date", importantDateId, userIdFromToken);
             throw ExceptionHelper.CreateUnauthorizedException("important date", importantDateId);
         }
 
-        // Logger vellykket henting av datoen
+        
         _logger.LogOperationSuccess("retrieved", "important date", importantDateId);
         return _dateMapper.MapToDTO(importantDateFromRepository);
     }
 
 
-    // Oppdaterer en viktig dato
+    
     public async Task<ImportantDateDTO?> UpdateAsync(int userIdFromToken, int importantDateId, ImportantDateDTO dateDTO)
     {
         _logger.LogDebug("Oppdaterer viktig dato med ID {ImportantDateId} for bruker ID {UserId}.", importantDateId, userIdFromToken);
 
 
-        // Forsøker å hente den eksisterende datoen fra databasen
+        
         var existingImportantDate = await _dateRepository.GetByIdAsync(importantDateId);
         if (existingImportantDate == null)
         {
@@ -105,7 +103,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
             throw ExceptionHelper.CreateNotFoundException("important date", importantDateId);
         }
 
-        // Sjekker om brukeren har autorisasjon til å oppdatere datoen
+        
         if (existingImportantDate.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("important date", importantDateId, userIdFromToken);
@@ -113,9 +111,9 @@ public class ImportantDateService : IService<ImportantDateDTO>
         }
 
         var importantDateToUpdate = _dateMapper.MapToModel(dateDTO);
-        importantDateToUpdate.Id = importantDateId;  // Sikrer at ID ikke endres under oppdateringen
+        importantDateToUpdate.Id = importantDateId;  
 
-        // Utfører oppdateringen i databasen 
+        
         var updatedImportantDate = await _dateRepository.UpdateAsync(importantDateId, importantDateToUpdate);
         if (updatedImportantDate == null)
         {
@@ -128,12 +126,12 @@ public class ImportantDateService : IService<ImportantDateDTO>
     }
 
 
-    // Sletter en viktig dato
+    
     public async Task<ImportantDateDTO?> DeleteAsync(int userIdFromToken, int importantDateId)
     {
         _logger.LogDebug("Forsøker å slette viktig dato med ID {ImportantDateId} av bruker {UserId}.", importantDateId, userIdFromToken);
 
-        // Henter datoen fra databasen for å sikre at den eksisterer før sletting
+        
         var importantDateToDelete = await _dateRepository.GetByIdAsync(importantDateId);
         if (importantDateToDelete == null)
         {
@@ -141,14 +139,14 @@ public class ImportantDateService : IService<ImportantDateDTO>
             throw ExceptionHelper.CreateNotFoundException("important date", importantDateId);
         }
 
-        // Sjekker om brukeren har riktig autorisasjon til å slette datoen
+        
         if (importantDateToDelete.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("important date", importantDateId, userIdFromToken);
             throw ExceptionHelper.CreateUnauthorizedException("important date", importantDateId);
         }
 
-        // Utfører slettingen av datoen fra databasen
+        
         var deletedImportantDate = await _dateRepository.DeleteAsync(importantDateId);
         if (deletedImportantDate == null)
         {

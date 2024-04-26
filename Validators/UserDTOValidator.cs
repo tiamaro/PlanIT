@@ -22,6 +22,7 @@ public class UserDTOValidator : AbstractValidator<UserDTO>
 
     }
 
+    // Ensures that the email is in the correct format
     private bool BeAValidEmail(string email)
     {
         // checks that the email has atleast 1 . after the @

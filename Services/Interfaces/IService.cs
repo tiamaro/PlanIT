@@ -3,7 +3,6 @@
 public interface IService<TDto>
 {
     // CREATE
-
     Task<TDto?> CreateAsync(int userIdFromToken, TDto dto);
 
     // READ

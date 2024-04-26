@@ -25,14 +25,14 @@ public class TodoRepository : IRepository<ToDo>
         return addedTodo?.Entity;
     }
 
-    // Retrieves all todo items with pagination
+    
     public async Task<ICollection<ToDo>> GetAllAsync(int pageNr, int pageSize)
     {
         IQueryable<ToDo> todosQuery = _dbContext.Todos.OrderBy(x => x.Id);
         return await _pagination.GetPageAsync(todosQuery, pageNr, pageSize);
     }
 
-    // Retrieves a todo item by its ID
+    
     public async Task<ToDo?> GetByIdAsync(int toDoId)
     {
         var exsistingToDo = await _dbContext.Todos.FirstOrDefaultAsync(x => x.Id == toDoId);
@@ -51,7 +51,7 @@ public class TodoRepository : IRepository<ToDo>
 
     }
 
-    // Deletes a todo item by its ID
+    
     public async Task<ToDo?> DeleteAsync(int toDoId)
     {
 

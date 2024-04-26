@@ -7,25 +7,25 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
-// UsersController - API Controller for brukerhåndtering:
-// - Kontrolleren håndterer alle forespørsler relatert til brukerdata, inkludert registrering,
-//   oppdatering, sletting og henting av brukerinformasjon. Den tar imot en instans av IUserService
-//   som en del av konstruktøren for å utføre operasjoner relatert til brukere.
+// UsersController - API Controller for user management:
+// - The controller handles all requests related to user data, including registration,
+//   updating, deletion, and retrieval of user information. It receives an instance of IUserService
+//   as part of the constructor to perform operations related to users.
 //
 // Policy:
-// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
-//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
-//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+// - "Bearer": Requires that all calls to this controller are authenticated with a valid JWT token
+//   that meets the requirements defined in the "Bearer" authentication policy. This ensures that only
+//   authenticated users can access the endpoints defined in this controller.
 //
 // HandleExceptionFilter:
-// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+// - This filter is attached to the controller to catch and handle exceptions in a centralized manner.
 //
-// Forespørsler som starter med "api/v1/Users" vil bli rutet til metoder definert i denne kontrolleren.
+// Requests starting with "api/v1/Users" will be routed to methods defined in this controller.
 
 [Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
-[ServiceFilter(typeof(HandleExceptionFilter))]  // Bruker HandleExceptionFilter for å håndtere unntak
+[ServiceFilter(typeof(HandleExceptionFilter))]  // Uses HandleExceptionFilter to handle exceptions
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -38,31 +38,31 @@ public class UsersController : ControllerBase
     }
 
 
-    // Endepunkt for registrering av ny bruker
+    // Registers a new user
     // POST /api/v1/Users/register
     [AllowAnonymous]
     [HttpPost("register", Name = "AddUser")]
     public async Task<ActionResult<UserDTO>> AddUserAsync(UserRegDTO userRegDTO)
     {
+        // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
             _logger.LogError("Invalid model state in AddUserAsync");
             return BadRequest(ModelState);
         }
 
-        // Registerer brukeren
+        // registrating user
         var userDTO = await _userService.RegisterUserAsync(userRegDTO);
 
-        // Sjekk om brukerregistreringen var vellykket
+        // check if registration was successful 
         return userDTO != null
             ? Ok(userDTO)
             : BadRequest("Failed to register new user");
     }
 
 
-    // !!!!!!!!!NB! FJERNE ELLER ADMIN RETTIGHETER????!!!!!!!!!
-    //
-    // Henter en liste over brukere
+
+    // Retrieves a paginated list of users.
     // GET: /api/v1/Users?pageNr=1&pageSize=10
     [HttpGet(Name = "GetUsers")]
     public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersAsync(int pageNr, int pageSize)
@@ -72,10 +72,9 @@ public class UsersController : ControllerBase
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
-    // Henter en bruker basert på brukerens ID
-    // GET /api/v1/Users/1
+
+    // Retrieves a specific user by its ID.
+    // GET /api/v1/Users/{id}
     [HttpGet("{userId}", Name = "GetUsersById")]
     public async Task<ActionResult<UserDTO>> GetUsersByIdASync(int userId)
     {
@@ -87,12 +86,12 @@ public class UsersController : ControllerBase
     }
 
 
-    // Henter informasjon om den innloggede brukeren ved å bruke en bruker-ID
-    // hentet fra JWT-tokenet, som deretter er lagret i HttpContext.Items av middleware.
+    // Retrieves information about the logged-in user by using a user ID.
+    // extracted from the JWT token, which is then stored in HttpContext.Items by middleware.
     [HttpGet("profile", Name = "GetUserProfile")]
     public async Task<ActionResult<UserDTO>> GetUserProfileAsync()
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         var user = await _userService.GetByIdAsync(userId);
@@ -103,39 +102,37 @@ public class UsersController : ControllerBase
     }
 
 
-    // Oppdaterer den innloggede brukerens informasjon ved å bruke bruker-ID
-    // hentet fra JWT-tokenet som deretter er lagret i HttpContext.Items av middleware.
-    // PUT /api/v1/Users/4
+    // Updates a user based on the provided ID.
+    // PUT /api/v1/Users/{id}
     [HttpPut(Name = "UpdateUser")]
     public async Task<ActionResult<UserDTO>> UpdateUserAsync(UserDTO updatedUserDTO)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å oppdatere brukeren med den nye informasjonen
+      
         var updatedUserResult = await _userService.UpdateAsync(userId, updatedUserDTO);
 
-        // Returnerer oppdatert brukerdata, eller en feilmelding hvis oppdateringen mislykkes
+        // Returns updated user, or an error message if update fails
         return updatedUserResult != null
             ? Ok(updatedUserResult)
             : NotFound("Unable to update the user");
     }
 
 
-    // Sletter en bruker basert på brukerens ID hentet fra JWT-tokenet,
-    // som deretter er lagret i HttpContext.Items av middleware.
-    // DELETE /api/v1/Users
+    // Deletes a user based on the provided ID.
+    // DELETE /api/v1/Users/{id}
     [HttpDelete(Name = "DeleteUser")]
     public async Task<IActionResult> DeleteUserAsync()
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
         var deletedUserResult = await _userService.DeleteAsync(userId);
 
-        // Returnerer slettet brukerdata, eller en feilmelding hvis sletting mislykkes
+        // Returns deleted user, or an error message if deletion fails
         return deletedUserResult != null
             ? Ok(deletedUserResult)
-            : BadRequest("Unable to delete user");
+            : NotFound("Unable to delete user");
     }
 }

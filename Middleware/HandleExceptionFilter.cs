@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace PlanIT.API.Middleware;
 
 // Exception Handling:
-// - HandleExceptionFilter: Dette filteret er tilknyttet kontrollere for å fange og behandle
-//   unntak på en sentralisert måte. Det sikrer at alle uventede feil eller unntak håndteres
-//   på en konsekvent måte, og at en passende feilmelding sendes tilbake til klienten.
+// Exception filter that captures and handles exceptions globally across controllers.
+// This ensures that all unhandled exceptions are processed consistently and that appropriate
+// error responses are sent back to the client.
 
 public class HandleExceptionFilter : ExceptionFilterAttribute
 {
@@ -17,11 +17,16 @@ public class HandleExceptionFilter : ExceptionFilterAttribute
         _logger = logger;
     }
 
+    // Called when an exception occurs during action execution.
+    // Logs the error and creates a corresponding response based on the exception type.
     public override void OnException(ExceptionContext context)
     {
+        // Log the error including the controller and action where it occurred
         _logger.LogError(context.Exception, "An error occurred in {Controller} at {Action}",
             context.RouteData.Values["controller"], context.RouteData.Values["action"]);
 
+
+        // Determine the type of response based on the exception type
         ObjectResult result;
 
         switch (context.Exception)
@@ -78,7 +83,10 @@ public class HandleExceptionFilter : ExceptionFilterAttribute
                 break;
         }
 
+        // Set the result of the context to the created ObjectResult
         context.Result = result;
+
+        // Mark the exception as handled to prevent further propagation
         context.ExceptionHandled = true;
     }
 }

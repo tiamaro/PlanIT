@@ -8,26 +8,25 @@ using PlanIT.API.Services.Interfaces;
 namespace PlanIT.API.Controllers;
 
 
-
-// InvitesController - API Controller for invitasjonshåndtering:
-// - Kontrolleren håndterer alle forespørsler relatert til invitasjoner, inkludert registrering,
-//   oppdatering, sletting og henting av invitasjonsinformasjon. Den tar imot en instans av IService
-//   som en del av konstruktøren for å utføre operasjoner relatert til invitasjoner.
+// InvitesController - API Controller for invitation management:
+// - The controller handles all requests related to invitations, including registration,
+//   updating, deletion, and retrieval of invitation information. It receives an instance of IService
+//   as part of the constructor to perform operations related to invitations.
 //
 // Policy:
-// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
-//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
-//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+// - "Bearer": Requires that all calls to this controller are authenticated with a valid JWT token
+//   that meets the requirements defined in the "Bearer" authentication policy. This ensures that only
+//   authenticated users can access the endpoints defined in this controller.
 //
 // HandleExceptionFilter:
-// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+// - This filter is attached to the controller to catch and handle exceptions in a centralized manner.
 //
-// Forespørsler som starter med "api/v1/Invites" vil bli rutet til metoder definert i denne kontrolleren.
+// Requests starting with "api/v1/Invites" will be routed to methods defined in this controller.
 
 [Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
-[ServiceFilter(typeof(HandleExceptionFilter))]  // Bruker HandleExceptionFilter for å håndtere unntak
+[ServiceFilter(typeof(HandleExceptionFilter))]  // Uses HandleExceptionFilter to handle exceptions
 
 public class InvitesController : ControllerBase
 {
@@ -42,93 +41,101 @@ public class InvitesController : ControllerBase
 
     }
 
-    // Endepunkt for registrering av ny invitasjon
+    // Registers a new invite
     // POST /api/v1/Invites/register
     [HttpPost("register", Name = "AddInvites")]
     public async Task<ActionResult<InviteDTO>> AddInviteAsync(InviteDTO newInviteDTO)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
+        // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
             _logger.LogError("Invalid model state in AddInviteAsync");
             return BadRequest(ModelState);
         }
 
-        // Registrer invitasjonen
+       
         var addedInvite = await _inviteService.CreateAsync(userId, newInviteDTO);
 
-        // Sjekk om invitasjonsregistreringen var vellykket
+        // Returns new invite, or an error message if registration fails
         return addedInvite != null
             ? Ok(addedInvite)
             : BadRequest("Failed to register new invite");
     }
 
 
-    // Henter en liste over invitasjoner
+    // Retrieves a paginated list of invites.
     // GET: /api/v1/Invites?pageNr=1&pageSize=10
     [HttpGet(Name = "GetInvites")]
     public async Task<ActionResult<IEnumerable<InviteDTO>>> GetInvitesAsync(int pageNr, int pageSize)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
 
         var invites = await _inviteService.GetAllAsync(userId, pageNr, pageSize);
 
+
+        // Returns list of invites, or an error message if not found
         return invites != null
             ? Ok(invites)
             : NotFound("No registered invites found.");
     }
 
 
-    // Henter et arrangement basert på invitasjonens ID
-    // GET /api/v1/Invites/1
+    // Retrieves a specific invite by its ID.
+    // GET /api/v1/Invites/{id}
     [HttpGet("{inviteId}", Name = "GetInvitesById")]
     public async Task<ActionResult<InviteDTO>> GetInvitesByIdASync(int inviteId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Hent invitasjonen fra tjenesten
+        
         var existingInvite = await _inviteService.GetByIdAsync(userId, inviteId);
 
+
+        // Returns invite, or an error message if not found
         return existingInvite != null
             ? Ok(existingInvite)
             : NotFound("Invite not found");
     }
 
 
-    // Oppdaterer en invitasjon basert på inviteID
-    // PUT /api/v1/Invites/4
+    // Updates an invite based on the provided ID.
+    // PUT /api/v1/Invites/{id}
     [HttpPut("{inviteId}", Name = "UpdateInvite")]
     public async Task<ActionResult<InviteDTO>> UpdateInviteAsync(int inviteId, InviteDTO updatedInviteDTO)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å oppdatere invitasjonen med den nye informasjonen
+        
         var updatedInviteResult = await _inviteService.UpdateAsync(userId, inviteId, updatedInviteDTO);
 
-        // Returnerer oppdatert invitasjonsdata, eller en feilmelding hvis oppdateringen mislykkes
+
+        // Returns updated invite, or an error message if update fails
         return updatedInviteResult != null
             ? Ok(updatedInviteResult)
             : NotFound("Unable to update the invite or the invite does not belong to the user");
     }
 
 
-    // Sletter en invitasjon basert på invitasjonens ID
+    // Deletes an invite based on the provided ID.
     // DELETE /api/v1/Invites/2
     [HttpDelete("{inviteId}", Name = "DeleteInvite")]
     public async Task<ActionResult<InviteDTO>> DeleteInviteAsync(int inviteId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å slette invitasjonen.
+        
         var deletedInviteResult = await _inviteService.DeleteAsync(userId, inviteId);
 
+
+        // Returns deleted invite, or an error message if deletion fails
         return deletedInviteResult != null
             ? Ok(deletedInviteResult)
             : BadRequest("Unable to delete invite or the invite does not belong to the user");
