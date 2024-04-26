@@ -6,6 +6,7 @@ using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
+
 public class ContactRepository : IRepository<Contact>
 {
     private readonly PlanITDbContext _dbContext;
@@ -17,12 +18,14 @@ public class ContactRepository : IRepository<Contact>
         _pagination = pagination;
     }
 
+    
     public async Task<Contact?> AddAsync(Contact newContact)
     {
         var addedContact = await _dbContext.Contacts.AddAsync(newContact);
         await _dbContext.SaveChangesAsync();
         return addedContact.Entity;
     }
+
 
    
     public async Task<ICollection<Contact>> GetAllAsync(int pageNr, int pageSize)
@@ -31,6 +34,7 @@ public class ContactRepository : IRepository<Contact>
         return await _pagination.GetPageAsync(contactsQuery, pageNr, pageSize);
     }
 
+    
     public async Task<Contact?> GetByIdAsync(int contactId)
     {
         var exsistingContact = await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == contactId);
@@ -39,6 +43,7 @@ public class ContactRepository : IRepository<Contact>
 
     }
 
+    
     public async Task<Contact?> UpdateAsync(int contactId, Contact updatedContact)
     {
         var exsistingContact = await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == contactId);
@@ -53,6 +58,7 @@ public class ContactRepository : IRepository<Contact>
 
     }
 
+    
     public async Task<Contact?> DeleteAsync(int contactId)
     {
         var contactById = await _dbContext.Contacts.FirstOrDefaultAsync(x =>x.Id == contactId);

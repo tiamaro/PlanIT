@@ -2,7 +2,7 @@
 
 namespace PlanIT.API.Services.Interfaces;
 
-public interface IJWTEmailAuth
+public interface IEmailAuth
 {
     string GenerateJwtToken(int inviteId, int eventId);
 

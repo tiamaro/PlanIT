@@ -21,6 +21,7 @@ public class UserRegistrationDtoValidator : AbstractValidator<UserRegDTO>
             .MaximumLength(100).WithMessage(" User Name cannot exceed 100 characters");
 
 
+        // Rules for password format when creating a new User
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password cannot be empty")
             .MinimumLength(8).WithMessage("Password must be atleast 8 characters")
@@ -32,6 +33,7 @@ public class UserRegistrationDtoValidator : AbstractValidator<UserRegDTO>
 
     }
 
+    // Ensures that the email is in the correct format
     private bool BeAValidEmail(string email)
     {
         // checks that the email has atleast 1 . after the @

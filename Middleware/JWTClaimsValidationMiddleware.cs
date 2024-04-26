@@ -1,8 +1,7 @@
 ﻿using System.Security.Claims;
-
-
 namespace PlanIT.API.Middleware;
 
+// Middleware to validate JWT claims in the HTTP context for authenticated requests.
 public class JWTClaimsValidationMiddleware
 {
     private readonly RequestDelegate _next;
@@ -13,26 +12,29 @@ public class JWTClaimsValidationMiddleware
     }
 
 
+    // Invokes the middleware to check for required JWT claims in the user's identity.
     public async Task Invoke(HttpContext context)
     {
-        // Sjekker kun for autentiserte forespørsler
+        // Only check for authenticated requests
         if (context.User?.Identity?.IsAuthenticated == true)
         {
-            // Krav til claims som må være til stede
+            // Define required claims that must be present in the token
             var requiredClaimTypes = new[] { ClaimTypes.NameIdentifier, ClaimTypes.Email };
 
-            // Sjekk om alle påkrevde claim-typer er til stede for den autentiserte brukeren
+            // Check if all required claim types are present in the authenticated user's claims
             bool hasAllRequiredClaims = requiredClaimTypes.All(requiredClaimType =>
                 context.User.HasClaim(c => c.Type == requiredClaimType));
 
+
+            // If not all required claims are present, deny access and return a 403 Forbidden status
             if (!hasAllRequiredClaims)
             {
-                context.Response.StatusCode = 403; // Forbudt
+                context.Response.StatusCode = 403; 
                 await context.Response.WriteAsync("Access Denied. User does not have the required claims.");
                 return;
             }
 
-            // Hvis de nødvendige claims er til stede, hent og lagre UserId-claim for senere bruk
+            // If the necessary claims are present, retrieve and store the UserId claim for later use
             var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim != null)
             {
@@ -40,6 +42,7 @@ public class JWTClaimsValidationMiddleware
             }
         }
 
+        // Continue processing if the user is not authenticated or if all required claims are valid
         await _next(context);
     }
 }

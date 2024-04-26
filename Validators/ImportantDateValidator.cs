@@ -16,7 +16,7 @@ public class ImportantDateValidator : AbstractValidator<ImportantDateDTO>
 
 
 
-        // Not sure if needed
+        
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("ImportantDate Date cannot be empty");
 

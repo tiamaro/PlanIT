@@ -3,12 +3,12 @@ using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
 using PlanIT.API.Services.Interfaces;
-using PlanIT.API.Utilities; // Inkluderer tilgang til LoggerService og ExceptionHelper
+using PlanIT.API.Utilities; 
 
 namespace PlanIT.API.Services;
 
-// Serviceklasse for håndtering av brukerinformasjon.
-// Exceptions blir fanget av en middleware: HandleExceptionFilter
+// Service class for handling user information.
+// Exceptions are caught by a middleware: HandleExceptionFilter
 public class UserService : IUserService
 {
     private readonly IMapper<User, UserDTO> _userMapper;
@@ -27,7 +27,7 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    // Registrerer en ny bruker i systemet og returnerer brukerdata hvis vellykket.
+    
     public async Task<UserDTO?> RegisterUserAsync(UserRegDTO userRegDTO)
     {
         _logger.LogCreationStart("user");
@@ -47,7 +47,7 @@ public class UserService : IUserService
         return _userMapper.MapToDTO(addedUser);
     }
 
-    // Henter en liste over alle brukere, støtter paginering.
+   
     public async Task<ICollection<UserDTO>> GetAllAsync(int pageNr, int pageSize)
     {
         _logger.LogInfo($"Fetching all users with pagination: Page {pageNr}, Size {pageSize}");
@@ -63,7 +63,7 @@ public class UserService : IUserService
         return userDTOs;
     }
 
-    // Henter en spesifikk bruker basert på brukerens ID og sjekker tilgang.
+   
     public async Task<UserDTO?> GetByIdAsync(int userId)
     {
         _logger.LogDebug($"Attempting to retrieve user with ID: {userId}");
@@ -78,7 +78,6 @@ public class UserService : IUserService
         return _userMapper.MapToDTO(userFromRepository);
     }
 
-    // Oppdaterer brukerinformasjonen for en eksisterende bruker og sjekker tilgangsrettigheter.
     public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
     {
         _logger.LogDebug($"Attempting to update user with ID: {userId}");
@@ -109,7 +108,7 @@ public class UserService : IUserService
     }
 
 
-    // Sletter en bruker basert på brukerens ID og utfører sjekker for tilgang.
+   
     public async Task<UserDTO?> DeleteAsync(int userId)
     {
         _logger.LogDebug($"Attempting to delete user with ID: {userId}");

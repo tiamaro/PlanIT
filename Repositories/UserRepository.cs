@@ -17,7 +17,7 @@ public class UserRepository : IUserRepository
         _pagination = pagination;
     }
 
-    // Legger til ny bruker i databasen
+    
     public async Task<User?> AddAsync(User newUser)
     {
         var addedUserEntry = await _dbContext.Users.AddAsync(newUser);
@@ -27,7 +27,7 @@ public class UserRepository : IUserRepository
     }
 
 
-    // Henter alle brukere med paginering
+   
     public async Task<ICollection<User>> GetAllAsync(int pageNr, int pageSize)
     {
         var pagination = new PaginationUtility(_dbContext);
@@ -37,14 +37,14 @@ public class UserRepository : IUserRepository
     }
 
 
-    // Henter bruker basert på ID
+    
     public async Task<User?> GetByIdAsync(int userId)
     {
         var existingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
         return existingUser is null ? null : existingUser;
     }
 
-    // Henter bruker basert på Email
+    
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
@@ -53,7 +53,7 @@ public class UserRepository : IUserRepository
     }
 
 
-    // Oppdaterer bruker
+    
     public async Task<User?> UpdateAsync(int userId, User updatedUser)
     {
         var exsistingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -68,7 +68,7 @@ public class UserRepository : IUserRepository
     }
 
 
-    // Sletter bruker
+    
     public async Task<User?> DeleteAsync(int userId)
     {
         var existingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);

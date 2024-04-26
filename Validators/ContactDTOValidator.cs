@@ -22,9 +22,11 @@ public class ContactDTOValidator : AbstractValidator<ContactDTO>
             .MaximumLength(50).WithMessage(" User Name cannot exceed 50 characters");
     }
 
+
+    // Ensures that the email is in the correct format
     private bool BeAValidEmail(string email)
     {
-        // checks that the email has atleast 1 . after the @
+        
         return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 

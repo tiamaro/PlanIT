@@ -3,24 +3,27 @@ using PlanIT.API.Services.Interfaces;
 using PlanIT.API.Utilities;
 using System.Net.Mail;
 namespace PlanIT.API.Services.MailService;
+// Represents a service for sending emails related to invitations and reminders
 
 public class MailService : IMailService
 {
     private readonly SmtpClientFactory _smtpClientFactory;
     private readonly LoggerService _logger;
-    private readonly IJWTEmailAuth _emailAuth;
+    private readonly IEmailAuth _emailAuth;
 
     public MailService(SmtpClientFactory smtpClientFactory,
         LoggerService logger,
-        IJWTEmailAuth emailAuth)
+        IEmailAuth emailAuth)
     {
         _smtpClientFactory = smtpClientFactory;
         _logger = logger;
         _emailAuth = emailAuth;
     }
 
+    // Sends an invitation email asynchronously to the specified invitee
     public async Task SendInviteEmail(Invite invite, string userName)
     {
+       
         if (invite == null)
         {
             _logger.LogError("Invite is null.");
@@ -33,13 +36,16 @@ public class MailService : IMailService
             throw new ArgumentException("Event details are missing in the invite.", nameof(invite));
         }
 
-        // Checking for any critical event details that might be null
+        // Construct invitation email content
         var eventName = invite.Event.Name ?? "Unnamed Event";
         var eventDate = invite.Event.Date.ToString("yyyy-MM-dd");   // Assuming Date is non-nullable
         var eventTime = invite.Event.Time.ToString("HH:mm");        // Assuming Time is non-nullable
         var eventLocation = invite.Event.Location ?? "Location not specified";
 
+        // Generates a new token based on inviteID and eventID using emailAuthService 
         var token = _emailAuth.GenerateJwtToken(invite.Id, invite.EventId);
+
+        // Endpoint to ConfirmInvite with generated token
         var confirmationLink = $"https://localhost:7019/api/v1/inviteresponse/confirm-invite?token={token}";
         try
         {
@@ -72,6 +78,7 @@ public class MailService : IMailService
         }
     }
 
+    // Sends a reminder email asynchronously to the invitee about an upcoming event
     public async Task SendReminderEmail(Invite invite)
     {
         if (invite == null || invite.Event == null)

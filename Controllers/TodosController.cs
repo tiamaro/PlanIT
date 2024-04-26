@@ -7,32 +7,32 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
-// TodoController - API Controller for gjøremålshåndtering:
-// - Kontrolleren håndterer alle forespørsler relatert til gjøremål, inkludert registrering,
-//   oppdatering, sletting og henting av gjøremål. Den tar imot en instans av IService
-//   som en del av konstruktøren for å utføre operasjoner relatert til gjøremål.
+// TodoController - API Controller for todo management:
+// - The controller handles all requests related to todos, including registration,
+//   updating, deletion, and retrieval of todo information. It receives an instance of IService
+//   as part of the constructor to perform operations related to todos.
 //
 // Policy:
-// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
-//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
-//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+// - "Bearer": Requires that all calls to this controller are authenticated with a valid JWT token
+//   that meets the requirements defined in the "Bearer" authentication policy. This ensures that only
+//   authenticated users can access the endpoints defined in this controller.
 //
 // HandleExceptionFilter:
-// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+// - This filter is attached to the controller to catch and handle exceptions in a centralized manner.
 //
-// Forespørsler som starter med "api/v1/Todo" vil bli rutet til metoder definert i denne kontrolleren.
+// Requests starting with "api/v1/Todos" will be routed to methods defined in this controller.
 
 
 [Authorize(Policy = "Bearer")]
 [ApiController]
 [Route("api/v1/[controller]")]
-[ServiceFilter(typeof(HandleExceptionFilter))]  // Bruker HandleExceptionFilter for å håndtere unntak
-public class TodoController : ControllerBase
+[ServiceFilter(typeof(HandleExceptionFilter))]  // Uses HandleExceptionFilter to handle exceptions
+public class TodosController : ControllerBase
 {
     private readonly IService<ToDoDTO> _todoService;
-    private readonly ILogger<TodoController> _logger;
+    private readonly ILogger<TodosController> _logger;
 
-    public TodoController(ILogger<TodoController> logger,
+    public TodosController(ILogger<TodosController> logger,
         IService<ToDoDTO> todoService)
     {
         _logger = logger;
@@ -40,98 +40,103 @@ public class TodoController : ControllerBase
     }
 
 
-    // Endepunkt for registrering av nytt gjøremål
-    // POST /api/v1/Todo/register
+    // Registers a new todo item
+    // POST /api/v1/Todos/register
     [HttpPost("register", Name = "AddToDo")]
     public async Task<ActionResult<ToDoDTO>> AddToDoAsync(ToDoDTO newTodoDto)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
+        // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
             _logger.LogError("Invalid model state in AddToDoAsync");
             return BadRequest(ModelState);
         }
 
-        // Registrer gjøremålet
+        
         var addedToDo = await _todoService.CreateAsync(userId, newTodoDto);
 
-        // Sjekk om registreringen var vellykket
+        // Returns new todo, or an error message if registration fails
         return addedToDo != null
             ? Ok(addedToDo)
             : BadRequest("Failed to register new todo item");
     }
 
 
-    // Henter en liste over gjøremål
-    // GET: /api/v1/Todo?pageNr=1&pageSize=10
+    // Retrieves a paginated list of todos.
+    // GET: /api/v1/Todos?pageNr=1&pageSize=10
     [HttpGet(Name = "GetToDoLists")]
     public async Task<ActionResult<IEnumerable<ToDoDTO>>> GetTodosAsync(int pageNr, int pageSize)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
 
         var allToDos = await _todoService.GetAllAsync(userId, pageNr, pageSize);
 
-        // Filtrer gjøremål basert på brukerens ID
+        // Filter todos based on userId
         var userToDos = allToDos.Where(todo => todo.UserId == userId).ToList();
 
+        // Returns list of todos, or an error message if not found
         return allToDos != null
            ? Ok(allToDos)
            : NotFound("No registered todo items found.");
     }
 
 
-    // Henter gjøremål basert på toDoId
-    // GET /api/v1/Todo/1
+    // Retrieves a specific todo by its ID.
+    // GET /api/v1/Todos/{id}
     [HttpGet("{toDoId}", Name = "GetToDoById")]
     public async Task<ActionResult<ToDoDTO>> GetTodoByIdAsync(int toDoId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Henter gjøremål fra tjenesten, filtrert etter brukerens ID
+        
         var exsistingToDo = await _todoService.GetByIdAsync(userId, toDoId);
 
+        // Returns todo, or an error message if not found
         return exsistingToDo != null
             ? Ok(exsistingToDo)
             : NotFound("Todo item not found");
     }
 
 
-    // Oppdaterer gjøremål basert på toDoID.
-    // PUT /api/v1/Todo/4
+    // Updates a todo based on the provided ID.
+    // PUT /api/v1/Todos/{id}
     [HttpPut("{toDoId}", Name = "UpdateTodo")]
     public async Task<ActionResult<ToDoDTO>> UpdateTodoAsync(int toDoId, ToDoDTO updatedTodoDto)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å oppdatere gjøremålet med den nye informasjonen
+        
         var updatedToDoResult = await _todoService.UpdateAsync(userId, toDoId, updatedTodoDto);
 
-        // Returnerer oppdatert gjøremålsdata, eller en feilmelding hvis oppdateringen mislykkes
+        // Returns updated todo, or an error message if update fails
         return updatedToDoResult != null
             ? Ok(updatedToDoResult)
             : NotFound("Unable to update the todo item or the todo item does not belong to the user");
     }
 
 
-    // Sletter et gjøremål basert på toDoID
-    // DELETE /api/v1/Events/2
+    // Deletes a todo based on the provided ID.
+    // DELETE /api/v1/Todos/{id}
     [HttpDelete("{toDoId}", Name = "DeleteTodo")]
     public async Task<ActionResult<ToDoDTO>> DeleteTodoAsync(int toDoId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å slette gjøremålet
+        
         var deletedToDoResult = await _todoService.DeleteAsync(userId, toDoId);
 
+
+        // Returns deleted todo, or an error message if deletion fails
         return deletedToDoResult != null
             ? Ok(deletedToDoResult)
-            : BadRequest("Unable to delete todo item or the todo item does not belong to the user");
+            : NotFound("Unable to delete todo item or the todo item does not belong to the user");
     }
 }

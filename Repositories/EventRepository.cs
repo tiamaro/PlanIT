@@ -17,7 +17,7 @@ public class EventRepository : IRepository<Event>
         _pagination = pagination;
     }
 
-    // Legger til nytt arrangement
+    
     public async Task<Event?> AddAsync(Event newEvent)
     {
         var addedEvent = await _dbContext.Events.AddAsync(newEvent);
@@ -28,7 +28,7 @@ public class EventRepository : IRepository<Event>
 
 
 
-    // Henter alle arrangementer med paginering 
+  
     public async Task<ICollection<Event>> GetAllAsync(int pageNr, int pageSize)
     {
         var pagination = new PaginationUtility(_dbContext);
@@ -39,14 +39,14 @@ public class EventRepository : IRepository<Event>
     }
 
 
-    // Henter arrangementer basert på ID
+    
     public async Task<Event?> GetByIdAsync(int eventId)
     {
         var exsistingEvent = await _dbContext.Events.FirstOrDefaultAsync(e => e.Id == eventId);
         return exsistingEvent is null ? null : exsistingEvent;
     }
 
-    // Oppdaterer arrangementsinformasjon
+    
     public async Task<Event?> UpdateAsync(int id, Event updatedEvent)
     {
         var exsistingEvent = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == id);
@@ -64,7 +64,7 @@ public class EventRepository : IRepository<Event>
     }
 
 
-    // Sletter Arrangement
+    
     public async Task<Event?> DeleteAsync(int eventId)
     {
         var eventById = await _dbContext.Events.FirstOrDefaultAsync(x => x.Id == eventId);

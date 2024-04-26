@@ -14,44 +14,44 @@ using PlanIT.API.Services.AuthenticationService;
 var builder = WebApplication.CreateBuilder(args);
 
 
-// Legg til tjenester i beholderen (DI-containeren).
+// Add services to the container (DI container).
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<HandleExceptionFilter>();
 
-// Legger til tjenester fra utilities folder
+// Add services from the utilities folder
 builder.Services.AddScoped<PaginationUtility>();
 builder.Services.AddScoped<LoggerService>();
 builder.Services.AddSingleton<ILoggerServiceFactory, LoggerServiceFactory>();
 
 
-// Tilpassede metoder for utvidelser
+// Custom extension methods
 builder.Services.RegisterServicesFromConfiguration(Assembly.GetExecutingAssembly(), builder.Configuration);
 builder.AddSwaggerWithJwtAuthentication(); // Registrerer swagger med jwt autentisering
 
-// Background service 
+// Background service
 builder.Services.AddHostedService<BackgroundWorkerService>();
 
-// EMAIL AUTH 
-builder.Services.AddSingleton<IJWTEmailAuth, JWTEmailAuth>();
+// Email authentiaction service
+builder.Services.AddSingleton<IEmailAuth, EmailAuthService>();
 
-// Registerer HttpContextAccessor
+// Register HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
 
-// VALIDERING
+// Data validation using FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddFluentValidationAutoValidation(config => config.DisableDataAnnotationsValidation = false);
 
 
-// Database-tilkobling via entityframework
+// Database connection via Entity Framework
 builder.Services.AddDbContext<PlanITDbContext>(options =>
  options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
  new MySqlServerVersion(new Version(8, 0))));
 
 
-// Legg til CORS-policy
+// Add CORS policy (for frontend testing)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowMyFrontend",
@@ -65,10 +65,10 @@ builder.Services.AddCors(options =>
 });
 
 
-// Bruk av Serilog logger
+// Use Serilog logger
 builder.Host.UseSerilog((context, configuration) =>
 {
-    // Konfigurer logger fra appens konfigurasjonsfiler
+    // Configure logger from the app's configuration files
     configuration.ReadFrom.Configuration(context.Configuration);
 });
 
@@ -78,13 +78,13 @@ builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpS
 builder.Services.AddSingleton<SmtpClientFactory>();
 
 
-// Tilpasset JWT-autentisering konfigurasjon
+// Custom JWT authentication configuration
 builder.Services.ConfigureAuthentication(builder.Configuration, Log.Logger);
 builder.Services.ConfigureAuthorization();
 
 var app = builder.Build();
 
-// Konfigurer HTTP-forespørselsrørledningen.
+// Configure HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -92,21 +92,24 @@ if (app.Environment.IsDevelopment())
 
 }
 
-// app.UseMiddleware<GlobalExceptionMiddleware>(); // Global feilhåndtering
-app.UseSerilogRequestLogging(); // Logger HTTP-forespørsler med Serilog
+// app.UseMiddleware<GlobalExceptionMiddleware>(); 
+app.UseSerilogRequestLogging(); 
 
 app.UseHttpsRedirection();
 
 app.UseRouting();
 
+//
 app.UseCors("AllowMyFrontend");
 
-app.UseAuthentication(); // Setter opp autentiseringssystemet og etablerer brukeridentiteten
+// Set up authentication system and establish user identity
+app.UseAuthentication();
 
-app.UseMiddleware<JWTClaimsValidationMiddleware>(); // Utfører tilpasset logikk basert på den etablerte brukeridentiteten
+// Execute custom logic based on established user identity
+app.UseMiddleware<JWTClaimsValidationMiddleware>();
 
-app.UseAuthorization(); // Håndterer autorisasjon basert på brukeridentiteten og tilhørende claims
-
+// Handle authorization based on user identity and associated claims
+app.UseAuthorization(); 
 
 
 app.MapControllers();

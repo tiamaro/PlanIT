@@ -18,7 +18,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
     }
 
 
-    // Legger til ny ImportantDate
+   
     public async Task<ImportantDate?> AddAsync(ImportantDate newImportantDate)
     {
         var addedImportantDate = await _dbContext.ImportantDates.AddAsync(newImportantDate);
@@ -27,7 +27,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
         return addedImportantDate?.Entity;
     }
 
-    // Henter alle ImportantDates med paginering 
+    
     public async Task<ICollection<ImportantDate>> GetAllAsync(int pageNr, int pageSize)
     {
         var pagination = new PaginationUtility(_dbContext);
@@ -37,7 +37,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
     }
 
 
-    // Henter ImportantDate basert på ID
+    
     public async Task<ImportantDate?> GetByIdAsync(int importantDateId)
     {
         var importantDateById = await _dbContext.ImportantDates.FirstOrDefaultAsync(x => x.Id == importantDateId);
@@ -45,7 +45,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
     }
 
 
-    // Oppdaterer ImportantDate
+   
     public async Task<ImportantDate?> UpdateAsync(int importantDateId, ImportantDate updatedImportantDate)
     {
 
@@ -62,7 +62,7 @@ public class ImportantDateRepository : IRepository<ImportantDate>
     }
 
 
-    // Sletter ImportantDate
+    
     public async Task<ImportantDate?> DeleteAsync(int importantDateId)
     {
         var importantDateById = await _dbContext.ImportantDates.FirstOrDefaultAsync(x => x.Id == importantDateId);

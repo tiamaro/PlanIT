@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 
 namespace PlanIT.API.Services.AuthenticationService;
+// Service responsible for user authentication and JWT token generation.
 
 public class AuthenticationService : IAuthService
 {
@@ -21,31 +22,31 @@ public class AuthenticationService : IAuthService
         _logger = logger;
     }
 
-    // Autentiserer en bruker basert på e-post og passord.
+    // Authenticates a user based on email and password.
     public async Task<User?> AuthenticateUserAsync(string email, string password)
     {
         var user = await _userRepository.GetUserByEmailAsync(email);
 
-        // Sjekker om en bruker ble funnet og at passordet som ble oppgitt matcher brukerens lagrede passordhash.
+        // Checks if user was found and password matches the hashed password in the database.
         if (user != null && VerifyPasswordHash(password, user.HashedPassword, user.Salt))
         {
-            // Autentiseringen var vellykket.
+            // Authentication successful.
             return user;
         }
 
-        // Autentiseringen feilet.
+        // Authentication failed.
         return null;
     }
 
 
-    // Metode for å generere en JWT (JSON Web Token) for en gitt bruker.
-    // Denne metoden er synkron, men returnerer en Task for å tilpasse seg et asynkront grensesnitt.
+    // Generates a JWT token for an authenticated user.
+    // This method is synchronous but returns a Task to conform to an asynchronous interface.
     public Task<string> GenerateJwtTokenAsync(User user)
     {
-        // Oppretter en ny instans av JwtSecurityTokenHandler for å håndtere opprettelsen av JWT-tokenet.
+        // Creates a new instance of JwtSecurityTokenHandler to handle the creation of the JWT token.
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        // Henter den hemmelige nøkkelen for JWT fra appsettings.
+        // Retrieves the secret key for JWT
         var jwtSecret = _configuration["JwtSecret"];
 
         if (string.IsNullOrEmpty(jwtSecret))
@@ -56,17 +57,18 @@ public class AuthenticationService : IAuthService
 
         _logger.LogInformation("Starting JWT token generation for user: {UserId}", user.Id);
 
-        // Konverterer den hemmelige nøkkelen til en byte-array, og oppretter SymmetricSecurityKey
+        // Converts the secret key into a byte array and creates a SymmetricSecurityKey.
         var key = Encoding.ASCII.GetBytes(jwtSecret);
         var symmetricKey = new SymmetricSecurityKey(key);
 
-        // Henter informasjon om token-utsteder, mottaker og utløpstid fra konfigurasjonen.
+        // Retrieves information about the token issuer, audience, and expiration time from the configuration.
         var issuer = _configuration["Jwt:Issuer"];
         var audience = _configuration["Jwt:Audience"];
         var expirationMinutes = _configuration.GetValue<int>("Jwt:ExpiryInMinutes", 60);
 
-        // Setter opp tokenbeskrivelsen med nødvendig informasjon som brukerens ID og e-post,
-        // samt utløpstid, utsteder, mottaker og signaturinnstillinger.
+
+        // Sets up the token description with necessary information such as the user's ID and email,
+        // as well as expiration time, issuer, audience, and signature settings.
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -80,7 +82,7 @@ public class AuthenticationService : IAuthService
             SigningCredentials = new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256Signature)
         };
 
-        // Oppretter tokenet, og returnerer det.
+        // Creates the token and returns it.
         var token = tokenHandler.CreateToken(tokenDescriptor);
         _logger.LogInformation("JWT token generated for user: {UserId}", user.Id);
 
@@ -88,16 +90,21 @@ public class AuthenticationService : IAuthService
     }
 
 
-    // Hjelpemetode for å verifisere passordhash
+    // Verifies a password against a stored hash. Using BCrypt
     private bool VerifyPasswordHash(string password, string storedHash, string salt)
     {
+        // Compute the hash of the input password using the same salt that was used when the original password was hashed.
         var computedHash = HashPassword(password, salt);
+
+        // Return true if the newly computed hash matches the stored hash, indicating the password is correct.
         return storedHash == computedHash;
     }
 
-    // Hjelpemetode for å hashe passord
+
+    // Hashes a password using a specified salt. 
     private string HashPassword(string password, string salt)
     {
+        // Use BCrypt to hash the password with the provided salt and return the hashed password.
         return BCrypt.Net.BCrypt.HashPassword(password, salt);
     }
 }

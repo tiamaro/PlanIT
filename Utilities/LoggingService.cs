@@ -1,5 +1,10 @@
 ﻿namespace PlanIT.API.Utilities;
 
+// Provides centralized logging capabilities across the application
+// logs various types of messages including informational, debug, warning, and error
+// messages, along with structured logs for specific operational contexts such as creation,
+// deletion, and access control.
+
 public class LoggerService
 {
     private readonly ILogger<LoggerService> _logger;

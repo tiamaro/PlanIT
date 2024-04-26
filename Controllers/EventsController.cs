@@ -8,26 +8,26 @@ using PlanIT.API.Services.Interfaces;
 namespace PlanIT.API.Controllers;
 
 
-// EventController - API Controller for arrangementhåndtering:
-// - Kontrolleren håndterer alle forespørsler relatert til arrangementdata, inkludert registrering,
-//   oppdatering, sletting og henting av arrangementinformasjon. Den tar imot en instans av IService
-//   som en del av konstruktøren for å utføre operasjoner relatert til arrangementer.
+// EventController - API Controller for event management:
+// - The controller handles all requests related to event data, including registration,
+//   updating, deletion, and retrieval of event information. It receives an instance of IService
+//   as part of the constructor to perform operations related to events.
 //
 // Policy:
-// - "Bearer": Krever at alle kall til denne kontrolleren er autentisert med et gyldig JWT-token
-//   som oppfyller kravene definert i "Bearer" autentiseringspolicy. Dette sikrer at bare
-//   autentiserte brukere kan aksessere endepunktene definert i denne kontrolleren.
+// - "Bearer": Requires that all calls to this controller are authenticated with a valid JWT token
+//   that meets the requirements defined in the "Bearer" authentication policy. This ensures that only
+//   authenticated users can access the endpoints defined in this controller.
 //
 // HandleExceptionFilter:
-// - Dette filteret er tilknyttet kontrolleren for å fange og behandle unntak på en sentralisert måte.
+// - This filter is attached to the controller to catch and handle exceptions in a centralized manner.
 //
-// Forespørsler som starter med "api/v1/Events" vil bli rutet til metoder definert i denne kontrolleren.
+// Requests starting with "api/v1/Events" will be routed to methods defined in this controller.
 
 
 [Authorize(Policy = "Bearer")]
 [Route("api/v1/[controller]")]
 [ApiController]
-[ServiceFilter(typeof(HandleExceptionFilter))]  // Bruker HandleExceptionFilter for å håndtere unntak
+[ServiceFilter(typeof(HandleExceptionFilter))]  // Uses HandleExceptionFilter to handle exceptions
 public class EventsController : ControllerBase
 {
     private readonly IService<EventDTO> _eventService;
@@ -41,93 +41,101 @@ public class EventsController : ControllerBase
     }
 
 
-    // Endepunkt for registrering av nytt arrangement
+    // Registers a new event
     // POST /api/v1/Events/register
     [HttpPost("register", Name = "AddEvent")]
     public async Task<ActionResult<EventDTO>> AddEventAsync(EventDTO newEventDTO)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Sjekk om modelltilstanden er gyldig etter modellbinding og validering
+        // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
             _logger.LogError("Invalid model state in AddEventAsync");
             return BadRequest(ModelState);
         }
 
-        // Registrer arrangementet
+       
         var addedEvent = await _eventService.CreateAsync(userId, newEventDTO);
 
-        // Sjekk om arrangementsregistreringen var vellykket
+
+        // Returns new event, or an error message if registration fails
         return addedEvent != null
             ? Ok(addedEvent)
             : BadRequest("Failed to register new event");
     }
 
 
-    // !!!!!! NB! FJERNE ELLER ADMIN RETTIGHETER??? !!!!!!!!!!!!!!!
-    //
-    // Henter en liste over arrangementer
+    // Retrieves a paginated list of events
     // GET: /api/v1/Events?pageNr=1&pageSize=10
     [HttpGet(Name = "GetEvents")]
     public async Task<ActionResult<IEnumerable<EventDTO>>> GetEventsAsync(int pageNr, int pageSize)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
 
         var allEvents = await _eventService.GetAllAsync(userId,pageNr, pageSize);
 
+        // Returns list of events, or an error message if not found
         return allEvents != null
             ? Ok(allEvents)
             : NotFound("No registered events found.");
     }
 
 
-    // Henter arrangementet basert på eventId
-    // GET /api/v1/Events/1
+    // Retrieves a specific event by its ID.
+    // GET /api/v1/Events/{id}
     [HttpGet("{eventId}", Name = "GetEventsById")]
     public async Task<ActionResult<EventDTO>> GetEventsByIdASync(int eventId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Hent arrangement fra tjenesten, filtrert etter brukerens ID
+        
         var existingEvent = await _eventService.GetByIdAsync(userId, eventId);
 
+        // Returns event, or an error message if not found
         return existingEvent != null
             ? Ok(existingEvent)
             : NotFound("Event not found");
     }
 
 
-    // Oppdaterer arrangementet basert på eventID.
-    // PUT /api/v1/Events/4
+    // Updates an event based on the provided ID.
+    // PUT /api/v1/Events/{id}
     [HttpPut("{eventId}", Name = "UpdateEvent")]
     public async Task<ActionResult<EventDTO>> UpdateEventAsync(int eventId, EventDTO updatedEventDTO)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å oppdatere arrangementet med den nye informasjonen
+       
         var updatedEventResult = await _eventService.UpdateAsync(userId, eventId, updatedEventDTO);
 
-        // Returnerer oppdatert arrangementdata, eller en feilmelding hvis oppdateringen mislykkes
+
+        // Returns updated event, or an error message if update fails
         return updatedEventResult != null
             ? Ok(updatedEventResult)
             : NotFound("Unable to update the event or the event does not belong to the user");
     }
 
 
-    // Sletter et arrangement basert på arrangementets ID
-    // DELETE /api/v1/Events/2
+    // Deletes an event based on the provided ID.
+    // DELETE /api/v1/Events/{id}
     [HttpDelete("{eventId}", Name = "DeleteEvent")]
     public async Task<ActionResult<EventDTO>> DeleteEventAsync(int eventId)
     {
-        // Henter brukerens ID fra HttpContext.Items som ble lagt til av middleware
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        // Prøver å slette arrangementet
+
+        
         var deletedEventResult = await _eventService.DeleteAsync(userId, eventId);
 
+
+        // Returns deleted event, or an error message if deletion fails
         return deletedEventResult != null
             ? Ok(deletedEventResult)
             : BadRequest("Unable to delete event or event does not belong to the user");

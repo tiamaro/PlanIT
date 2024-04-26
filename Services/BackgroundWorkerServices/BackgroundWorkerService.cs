@@ -17,15 +17,18 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         _loggerFactory = loggerFactory;
     }
 
+    // Starts the background service by setting up a timer.
     public Task StartAsync(CancellationToken cancellationToken)
     {
         var logger = _loggerFactory.CreateLogger();
         logger.LogInfo("Background service started");
-        // Initialize the timer
+
+        // Set the timer to trigger the DoWork method every 10 minutes.
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(10));
         return Task.CompletedTask;
     }
 
+    // The work performed by the timer. Manages database operations and email notifications.
     private async void DoWork(object? state)
     {
         var logger = _loggerFactory.CreateLogger();
@@ -44,8 +47,10 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         }
     }
 
+    // Fetches upcoming invites that need reminders sent.
     private async Task<List<Invite>> FetchInvites(PlanITDbContext dbContext)
     {
+        // Define today's date for comparison and filter invites that need reminders within the next three days.
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return await dbContext.Invites
             .Include(i => i.Event)
@@ -54,8 +59,11 @@ public class BackgroundWorkerService : IHostedService, IDisposable
             .ToListAsync();
     }
 
+    // Processes each invite, sending reminders and updating the database.
     private async Task ProcessInvites(List<Invite> invites, IMailService mailService, PlanITDbContext dbContext, LoggerService logger)
     {
+
+        // Begin a transaction to ensure data consistency during update operations.
         using var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
@@ -68,6 +76,7 @@ public class BackgroundWorkerService : IHostedService, IDisposable
                 }
             }
 
+            // Save changes to the database and commit the transaction if all updates were successful.
             await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
             logger.LogInfo($"Transaction committed. Processed {invites.Count} invites.");
@@ -76,10 +85,13 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         {
             await transaction.RollbackAsync();
             logger.LogException(ex, "Transaction rolled back due to an error.");
-            throw; // Ensure to rethrow to maintain error visibility
+
+            // Rethrow to ensure the error is handled upstream.
+            throw; 
         }
     }
 
+    // Attempts to send an email reminder for an invite.
     private async Task<bool> TrySendReminder(Invite invite, IMailService mailService, LoggerService logger)
     {
         try
@@ -94,6 +106,7 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         }
     }
 
+    // Stops the background service and disposes the timer.
     public Task StopAsync(CancellationToken cancellationToken)
     {
         var logger = _loggerFactory.CreateLogger();
@@ -102,6 +115,7 @@ public class BackgroundWorkerService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
+    // Disposes resources used by the background service.
     public void Dispose()
     {
         _timer?.Dispose();

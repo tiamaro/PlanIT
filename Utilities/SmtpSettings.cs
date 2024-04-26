@@ -1,4 +1,5 @@
 ﻿namespace PlanIT.API.Utilities;
+// Represents the SMTP settings required for configuring an SMTP client
 
 public class SmtpSettings
 {

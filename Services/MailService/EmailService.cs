@@ -2,6 +2,7 @@
 using System.Net.Mail;
 
 namespace PlanIT.API.Services.MailService;
+// Service for sending emails using SMTP
 
 public class EmailService : IEmailService
 {
@@ -14,12 +15,15 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
+    // Sends an email asynchronously to the specified recipient with the given subject and body
     public async Task SendEmailAsync(string recipient, string subject, string body)
     {
         try
         {
+            // Create a new SMTP client using the factory
             using (var client = _smtpClientFactory.CreateSmtpClient())
             {
+                // Create a new MailMessage with sender, recipient, subject, and body
                 var message = new MailMessage(_smtpClientFactory.GetSmtpUsername(), recipient)
                 {
                     Subject = subject,
