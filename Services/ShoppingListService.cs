@@ -51,7 +51,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
     
     public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(1, 10);
+        var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(pageNr, pageSize);
         var filteredShoppingList = shoppingListsFromRepository.Where(shopping => shopping.UserId == userIdFromToken);
 
         return filteredShoppingList.Select(shoppingEntity => _shoppingListMapper.MapToDTO(shoppingEntity)).ToList();

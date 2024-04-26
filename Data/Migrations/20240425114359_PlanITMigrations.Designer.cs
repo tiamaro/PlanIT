@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240418090724_PlanITMigrations")]
+    [Migration("20240425114359_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -251,25 +251,25 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee",
+                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6",
                             Name = "Per",
-                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
+                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
                         },
                         new
                         {
                             Id = 2,
                             Email = "olanordmann@mail.com",
-                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.bhji7vr2ujZSpPuNuqApCMneFD7/qee",
+                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6",
                             Name = "Ola",
-                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
+                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
                         },
                         new
                         {
                             Id = 3,
                             Email = "karinordmann@mail.com",
-                            HashedPassword = "$2a$11$SDAc068CAM7zbUHHBGiYl.6swBwBK6lLes1.yoFgz0D2D2vLGv7Se",
+                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2uSBs8ldmf5rqFdqL8FW7Rb21IZ01wv6K",
                             Name = "Kari",
-                            Salt = "$2a$11$SDAc068CAM7zbUHHBGiYl."
+                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
                         });
                 });
 
