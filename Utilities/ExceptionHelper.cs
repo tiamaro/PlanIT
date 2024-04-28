@@ -16,4 +16,6 @@ public static class ExceptionHelper
     // Creates a new InvalidOperationException with a formatted message indicating a failure in operation.
     public static Exception CreateOperationException(string entity, int id, string operation)
         => new InvalidOperationException($"Failed to {operation} {entity} with ID {id}.");
+
+    
 }

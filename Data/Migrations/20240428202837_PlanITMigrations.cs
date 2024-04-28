@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace PlanIT.API.Data.Migrations
 {
     /// <inheritdoc />
@@ -207,23 +205,43 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
-                values: new object[,]
-                {
-                    { 1, "perhansen@mail.com", "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6", "Per", "$2a$11$0zfNASRjbAr3h0KiO5Yx2u" },
-                    { 2, "olanordmann@mail.com", "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6", "Ola", "$2a$11$0zfNASRjbAr3h0KiO5Yx2u" },
-                    { 3, "karinordmann@mail.com", "$2a$11$0zfNASRjbAr3h0KiO5Yx2uSBs8ldmf5rqFdqL8FW7Rb21IZ01wv6K", "Kari", "$2a$11$0zfNASRjbAr3h0KiO5Yx2u" }
-                });
+                values: new object[] { 1, "perhansen@mail.com", "$2a$11$h8chpHsn5WhCIpSiKcH.Cu/nYkYLSUBZxOpc.1wQxDoQR6yl17H8.", "Per", "$2a$11$h8chpHsn5WhCIpSiKcH.Cu" });
+
+            migrationBuilder.InsertData(
+                table: "Dinners",
+                columns: new[] { "Id", "Date", "Name", "UserId" },
+                values: new object[] { 1, new DateOnly(2022, 5, 2), "Pizza", 1 });
+
+            migrationBuilder.InsertData(
+                table: "Events",
+                columns: new[] { "Id", "Date", "Location", "Name", "Time", "UserId" },
+                values: new object[] { 1, new DateOnly(2022, 6, 6), "at home", "Birthday Party", new TimeOnly(18, 30, 0), 1 });
+
+            migrationBuilder.InsertData(
+                table: "ImportantDates",
+                columns: new[] { "Id", "Date", "Name", "UserId" },
+                values: new object[] { 1, new DateOnly(2022, 5, 17), "National Day", 1 });
+
+            migrationBuilder.InsertData(
+                table: "ShoppingLists",
+                columns: new[] { "Id", "Name", "UserId" },
+                values: new object[] { 1, "Milk", 1 });
+
+            migrationBuilder.InsertData(
+                table: "Todos",
+                columns: new[] { "Id", "Name", "UserId" },
+                values: new object[] { 1, "Clean the car", 1 });
+
+            migrationBuilder.InsertData(
+                table: "Invites",
+                columns: new[] { "Id", "Coming", "Email", "EventId", "IsReminderSent", "Name" },
+                values: new object[] { 1, true, "kari@mail.com", 1, true, "Kari Nordmann" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contacts_Email",
+                name: "IX_Contacts_UserId_Email",
                 table: "Contacts",
-                column: "Email",
+                columns: new[] { "UserId", "Email" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contacts_UserId",
-                table: "Contacts",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Dinners_UserId",
@@ -241,9 +259,9 @@ namespace PlanIT.API.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Invites_Email",
+                name: "IX_Invites_Email_EventId",
                 table: "Invites",
-                column: "Email",
+                columns: new[] { "Email", "EventId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

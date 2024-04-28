@@ -82,6 +82,7 @@ builder.Services.AddSingleton<SmtpClientFactory>();
 builder.Services.ConfigureAuthentication(builder.Configuration, Log.Logger);
 builder.Services.ConfigureAuthorization();
 
+
 var app = builder.Build();
 
 // Configure HTTP request pipeline
@@ -92,7 +93,7 @@ if (app.Environment.IsDevelopment())
 
 }
 
-// app.UseMiddleware<GlobalExceptionMiddleware>(); 
+//app.UseMiddleware<GlobalExceptionMiddleware>(); 
 app.UseSerilogRequestLogging(); 
 
 app.UseHttpsRedirection();
