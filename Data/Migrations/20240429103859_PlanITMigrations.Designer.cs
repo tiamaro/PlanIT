@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240429092455_PlanITMigrations")]
+    [Migration("20240429103859_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -89,7 +89,7 @@ namespace PlanIT.API.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Date = new DateOnly(2022, 5, 2),
+                            Date = new DateOnly(2024, 5, 2),
                             Name = "Pizza",
                             UserId = 1
                         });
@@ -314,9 +314,9 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$A9UzbTIitfFMw.aC470qmuNjvbs9CQfhl3EnwkYu0kpRr72PCjlii",
+                            HashedPassword = "$2a$11$78UvIkzRPoPjJRzRlchEK.me1Hs8Ya5Wic3oQhl.H42yL6sGy6fxm",
                             Name = "Per Hansen",
-                            Salt = "$2a$11$A9UzbTIitfFMw.aC470qmu"
+                            Salt = "$2a$11$78UvIkzRPoPjJRzRlchEK."
                         });
                 });
 
