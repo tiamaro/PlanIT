@@ -1,6 +1,8 @@
-﻿namespace PlanIT.API.Services.Interfaces;
+﻿using PlanIT.API.Models.DTOs;
 
-public interface IInviteService
+namespace PlanIT.API.Services.Interfaces;
+
+public interface IInviteService : IService<InviteDTO>
 {
     Task<bool> ConfirmInvite(int inviteId, int eventId);
 

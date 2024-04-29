@@ -1,6 +1,7 @@
 ﻿namespace PlanIT.API.Utilities;
 // Provides utility methods to create specific types of exceptions with standardized messages.
 
+
 public static class ExceptionHelper
 {
     // Creates a new KeyNotFoundException with a formatted message indicating an entity was not found.
