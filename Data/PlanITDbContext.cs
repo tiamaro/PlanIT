@@ -24,48 +24,102 @@ public class PlanITDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ensures unique email addresses for user, contact and invite. 
+        // Ensures each user has a unique email address in the User table
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
-        modelBuilder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
-        modelBuilder.Entity<Invite>().HasIndex(i => i.Email).IsUnique();
-
-        // uncomment before new migrations, replace unique invite email with this to make sure
-        // that invite email is unique per event.
-       // modelBuilder.Entity<Invite>().HasIndex(i => new { i.Email, i.EventId }).IsUnique();
 
 
+        // Ensures that the email for a contact is unique per user in the Contact table
+        modelBuilder.Entity<Contact>()
+            .HasIndex(c => new { c.UserId, c.Email }) 
+            .IsUnique();
 
-        // Adds pre made test users 
+
+        // Ensures that invites are unique per event based on the email in the Invite table
+        modelBuilder.Entity<Invite>()
+            .HasIndex(i => new { i.Email, i.EventId })
+            .IsUnique();
+
+
+
+       // Test data
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         modelBuilder.Entity<User>().HasData(
             new User
             {
                 Id = 1,
                 Email = "perhansen@mail.com",
-                Name = "Per",
+                Name = "Per Hansen",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
                 Salt = salt
             });
 
-        modelBuilder.Entity<User>().HasData(
-            new User
+
+        modelBuilder.Entity<Event>().HasData(
+            new Event
             {
-                Id = 2,
-                Email = "olanordmann@mail.com",
-                Name = "Ola",
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
-                Salt = salt
+                Id = 1,
+                UserId = 1,
+                Name = "Birthday Party",
+                Location = "at home",
+                Time = new TimeOnly(18, 30, 0),
+                Date = new DateOnly(2024, 06, 06)
+
             });
 
-        modelBuilder.Entity<User>().HasData(
-            new User
+        modelBuilder.Entity<ToDo>().HasData(
+            new ToDo
             {
-                Id = 3,
+                Id = 1,
+                UserId = 1,
+                Name = "Clean the car"
+                
+            });
+
+        modelBuilder.Entity<ShoppingList>().HasData(
+            new ShoppingList
+            {
+                Id = 1,
+                UserId = 1,
+                Name = "Milk"
+
+            });
+
+        modelBuilder.Entity<Invite>().HasData(
+            new Invite
+            {
+                Id = 1,
+                EventId = 1,
+                Name = "Kari Nordmann",
                 Email = "karinordmann@mail.com",
-                Name = "Kari",
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword("Kari123!", salt),
-                Salt = salt
+                Coming = true,
+                IsReminderSent = true
+                
+
             });
+
+        
+
+        modelBuilder.Entity<ImportantDate>().HasData(
+            new ImportantDate
+            {
+                Id = 1,
+                UserId = 1,
+                Name = "National Day",
+                Date = new DateOnly(2024, 05, 17)
+
+            });
+
+        modelBuilder.Entity<Dinner>().HasData(
+           new Dinner
+           {
+               Id = 1,
+               UserId = 1,
+               Name = "Pizza",
+               Date = new DateOnly(2022, 05, 02)
+
+           });
+
+
 
 
     }

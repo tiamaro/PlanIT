@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Cms;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
@@ -8,8 +9,8 @@ using PlanIT.API.Utilities;
 namespace PlanIT.API.Services;
 
 
-// Serviceklasse for håndtering av middagsinformasjon.
-// Exceptions blir fanget av en middleware: HandleExceptionFilter
+// Service class for handling event information.
+// Exceptions are caught by a middleware: HandleExceptionFilter
 public class DinnerService : IDinnerService
 {
     private readonly IMapper<Dinner, DinnerDTO> _dinnerMapper;
@@ -27,6 +28,7 @@ public class DinnerService : IDinnerService
         _dinnerRepository = dinnerRepository;
         _logger = logger;
     }
+
 
     public async Task<DinnerDTO?> CreateAsync(int userIdFromToken, DinnerDTO dinnerDTO)
     {
@@ -66,22 +68,22 @@ public class DinnerService : IDinnerService
     }
 
 
+   
     public async Task<ICollection<DinnerDTO>> GetAllAsync(int userIdFromToken,int pageNr, int pageSize)
     {
-        // Henter Contacts fra repository med paginering
+        _logger.LogDebug($"Retrieving all dinners for user {userIdFromToken}.");
+
         var dinnersFromRepository = await _dinnerRepository.GetAllAsync(pageNr, pageSize);
-        
-        // filter
         var filteredDinners = dinnersFromRepository.Where(dinner => dinner.UserId == userIdFromToken);
 
-        // Mapper Contactsinformasjon til contactsDTO-format
         return filteredDinners.Select(dinnerEntity => _dinnerMapper.MapToDTO(dinnerEntity)).ToList();
     }
 
 
+
     public async Task<DinnerDTO?> GetByIdAsync(int userIdFromToken, int dinnerId)
     {
-        _logger.LogDebug($"Henter middag med ID {dinnerId} for bruker {userIdFromToken}.");
+        _logger.LogDebug($"Retrieving dinner with ID {dinnerId} for user {userIdFromToken}.");
 
         var dinnerFromRepository = await _dinnerRepository.GetByIdAsync(dinnerId);
         if (dinnerFromRepository == null)
@@ -90,14 +92,14 @@ public class DinnerService : IDinnerService
             throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        // Sjekker om brukerens ID stemmer overens med brukerID tilknyttet middagen
+       
         if (dinnerFromRepository.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
             throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
-        // Logger vellykket henting av middagen
+        
         _logger.LogOperationSuccess("retrieved", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(dinnerFromRepository);
     }
@@ -106,7 +108,7 @@ public class DinnerService : IDinnerService
 
     public async Task<WeeklyDinnerPlanDTO> GetWeeklyDinnerPlanAsync(int userIdFromToken, DateOnly startDate, DateOnly endDate)
     {
-        _logger.LogDebug("Fetching weekly dinner plan for user {UserId} from {StartDate} to {EndDate}.", userIdFromToken, startDate, endDate);
+        _logger.LogDebug($"Retrieving weekly dinner plan for user {userIdFromToken} from {startDate} to {endDate}.");
 
         // Fetching dinners within the specified date range for the given user
         var dinnersFromRepository = await _dinnerRepository.GetByDateRangeAndUserAsync(userIdFromToken, startDate, endDate);
@@ -123,7 +125,8 @@ public class DinnerService : IDinnerService
     }
 
 
-    public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
+
+   public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
     {
         _logger.LogDebug($"Updating dinner with ID {dinnerId} for user {userIdFromToken}.");
 
@@ -152,16 +155,15 @@ public class DinnerService : IDinnerService
 
         _logger.LogOperationSuccess("updated", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(updatedDinner);
-    }
+      }
 
 
 
-    // Sletter en middag
     public async Task<DinnerDTO?> DeleteAsync(int userIdFromToken, int dinnerId)
     {
-        _logger.LogDebug($"Forsøker å slette middag med ID {dinnerId} av bruker {userIdFromToken}.");
+        _logger.LogDebug($"ForsÃ¸ker Ã¥ slette middag med ID {dinnerId} av bruker {userIdFromToken}.");
 
-        // Henter middagen fra databasen for å sikre at den eksisterer før sletting
+        // Henter middagen fra databasen for Ã¥ sikre at den eksisterer fÃ¸r sletting
         var dinnerToDelete = await _dinnerRepository.GetByIdAsync(dinnerId);
         if (dinnerToDelete == null)
         {
@@ -169,14 +171,14 @@ public class DinnerService : IDinnerService
             throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        // Sjekker om brukeren har riktig autorisasjon til å slette middagen
+        // Sjekker om brukeren har riktig autorisasjon til Ã¥ slette middagen
         if (dinnerToDelete.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
             throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
-        // Utfører slettingen av middagen fra databasen
+        // UtfÃ¸rer slettingen av middagen fra databasen
         var deletedDinner = await _dinnerRepository.DeleteAsync(dinnerId);
         if (deletedDinner == null)
         {

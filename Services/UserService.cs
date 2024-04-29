@@ -50,7 +50,7 @@ public class UserService : IUserService
    
     public async Task<ICollection<UserDTO>> GetAllAsync(int pageNr, int pageSize)
     {
-        _logger.LogInfo($"Fetching all users with pagination: Page {pageNr}, Size {pageSize}");
+        _logger.LogDebug($"Retrieving all users.");
 
         var usersFromRepository = await _userRepository.GetAllAsync(pageNr, pageSize);
         if (!usersFromRepository.Any())
@@ -66,7 +66,7 @@ public class UserService : IUserService
    
     public async Task<UserDTO?> GetByIdAsync(int userId)
     {
-        _logger.LogDebug($"Attempting to retrieve user with ID: {userId}");
+        _logger.LogDebug($"Retrieving user with ID {userId}");
 
         var userFromRepository = await _userRepository.GetByIdAsync(userId);
         if (userFromRepository == null)
@@ -80,7 +80,7 @@ public class UserService : IUserService
 
     public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
     {
-        _logger.LogDebug($"Attempting to update user with ID: {userId}");
+        _logger.LogDebug($"Updating user with ID {userId}");
 
         var existingUser = await _userRepository.GetByIdAsync(userId);
         if (existingUser == null)
@@ -111,7 +111,7 @@ public class UserService : IUserService
    
     public async Task<UserDTO?> DeleteAsync(int userId)
     {
-        _logger.LogDebug($"Attempting to delete user with ID: {userId}");
+        _logger.LogDebug($"Deleting user with ID {userId}");
 
         var userToDelete = await _userRepository.GetByIdAsync(userId);
         if (userToDelete == null)

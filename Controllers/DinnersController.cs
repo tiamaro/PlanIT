@@ -7,10 +7,10 @@ using PlanIT.API.Services.Interfaces;
 
 namespace PlanIT.API.Controllers;
 
-// DinnersController - API Controller for dinner management:
-// - The controller handles all requests related to dinners, including registration,
-//   updating, deletion, and retrieval of dinner information. It receives an instance of IDinnerService
-//   as part of the constructor to perform operations related to dinners.
+// DinnersController - API Controller for managing dinners:
+// - The controller handles all requests related to contacts, including registration,
+//   updating, deletion, and retrieval of date information. It receives an instance of IService
+//   as part of the constructor to perform operations related to contacts.
 //
 // Policy:
 // - "Bearer": Requires that all calls to this controller are authenticated with a valid JWT token
@@ -40,90 +40,108 @@ public class DinnersController : ControllerBase
     }
 
 
-    // POST /api/v1/Dinner/register
+
+    // Registers a new dinner
+    // POST /api/v1/Dinners/register
     [HttpPost("register", Name = "AddDinner")]
     public async Task<ActionResult<DinnerDTO>> AddDinnerAsync(DinnerDTO newDinnerDTO)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
+        // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
             _logger.LogError("Invalid model state in AddDinnerAsync");
             return BadRequest(ModelState);
         }
 
-        // Register dinner
         var addedDinner = await _dinnerService.CreateAsync(userId, newDinnerDTO);
 
-        // Check if dinnerregistration is successfull
+        // Returns new dinner, or an error message if registration fails
         return addedDinner != null
             ? Ok(addedDinner)
             : BadRequest("Failed to register new dinner");
     }
 
 
-    // GET: api/v1/WeeklyDinnerPlan
-    [HttpGet("weekly/{startDate}/{endDate}", Name = "GetWeeklyDinners")]
-    public async Task<IActionResult> GetWeeklyDinnerPlan(DateOnly startDate, DateOnly endDate)
-    {
-
-        var userId = WebAppExtensions.GetValidUserId(HttpContext);
-        var weeklyPlan = await _dinnerService.GetWeeklyDinnerPlanAsync(userId, startDate, endDate);
-
-        return weeklyPlan != null
-             ? Ok(weeklyPlan)
-             : NotFound($"No weekly dinner plan found from {startDate} to {endDate}.");
-    }
-
-
-
+    // Retrieves a paginated list of dinners
+    // GET: /api/v1/Dinners?pageNr=1&pageSize=10
     [HttpGet(Name = "GetDinners")]
     public async Task<ActionResult<ICollection<DinnerDTO>>> GetDinnersAsync(int pageNr, int pageSize)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
         var allDinners = await _dinnerService.GetAllAsync(userId, pageNr, pageSize);
 
+        // Returns list of contacts, or an error message if not found
         return allDinners != null
             ? Ok(allDinners)
             : NotFound("No registered dinners found.");
     }
 
 
-
-    // GET /api/v1/Dinner/1
+    // Retrieves a specific dinner by its ID.
+    // GET /api/v1/Dinners/{id}
     [HttpGet("{dinnerId}", Name = "GetDinnerById")]
     public async Task<ActionResult<DinnerDTO>> GetDinnerByIdAsync(int dinnerId)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
         var exsistingDinner = await _dinnerService.GetByIdAsync(userId, dinnerId);
 
+        // Returns dinner, or an error message if not found
         return exsistingDinner != null
             ? Ok(exsistingDinner)
             : NotFound("Dinner not found");
     }
 
 
-   
-    // PUT /api/v1/Dinner/4
+    // retrieves a weekly dinner plan within a specified date range
+    // GET: api/v1/WeeklyDinnerPlan
+    [HttpGet("weekly/{startDate}/{endDate}", Name = "GetWeeklyDinners")]
+    public async Task<IActionResult> GetWeeklyDinnerPlan(DateOnly startDate, DateOnly endDate)
+    {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+          
+        var weeklyPlan = await _dinnerService.GetWeeklyDinnerPlanAsync(userId, startDate, endDate);
+
+        // Returns dinner weekly plan, or an error message if not found
+        return weeklyPlan != null
+             ? Ok(weeklyPlan)
+             : NotFound($"No weekly dinner plan found from {startDate} to {endDate}.");         
+    }
+
+
+
+    // Updates a dinner based on the provided ID.
+    // PUT /api/v1/Dinners/{id}
     [HttpPut("{dinnerId}", Name = "UpdateDinner")]
     public async Task<ActionResult<DinnerDTO>> UpdateDinnerAsync(int dinnerId, DinnerDTO updatedDinnerDTO)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
         var updatedDinnerResult = await _dinnerService.UpdateAsync(userId, dinnerId, updatedDinnerDTO);
 
+        // Returns updated dinner, or an error message if update fails
         return updatedDinnerResult != null
             ? Ok(updatedDinnerResult)
             : NotFound($"Unable to update dinner with ID {dinnerId} or the dinner does not belong to the user");
     }
 
 
-    // DELETE /api/v1/Dinner/2
+    // Deletes a dinner based on the provided ID.
+    // DELETE /api/v1/Dinners/{id}
     [HttpDelete("{dinnerId}", Name = "DeleteDinner")]
     public async Task<ActionResult<DinnerDTO>> DeleteDinnerAsync(int dinnerId)
     {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
         var deletedDinnerResult = await _dinnerService.DeleteAsync(userId, dinnerId);
 
+        // Returns deleted dinner, or an error message if deletion fails
         return deletedDinnerResult != null
             ? Ok(deletedDinnerResult)
             : BadRequest($"Unable to delete dinner with ID {dinnerId} or the dinner does not belong to the user");

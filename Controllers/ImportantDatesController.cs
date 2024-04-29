@@ -29,13 +29,13 @@ namespace PlanIT.API.Controllers;
 [Route("api/v1/[controller]")]
 [ApiController]
 [ServiceFilter(typeof(HandleExceptionFilter))] // Uses HandleExceptionFilter to handle exceptions
-public class ImportantDateControllers : ControllerBase
+public class ImportantDatesController : ControllerBase
 {
     private readonly IService<ImportantDateDTO> _dateService;
-    private readonly ILogger<ImportantDateControllers> _logger;
+    private readonly ILogger<ImportantDatesController> _logger;
 
-    public ImportantDateControllers(IService<ImportantDateDTO> dateService,
-        ILogger<ImportantDateControllers> logger)
+    public ImportantDatesController(IService<ImportantDateDTO> dateService,
+        ILogger<ImportantDatesController> logger)
     {
         _dateService = dateService;
         _logger = logger;

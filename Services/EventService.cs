@@ -1,4 +1,5 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using Org.BouncyCastle.Cms;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -53,7 +54,8 @@ public class EventService : IService<EventDTO>
    
     public async Task<ICollection<EventDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        
+        _logger.LogDebug($"Retrieving all events for user {userIdFromToken}.");
+
         var eventsFromRepository = await _eventRepository.GetAllAsync(1, 10);
 
         
@@ -67,7 +69,8 @@ public class EventService : IService<EventDTO>
     
     public async Task<EventDTO?> GetByIdAsync(int userIdFromToken, int eventId)
     {
-        _logger.LogDebug($"Attempting to retrieve event with ID {eventId} for user ID {userIdFromToken}.");
+        _logger.LogDebug($"Retrieving event with ID {eventId} for user {userIdFromToken}.");
+
         var eventFromRepository = await _eventRepository.GetByIdAsync(eventId);
         if (eventFromRepository == null)
         {
@@ -89,9 +92,9 @@ public class EventService : IService<EventDTO>
     
     public async Task<EventDTO?> UpdateAsync(int userIdFromToken, int eventId, EventDTO eventDTO)
     {
-        _logger.LogDebug($"Attempting to update event with ID {eventId} for user ID {userIdFromToken}.");
+        _logger.LogDebug($"Updating event with ID {eventId} for user {userIdFromToken}.");
 
-       
+
         var existingEvent = await _eventRepository.GetByIdAsync(eventId);
         if (existingEvent == null)
         {
@@ -126,9 +129,9 @@ public class EventService : IService<EventDTO>
 
     public async Task<EventDTO?> DeleteAsync(int userIdFromToken, int eventId)
     {
-        _logger.LogDebug($"Attempting to delete event with ID {eventId} by user ID {userIdFromToken}.");
+        _logger.LogDebug($"Deleting dinner with ID {eventId} for user {userIdFromToken}.");
 
-        
+
         var eventToDelete = await _eventRepository.GetByIdAsync(eventId);
         if (eventToDelete == null)
         {
