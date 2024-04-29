@@ -119,6 +119,17 @@ public class PlanITDbContext : DbContext
 
            });
 
+        modelBuilder.Entity<Contact>().HasData(
+           new Contact
+           {
+               Id = 1,
+               UserId = 1,
+               Name = "Kari Nordmann",
+               Email = "karinordmann@mail.com"
+
+           });
+
+
 
 
 

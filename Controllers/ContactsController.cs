@@ -82,9 +82,8 @@ public class ContactsController : ControllerBase
         var allContacts = await _contactService.GetAllAsync(userId,pageNr, pageSize);
 
         // Returns list of contacts, or an error message if not found
-        return allContacts != null
-            ? Ok(allContacts)
-            : BadRequest("No registered contacts found.");
+
+        return Ok(allContacts ?? new List<ContactDTO>()); // Return an empty list instead of null
 
     }
 

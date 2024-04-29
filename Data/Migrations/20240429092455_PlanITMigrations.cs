@@ -205,7 +205,12 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
-                values: new object[] { 1, "perhansen@mail.com", "$2a$11$4xfSJyMQkaolv1cACFijWOObcNT0hdrKDj.JZKjfsRWRsTF9Q9Yse", "Per Hansen", "$2a$11$4xfSJyMQkaolv1cACFijWO" });
+                values: new object[] { 1, "perhansen@mail.com", "$2a$11$A9UzbTIitfFMw.aC470qmuNjvbs9CQfhl3EnwkYu0kpRr72PCjlii", "Per Hansen", "$2a$11$A9UzbTIitfFMw.aC470qmu" });
+
+            migrationBuilder.InsertData(
+                table: "Contacts",
+                columns: new[] { "Id", "Email", "Name", "UserId" },
+                values: new object[] { 1, "karinordmann@mail.com", "Kari Nordmann", 1 });
 
             migrationBuilder.InsertData(
                 table: "Dinners",
