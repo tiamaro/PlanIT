@@ -50,12 +50,13 @@ public class BackgroundWorkerService : IHostedService, IDisposable
     // Fetches upcoming invites that need reminders sent.
     private async Task<List<Invite>> FetchInvites(PlanITDbContext dbContext)
     {
-        // Define today's date for comparison and filter invites that need reminders within the next three days.
+        // Define today's date for comparison and filter invites that need reminders within the next three days
+        // and assure that the event date is not in the past
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return await dbContext.Invites
             .Include(i => i.Event)
             .ThenInclude(e => e!.User)
-            .Where(x => !x.IsReminderSent && x.Event!.Date <= today.AddDays(3))
+            .Where(x => !x.IsReminderSent && x.Event!.Date >= today && x.Event!.Date <= today.AddDays(3))
             .ToListAsync();
     }
 

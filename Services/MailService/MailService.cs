@@ -87,6 +87,12 @@ public class MailService : IMailService
             throw new ArgumentNullException("Email could not be sent with missing Invite data");
         }
 
+        // Generates a new token based on inviteID and eventID using emailAuthService 
+        var token = _emailAuth.GenerateJwtToken(invite.Id, invite.EventId);
+
+        // Endpoint to ConfirmInvite with generated token
+        var confirmationLink = $"https://localhost:7019/api/v1/inviteresponse/confirm-invite?token={token}";
+
         try
         {
             using (var client = _smtpClientFactory.CreateSmtpClient())
@@ -102,6 +108,7 @@ public class MailService : IMailService
                            $"<li>Time: {invite.Event.Time}</li>" +
                            $"<li>Location: {invite.Event.Location}</li>" +
                            $"</ul>" +
+                           $"<p>If you haven't dont it yet, confirm your attendance by clicking <a href='{confirmationLink}'>here</a>.</p>" +
                            $"<p>We look forward to seeing you there!</p>" +
                            $"Sincerely,<br>{invite.Event.User?.Name}</p>",
                     IsBodyHtml = true

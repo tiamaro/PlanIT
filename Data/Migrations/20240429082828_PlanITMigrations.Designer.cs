@@ -12,7 +12,7 @@ using PlanIT.API.Data;
 namespace PlanIT.API.Data.Migrations
 {
     [DbContext(typeof(PlanITDbContext))]
-    [Migration("20240428202837_PlanITMigrations")]
+    [Migration("20240429082828_PlanITMigrations")]
     partial class PlanITMigrations
     {
         /// <inheritdoc />
@@ -121,7 +121,7 @@ namespace PlanIT.API.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Date = new DateOnly(2022, 6, 6),
+                            Date = new DateOnly(2024, 6, 6),
                             Location = "at home",
                             Name = "Birthday Party",
                             Time = new TimeOnly(18, 30, 0),
@@ -157,7 +157,7 @@ namespace PlanIT.API.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Date = new DateOnly(2022, 5, 17),
+                            Date = new DateOnly(2024, 5, 17),
                             Name = "National Day",
                             UserId = 1
                         });
@@ -202,7 +202,7 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Coming = true,
-                            Email = "kari@mail.com",
+                            Email = "karinordmann@mail.com",
                             EventId = 1,
                             IsReminderSent = true,
                             Name = "Kari Nordmann"
@@ -305,9 +305,9 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$h8chpHsn5WhCIpSiKcH.Cu/nYkYLSUBZxOpc.1wQxDoQR6yl17H8.",
-                            Name = "Per",
-                            Salt = "$2a$11$h8chpHsn5WhCIpSiKcH.Cu"
+                            HashedPassword = "$2a$11$4xfSJyMQkaolv1cACFijWOObcNT0hdrKDj.JZKjfsRWRsTF9Q9Yse",
+                            Name = "Per Hansen",
+                            Salt = "$2a$11$4xfSJyMQkaolv1cACFijWO"
                         });
                 });
 

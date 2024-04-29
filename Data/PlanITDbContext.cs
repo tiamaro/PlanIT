@@ -48,7 +48,7 @@ public class PlanITDbContext : DbContext
             {
                 Id = 1,
                 Email = "perhansen@mail.com",
-                Name = "Per",
+                Name = "Per Hansen",
                 HashedPassword = BCrypt.Net.BCrypt.HashPassword("Per123!", salt),
                 Salt = salt
             });
@@ -62,7 +62,7 @@ public class PlanITDbContext : DbContext
                 Name = "Birthday Party",
                 Location = "at home",
                 Time = new TimeOnly(18, 30, 0),
-                Date = new DateOnly(2022, 06, 06)
+                Date = new DateOnly(2024, 06, 06)
 
             });
 
@@ -90,7 +90,7 @@ public class PlanITDbContext : DbContext
                 Id = 1,
                 EventId = 1,
                 Name = "Kari Nordmann",
-                Email = "kari@mail.com",
+                Email = "karinordmann@mail.com",
                 Coming = true,
                 IsReminderSent = true
                 
@@ -105,7 +105,7 @@ public class PlanITDbContext : DbContext
                 Id = 1,
                 UserId = 1,
                 Name = "National Day",
-                Date = new DateOnly(2022, 05, 17)
+                Date = new DateOnly(2024, 05, 17)
 
             });
 
