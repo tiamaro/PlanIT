@@ -205,7 +205,7 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
-                values: new object[] { 1, "perhansen@mail.com", "$2a$11$A9UzbTIitfFMw.aC470qmuNjvbs9CQfhl3EnwkYu0kpRr72PCjlii", "Per Hansen", "$2a$11$A9UzbTIitfFMw.aC470qmu" });
+                values: new object[] { 1, "perhansen@mail.com", "$2a$11$78UvIkzRPoPjJRzRlchEK.me1Hs8Ya5Wic3oQhl.H42yL6sGy6fxm", "Per Hansen", "$2a$11$78UvIkzRPoPjJRzRlchEK." });
 
             migrationBuilder.InsertData(
                 table: "Contacts",
@@ -215,7 +215,7 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Dinners",
                 columns: new[] { "Id", "Date", "Name", "UserId" },
-                values: new object[] { 1, new DateOnly(2022, 5, 2), "Pizza", 1 });
+                values: new object[] { 1, new DateOnly(2024, 5, 2), "Pizza", 1 });
 
             migrationBuilder.InsertData(
                 table: "Events",

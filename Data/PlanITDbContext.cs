@@ -115,7 +115,7 @@ public class PlanITDbContext : DbContext
                Id = 1,
                UserId = 1,
                Name = "Pizza",
-               Date = new DateOnly(2022, 05, 02)
+               Date = new DateOnly(2024, 05, 02)
 
            });
 
