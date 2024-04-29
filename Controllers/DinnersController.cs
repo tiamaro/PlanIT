@@ -40,6 +40,7 @@ public class DinnersController : ControllerBase
     }
 
 
+
     // Registers a new dinner
     // POST /api/v1/Dinners/register
     [HttpPost("register", Name = "AddDinner")]
@@ -48,7 +49,6 @@ public class DinnersController : ControllerBase
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-
         // Checks if the model state is valid after model binding and validation
         if (!ModelState.IsValid)
         {
@@ -56,43 +56,12 @@ public class DinnersController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        
         var addedDinner = await _dinnerService.CreateAsync(userId, newDinnerDTO);
 
         // Returns new dinner, or an error message if registration fails
         return addedDinner != null
             ? Ok(addedDinner)
             : BadRequest("Failed to register new dinner");
-    }
-
-    // registers a new weekly dinner plan
-    [HttpPost("register-weekly-plan", Name = "AddWeeklyDinnerPlan")]
-    public async Task<IActionResult> AddWeeklyDinnerPlanAsync([FromBody] WeeklyDinnerPlanDTO weeklyPlanDTO)
-    {
-        // Retrieves the user's ID from HttpContext.Items which was added by middleware
-        var userId = WebAppExtensions.GetValidUserId(HttpContext);
-
-
-        // Checks if the model state is valid after model binding and validation
-        if (!ModelState.IsValid)
-        {
-            _logger.LogError("Invalid model state in AddWeeklyDinnerPlanAsync");
-            return BadRequest(ModelState);
-        }
-
-
-        // Iterate through each dinner entry in the weekly plan DTO
-        foreach (var dinnerDTO in weeklyPlanDTO.ToDinnerDTOs())
-        {
-            if (dinnerDTO != null) 
-            {
-                var addedDinner = await _dinnerService.CreateAsync(userId, dinnerDTO);
-                if (addedDinner == null) return BadRequest($"Failed to register dinner for {dinnerDTO.Date}");
-                                
-            }
-        }
-            
-        return Ok("Weekly dinner plan registered successfully.");       
     }
 
 
@@ -103,7 +72,6 @@ public class DinnersController : ControllerBase
     {
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
-
         var allDinners = await _dinnerService.GetAllAsync(userId, pageNr, pageSize);
 
         // Returns list of contacts, or an error message if not found
@@ -111,7 +79,6 @@ public class DinnersController : ControllerBase
             ? Ok(allDinners)
             : NotFound("No registered dinners found.");
     }
-
 
 
     // Retrieves a specific dinner by its ID.
@@ -122,7 +89,6 @@ public class DinnersController : ControllerBase
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
 
-        
         var exsistingDinner = await _dinnerService.GetByIdAsync(userId, dinnerId);
 
         // Returns dinner, or an error message if not found
@@ -130,6 +96,7 @@ public class DinnersController : ControllerBase
             ? Ok(exsistingDinner)
             : NotFound("Dinner not found");
     }
+
 
     // retrieves a weekly dinner plan within a specified date range
     // GET: api/v1/WeeklyDinnerPlan
@@ -139,7 +106,6 @@ public class DinnersController : ControllerBase
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
           
-
         var weeklyPlan = await _dinnerService.GetWeeklyDinnerPlanAsync(userId, startDate, endDate);
 
         // Returns dinner weekly plan, or an error message if not found
@@ -157,14 +123,12 @@ public class DinnersController : ControllerBase
     {
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
-
-        
         var updatedDinnerResult = await _dinnerService.UpdateAsync(userId, dinnerId, updatedDinnerDTO);
 
         // Returns updated dinner, or an error message if update fails
         return updatedDinnerResult != null
             ? Ok(updatedDinnerResult)
-            : NotFound("Unable to update dinner or the dinner does not belong to the user");
+            : NotFound($"Unable to update dinner with ID {dinnerId} or the dinner does not belong to the user");
     }
 
 
@@ -175,14 +139,11 @@ public class DinnersController : ControllerBase
     {
         // Retrieves the user's ID from HttpContext.Items which was added by middleware
         var userId = WebAppExtensions.GetValidUserId(HttpContext);
-
-       
         var deletedDinnerResult = await _dinnerService.DeleteAsync(userId, dinnerId);
 
         // Returns deleted dinner, or an error message if deletion fails
         return deletedDinnerResult != null
             ? Ok(deletedDinnerResult)
-            : BadRequest("Unable to delete dinner or the dinner does not belong to the user");
-
+            : BadRequest($"Unable to delete dinner with ID {dinnerId} or the dinner does not belong to the user");
     }
 }

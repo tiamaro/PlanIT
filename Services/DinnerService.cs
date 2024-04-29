@@ -30,15 +30,32 @@ public class DinnerService : IDinnerService
     }
 
 
-   
     public async Task<DinnerDTO?> CreateAsync(int userIdFromToken, DinnerDTO dinnerDTO)
     {
         _logger.LogCreationStart("dinner");
 
+        var dinnerDate = dinnerDTO.Date;
+
+        // Ensure the dinner date is not in the past
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (dinnerDate < today)
+        {
+            _logger.LogWarning("Attempt to register dinner with a past date.");
+            return null;
+        }
+
+        // Check for existing dinner on the same date
+        var existingDinner = await _dinnerRepository.GetByDayAndUserAsync(userIdFromToken, dinnerDate);
+        if (existingDinner != null)
+        {
+            _logger.LogWarning("Attempt to register a duplicate dinner on the same date.");
+            return null; 
+        }
+
         var newDinner = _dinnerMapper.MapToModel(dinnerDTO);
         newDinner.UserId = userIdFromToken;
+        newDinner.Date = dinnerDate; // Ensure date is stored correctly
 
-      
         var addedDinner = await _dinnerRepository.AddAsync(newDinner);
         if (addedDinner == null)
         {
@@ -47,37 +64,7 @@ public class DinnerService : IDinnerService
         }
 
         _logger.LogOperationSuccess("created", "dinner", addedDinner.Id);
-
         return _dinnerMapper.MapToDTO(addedDinner);
-    }
-
-
-    public async Task<bool> RegisterWeeklyDinnerPlanAsync(int userId, WeeklyDinnerPlanDTO weeklyPlanDTO)
-    {
-        var dinners = weeklyPlanDTO.ToDinnerDTOs().Select(dto => new Dinner
-        {
-            UserId = userId,
-            Date = dto.Date,
-            Name = dto.Name
-        }).ToList();
-
-        try
-        {
-            bool result = await _dinnerRepository.AddWeeklyDinnersAsync(dinners);
-            if (!result)
-            {
-                _logger.LogCreationFailure("weekly dinner plan");
-                throw ExceptionHelper.CreateOperationException("weekly dinner plan", userId, "register");
-            }
-
-            _logger.LogOperationSuccess("registered", "weekly dinner plan", userId);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogException(ex, "Failed to register weekly dinner plan for user {UserId}.", userId);
-            throw; // Propagates the exception, ensuring it can be handled by middleware or further up the call stack
-        }
     }
 
 
@@ -86,19 +73,14 @@ public class DinnerService : IDinnerService
     {
         _logger.LogDebug($"Retrieving all dinners for user {userIdFromToken}.");
 
-        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(1, 10);
-        
-        
+        var dinnersFromRepository = await _dinnerRepository.GetAllAsync(pageNr, pageSize);
         var filteredDinners = dinnersFromRepository.Where(dinner => dinner.UserId == userIdFromToken);
 
-        
         return filteredDinners.Select(dinnerEntity => _dinnerMapper.MapToDTO(dinnerEntity)).ToList();
-
-
     }
 
 
-    
+
     public async Task<DinnerDTO?> GetByIdAsync(int userIdFromToken, int dinnerId)
     {
         _logger.LogDebug($"Retrieving dinner with ID {dinnerId} for user {userIdFromToken}.");
@@ -123,6 +105,7 @@ public class DinnerService : IDinnerService
     }
 
 
+
     public async Task<WeeklyDinnerPlanDTO> GetWeeklyDinnerPlanAsync(int userIdFromToken, DateOnly startDate, DateOnly endDate)
     {
         _logger.LogDebug($"Retrieving weekly dinner plan for user {userIdFromToken} from {startDate} to {endDate}.");
@@ -142,31 +125,28 @@ public class DinnerService : IDinnerService
     }
 
 
-    
-    public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
+
+   public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
     {
         _logger.LogDebug($"Updating dinner with ID {dinnerId} for user {userIdFromToken}.");
 
-        
         var existingDinner = await _dinnerRepository.GetByIdAsync(dinnerId);
-        if (existingDinner == null)
+        if (existingDinner == null || existingDinner.UserId != userIdFromToken)
         {
             _logger.LogNotFound("dinner", dinnerId);
             throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        
-        if (existingDinner.UserId != userIdFromToken)
+        // Ensure that updates do not change the date
+        if (dinnerDTO.Date != existingDinner.Date)
         {
-            _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
-            throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
+            _logger.LogWarning("Attempt to change the date of an existing dinner.");
+            throw ExceptionHelper.CreateOperationException("dinner", dinnerId, "attempt to change date");
         }
 
-        var dinnerToUpdate = _dinnerMapper.MapToModel(dinnerDTO);
-        dinnerToUpdate.Id = dinnerId;  
+        existingDinner.Name = !string.IsNullOrEmpty(dinnerDTO.Name) ? dinnerDTO.Name : existingDinner.Name;
 
-        
-        var updatedDinner = await _dinnerRepository.UpdateAsync(dinnerId, dinnerToUpdate);
+        var updatedDinner = await _dinnerRepository.UpdateAsync(dinnerId, existingDinner);
         if (updatedDinner == null)
         {
             _logger.LogOperationFailure("update", "dinner", dinnerId);
@@ -175,15 +155,15 @@ public class DinnerService : IDinnerService
 
         _logger.LogOperationSuccess("updated", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(updatedDinner);
-    }
+      }
 
 
-    
+
     public async Task<DinnerDTO?> DeleteAsync(int userIdFromToken, int dinnerId)
     {
-        _logger.LogDebug($"Deleting dinner with ID {dinnerId} for user {userIdFromToken}.");
+        _logger.LogDebug($"Forsøker å slette middag med ID {dinnerId} av bruker {userIdFromToken}.");
 
-        
+        // Henter middagen fra databasen for å sikre at den eksisterer før sletting
         var dinnerToDelete = await _dinnerRepository.GetByIdAsync(dinnerId);
         if (dinnerToDelete == null)
         {
@@ -191,14 +171,14 @@ public class DinnerService : IDinnerService
             throw ExceptionHelper.CreateNotFoundException("dinner", dinnerId);
         }
 
-        
+        // Sjekker om brukeren har riktig autorisasjon til å slette middagen
         if (dinnerToDelete.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("dinner", dinnerId, userIdFromToken);
             throw ExceptionHelper.CreateUnauthorizedException("dinner", dinnerId);
         }
 
-        
+        // Utfører slettingen av middagen fra databasen
         var deletedDinner = await _dinnerRepository.DeleteAsync(dinnerId);
         if (deletedDinner == null)
         {
@@ -209,4 +189,5 @@ public class DinnerService : IDinnerService
         _logger.LogOperationSuccess("deleted", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(deletedDinner);
     }
+
 }

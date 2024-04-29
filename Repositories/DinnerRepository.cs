@@ -25,35 +25,19 @@ public class DinnerRepository : IDinnerRepository
     }
 
 
-    public async Task<bool> AddWeeklyDinnersAsync(IEnumerable<Dinner> dinners)
-    {
-        using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        try
-        {
-            await _dbContext.Dinners.AddRangeAsync(dinners);
-            await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return true;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            return false;
-        }
-    }
-
-
     public async Task<ICollection<Dinner>> GetAllAsync(int pageNr, int pageSize)
     {
         IQueryable<Dinner> dinnersQuery = _dbContext.Dinners.OrderBy(x => x.Id);
         return await _pagination.GetPageAsync(dinnersQuery, pageNr, pageSize);
     }
 
+
     public async Task<Dinner?> GetByIdAsync(int dinnerId)
     {
         var exsistingDinner = await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == dinnerId);
         return exsistingDinner is null ? null : exsistingDinner;
     }
+
 
 
     public async Task<List<Dinner>?> GetByDateRangeAndUserAsync(int userId, DateOnly startDate, DateOnly endDate)
@@ -66,13 +50,20 @@ public class DinnerRepository : IDinnerRepository
     }
 
 
+
+    public async Task<Dinner?> GetByDayAndUserAsync(int userId, DateOnly day)
+    {
+        return await _dbContext.Dinners.FirstOrDefaultAsync(d => d.UserId == userId && d.Date == day);
+    }
+
+
+
     public async Task<Dinner?> UpdateAsync(int id, Dinner updatedDinner)
     {
         var exsistingDinner = await _dbContext.Dinners.FirstOrDefaultAsync(x => x.Id == id);
         if (exsistingDinner == null) return null;
 
         exsistingDinner.Name = string.IsNullOrEmpty(updatedDinner.Name) ? exsistingDinner.Name : updatedDinner.Name;
-        // exsistingDinner.Date = updatedDinner.Date != DateOnly.MinValue ? updatedDinner.Date : exsistingDinner.Date;
 
         await _dbContext.SaveChangesAsync();
         return exsistingDinner;

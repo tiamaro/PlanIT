@@ -11,7 +11,7 @@ namespace PlanIT.API.Services;
 
 // Service class for handling invite information.
 // Exceptions are caught by a middleware: HandleExceptionFilter
-public class InviteService : IService<InviteDTO> , IInviteService
+public class InviteService : IInviteService
 {
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
     private readonly IRepository<Invite> _inviteRepository;
