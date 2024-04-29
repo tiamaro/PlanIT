@@ -205,7 +205,7 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Email", "HashedPassword", "Name", "Salt" },
-                values: new object[] { 1, "perhansen@mail.com", "$2a$11$h8chpHsn5WhCIpSiKcH.Cu/nYkYLSUBZxOpc.1wQxDoQR6yl17H8.", "Per", "$2a$11$h8chpHsn5WhCIpSiKcH.Cu" });
+                values: new object[] { 1, "perhansen@mail.com", "$2a$11$4xfSJyMQkaolv1cACFijWOObcNT0hdrKDj.JZKjfsRWRsTF9Q9Yse", "Per Hansen", "$2a$11$4xfSJyMQkaolv1cACFijWO" });
 
             migrationBuilder.InsertData(
                 table: "Dinners",
@@ -215,12 +215,12 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Events",
                 columns: new[] { "Id", "Date", "Location", "Name", "Time", "UserId" },
-                values: new object[] { 1, new DateOnly(2022, 6, 6), "at home", "Birthday Party", new TimeOnly(18, 30, 0), 1 });
+                values: new object[] { 1, new DateOnly(2024, 6, 6), "at home", "Birthday Party", new TimeOnly(18, 30, 0), 1 });
 
             migrationBuilder.InsertData(
                 table: "ImportantDates",
                 columns: new[] { "Id", "Date", "Name", "UserId" },
-                values: new object[] { 1, new DateOnly(2022, 5, 17), "National Day", 1 });
+                values: new object[] { 1, new DateOnly(2024, 5, 17), "National Day", 1 });
 
             migrationBuilder.InsertData(
                 table: "ShoppingLists",
@@ -235,7 +235,7 @@ namespace PlanIT.API.Data.Migrations
             migrationBuilder.InsertData(
                 table: "Invites",
                 columns: new[] { "Id", "Coming", "Email", "EventId", "IsReminderSent", "Name" },
-                values: new object[] { 1, true, "kari@mail.com", 1, true, "Kari Nordmann" });
+                values: new object[] { 1, true, "karinordmann@mail.com", 1, true, "Kari Nordmann" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Contacts_UserId_Email",
