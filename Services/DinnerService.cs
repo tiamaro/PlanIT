@@ -127,7 +127,7 @@ public class DinnerService : IDinnerService
 
 
    public async Task<DinnerDTO?> UpdateAsync(int userIdFromToken, int dinnerId, DinnerDTO dinnerDTO)
-    {
+   {
         _logger.LogDebug($"Updating dinner with ID {dinnerId} for user {userIdFromToken}.");
 
         var existingDinner = await _dinnerRepository.GetByIdAsync(dinnerId);
@@ -155,7 +155,7 @@ public class DinnerService : IDinnerService
 
         _logger.LogOperationSuccess("updated", "dinner", dinnerId);
         return _dinnerMapper.MapToDTO(updatedDinner);
-      }
+   }
 
 
 
