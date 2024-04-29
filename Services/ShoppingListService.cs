@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PlanIT.API.Mappers;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
@@ -51,6 +52,8 @@ public class ShoppingListService : IService<ShoppingListDTO>
     
     public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
+        _logger.LogDebug($"Retrieving all shoppinglist items for user {userIdFromToken}.");
+
         var shoppingListsFromRepository = await _shoppingListRepository.GetAllAsync(pageNr, pageSize);
         var filteredShoppingList = shoppingListsFromRepository.Where(shopping => shopping.UserId == userIdFromToken);
 
@@ -62,9 +65,9 @@ public class ShoppingListService : IService<ShoppingListDTO>
    
     public async Task<ShoppingListDTO?> GetByIdAsync(int userIdFromToken, int shoppingListId)
     {
-        _logger.LogDebug("Attempting to retrieve shopping list with ID {ShoppingListId} for user ID {UserId}.", shoppingListId, userIdFromToken);
+        _logger.LogDebug($"Retrieving shoppinglist item with ID {shoppingListId} for user {userIdFromToken}.");
 
-        
+
         var shoppingListFromRepository = await _shoppingListRepository.GetByIdAsync(shoppingListId);
         if (shoppingListFromRepository == null)
         {
@@ -87,9 +90,9 @@ public class ShoppingListService : IService<ShoppingListDTO>
     
     public async Task<ShoppingListDTO?> UpdateAsync(int userIdFromToken, int shoppingListId, ShoppingListDTO shoppingListDTO)
     {
-        _logger.LogDebug("Attempting to update shopping list with ID {ShoppingListId} by user ID {UserId}.", shoppingListId, userIdFromToken);
+        _logger.LogDebug($"Updating shoppinglist item with ID {shoppingListId} for user {userIdFromToken}.");
 
-        
+
         var existingShoppingList = await _shoppingListRepository.GetByIdAsync(shoppingListId);
         if (existingShoppingList == null)
         {
@@ -123,9 +126,8 @@ public class ShoppingListService : IService<ShoppingListDTO>
    
     public async Task<ShoppingListDTO?> DeleteAsync(int userIdFromToken, int shoppingListId)
     {
-        _logger.LogDebug("Attempting to delete shopping list with ID {ShoppingListId} by user ID {UserId}.", shoppingListId, userIdFromToken);
+        _logger.LogDebug($"Deleting shoppinglist item with ID {shoppingListId} for user {userIdFromToken}.");
 
-        
         var existingShoppingList = await _shoppingListRepository.GetByIdAsync(shoppingListId);
         if (existingShoppingList == null)
         {
@@ -133,7 +135,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
             throw ExceptionHelper.CreateNotFoundException("shopping list", shoppingListId);
         }
 
-        
+         
         if (existingShoppingList.UserId != userIdFromToken)
         {
             _logger.LogUnauthorizedAccess("shopping list", shoppingListId, userIdFromToken);

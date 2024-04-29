@@ -43,10 +43,8 @@ namespace PlanIT.API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("UserId", "Email")
                         .IsUnique();
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Contacts");
                 });
@@ -74,6 +72,15 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Dinners");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Date = new DateOnly(2022, 5, 2),
+                            Name = "Pizza",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Event", b =>
@@ -106,6 +113,17 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Events");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Date = new DateOnly(2022, 6, 6),
+                            Location = "at home",
+                            Name = "Birthday Party",
+                            Time = new TimeOnly(18, 30, 0),
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.ImportantDate", b =>
@@ -131,6 +149,15 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ImportantDates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Date = new DateOnly(2022, 5, 17),
+                            Name = "National Day",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Invite", b =>
@@ -160,12 +187,23 @@ namespace PlanIT.API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
                     b.HasIndex("EventId");
 
+                    b.HasIndex("Email", "EventId")
+                        .IsUnique();
+
                     b.ToTable("Invites");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Coming = true,
+                            Email = "kari@mail.com",
+                            EventId = 1,
+                            IsReminderSent = true,
+                            Name = "Kari Nordmann"
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.ShoppingList", b =>
@@ -188,6 +226,14 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ShoppingLists");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Milk",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.ToDo", b =>
@@ -210,6 +256,14 @@ namespace PlanIT.API.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Todos");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Clean the car",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.User", b =>
@@ -248,25 +302,9 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6",
+                            HashedPassword = "$2a$11$h8chpHsn5WhCIpSiKcH.Cu/nYkYLSUBZxOpc.1wQxDoQR6yl17H8.",
                             Name = "Per",
-                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Email = "olanordmann@mail.com",
-                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2ubAzgD/lFOjv.bvcEceNikVwsQeM7pH6",
-                            Name = "Ola",
-                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Email = "karinordmann@mail.com",
-                            HashedPassword = "$2a$11$0zfNASRjbAr3h0KiO5Yx2uSBs8ldmf5rqFdqL8FW7Rb21IZ01wv6K",
-                            Name = "Kari",
-                            Salt = "$2a$11$0zfNASRjbAr3h0KiO5Yx2u"
+                            Salt = "$2a$11$h8chpHsn5WhCIpSiKcH.Cu"
                         });
                 });
 

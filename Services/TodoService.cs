@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
@@ -50,6 +51,8 @@ public class TodoService : IService<ToDoDTO>
   
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
+        _logger.LogDebug($"Retrieving all todos for user {userIdFromToken}.");
+
         var ToDosFromRepository = await _todoRepository.GetAllAsync(pageNr, pageSize);
 
         var filteredToDos = ToDosFromRepository.Where(todo => todo.UserId == userIdFromToken);
@@ -61,7 +64,7 @@ public class TodoService : IService<ToDoDTO>
   
     public async Task<ToDoDTO?> GetByIdAsync(int userIdFromToken, int toDoId)
     {
-        _logger.LogDebug("Attempting to retrieve Todo item with ID {ToDoId} for user ID {UserId}.", toDoId, userIdFromToken);
+        _logger.LogDebug($"Retrieving todo with ID {toDoId} for user {userIdFromToken}.");
 
         var toDoFromRepository = await _todoRepository.GetByIdAsync(toDoId);
         if (toDoFromRepository == null)
@@ -84,9 +87,9 @@ public class TodoService : IService<ToDoDTO>
     
     public async Task<ToDoDTO?> UpdateAsync(int userIdFromToken, int toDoId, ToDoDTO todoDto)
     {
-        _logger.LogDebug("Attempting to update Todo item with ID {ToDoId} by user ID {UserId}.", toDoId, userIdFromToken);
+        _logger.LogDebug($"Updating todo with ID {toDoId} for user {userIdFromToken}.");
 
-       
+
         var existingTodo = await _todoRepository.GetByIdAsync(toDoId);
         if (existingTodo == null)
         {
@@ -120,9 +123,9 @@ public class TodoService : IService<ToDoDTO>
    
     public async Task<ToDoDTO?> DeleteAsync(int userIdFromToken, int toDoId)
     {
-        _logger.LogDebug("Attempting to delete Todo item with ID {ToDoId} by user ID {UserId}.", toDoId, userIdFromToken);
+        _logger.LogDebug($"Deleting todo with ID {toDoId} for user {userIdFromToken}.");
 
-        
+
         var toDoToDelete = await _todoRepository.GetByIdAsync(toDoId);
         if (toDoToDelete == null)
         {

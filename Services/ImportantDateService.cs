@@ -1,4 +1,5 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using Microsoft.Extensions.Logging;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -50,8 +51,8 @@ public class ImportantDateService : IService<ImportantDateDTO>
    
     public async Task<ICollection<ImportantDateDTO>> GetAllAsync(int userIdFromToken,int pageNr, int pageSize)
     {
+        _logger.LogDebug($"Retrieving all important dates for user {userIdFromToken}.");
 
-        
         var importantDatesFromRepository = await _dateRepository.GetAllAsync(1, 10);
       
         
@@ -67,7 +68,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
     
     public async Task<ImportantDateDTO?> GetByIdAsync(int userIdFromToken, int importantDateId)
     {
-        _logger.LogDebug("Henter viktig dato med ID {ImportantDateId} for bruker ID {UserId}.", importantDateId, userIdFromToken);
+        _logger.LogDebug($"Retrieving important date with ID {importantDateId} for user {userIdFromToken}.");
 
         var importantDateFromRepository = await _dateRepository.GetByIdAsync(importantDateId);
         if (importantDateFromRepository == null)
@@ -92,10 +93,10 @@ public class ImportantDateService : IService<ImportantDateDTO>
     
     public async Task<ImportantDateDTO?> UpdateAsync(int userIdFromToken, int importantDateId, ImportantDateDTO dateDTO)
     {
-        _logger.LogDebug("Oppdaterer viktig dato med ID {ImportantDateId} for bruker ID {UserId}.", importantDateId, userIdFromToken);
+        _logger.LogDebug($"Updating important date with ID {importantDateId} for user {userIdFromToken}.");
 
 
-        
+
         var existingImportantDate = await _dateRepository.GetByIdAsync(importantDateId);
         if (existingImportantDate == null)
         {
@@ -129,9 +130,9 @@ public class ImportantDateService : IService<ImportantDateDTO>
     
     public async Task<ImportantDateDTO?> DeleteAsync(int userIdFromToken, int importantDateId)
     {
-        _logger.LogDebug("Forsøker å slette viktig dato med ID {ImportantDateId} av bruker {UserId}.", importantDateId, userIdFromToken);
+        _logger.LogDebug($"Deleting important event with ID {importantDateId} for user {userIdFromToken}.");
 
-        
+
         var importantDateToDelete = await _dateRepository.GetByIdAsync(importantDateId);
         if (importantDateToDelete == null)
         {

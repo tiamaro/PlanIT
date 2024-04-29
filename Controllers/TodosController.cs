@@ -76,8 +76,7 @@ public class TodosController : ControllerBase
 
         var allToDos = await _todoService.GetAllAsync(userId, pageNr, pageSize);
 
-        // Filter todos based on userId
-        var userToDos = allToDos.Where(todo => todo.UserId == userId).ToList();
+        
 
         // Returns list of todos, or an error message if not found
         return allToDos != null

@@ -1,4 +1,5 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using Microsoft.Extensions.Logging;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -81,7 +82,8 @@ public class InviteService : IService<InviteDTO> , IInviteService
     
     public async Task<ICollection<InviteDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-        
+        _logger.LogDebug($"Retrieving all invites for user {userIdFromToken}.");
+
         var invitesFromRepository = await _inviteRepository.GetAllAsync(1, 10);
 
         
@@ -106,7 +108,8 @@ public class InviteService : IService<InviteDTO> , IInviteService
    
     public async Task<InviteDTO?> GetByIdAsync(int userIdFromToken, int inviteId)
     {
-        _logger.LogDebug("Attempting to retrieve invite with ID {InviteId} for user ID {UserId}.", inviteId, userIdFromToken);
+        _logger.LogDebug($"Retrieving invite with ID {inviteId} for user {userIdFromToken}.");
+
         var invite = await _inviteRepository.GetByIdAsync(inviteId);
         if (invite == null)
         {
@@ -130,9 +133,9 @@ public class InviteService : IService<InviteDTO> , IInviteService
     
     public async Task<InviteDTO?> UpdateAsync(int userIdFromToken, int inviteId, InviteDTO inviteDTO)
     {
-        _logger.LogDebug("Attempting to update invite with ID {InviteId} for user ID {UserId}.", inviteId, userIdFromToken);
+        _logger.LogDebug($"Updating invite with ID {inviteId} for user {userIdFromToken}.");
 
-       
+
         var existingInvite = await _inviteRepository.GetByIdAsync(inviteId);
         if (existingInvite == null)
         {
@@ -168,9 +171,9 @@ public class InviteService : IService<InviteDTO> , IInviteService
     
     public async Task<InviteDTO?> DeleteAsync(int userIdFromToken, int inviteId)
     {
-        _logger.LogDebug("Attempting to delete invite with ID {InviteId}.", inviteId);
+        _logger.LogDebug($"Deleting invite with ID {inviteId} for user {userIdFromToken}.");
 
-        
+
         var inviteToDelete = await _inviteRepository.GetByIdAsync(inviteId);
         if (inviteToDelete == null)
         {
@@ -200,6 +203,8 @@ public class InviteService : IService<InviteDTO> , IInviteService
 
     public async Task<bool> ConfirmInvite(int inviteId, int eventId)
     {
+        _logger.LogDebug($"Confirming invite for ID {inviteId} for event {eventId}.");
+
         var invitedGuest = await _inviteRepository.GetByIdAsync(inviteId);
 
         

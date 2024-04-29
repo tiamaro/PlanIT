@@ -1,4 +1,5 @@
-﻿using PlanIT.API.Mappers.Interface;
+﻿using Org.BouncyCastle.Cms;
+using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -53,13 +54,16 @@ public class ContactService : IService<ContactDTO>
     
     public async Task<ICollection<ContactDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
-       
+        _logger.LogDebug($"Retrieving all contacts for user {userIdFromToken}.");
+
         var contactsFromRepository = await _contactRepository.GetAllAsync(1, 10);
-        
+
+
         
         var filteredContacts = contactsFromRepository.Where(contact => contact.UserId == userIdFromToken);
 
         
+
         return filteredContacts.Select(contactEntity => _contactMapper.MapToDTO(contactEntity)).ToList();
 
         
@@ -69,7 +73,7 @@ public class ContactService : IService<ContactDTO>
     
     public async Task<ContactDTO?> GetByIdAsync(int userIdFromToken, int contactId)
     {
-        _logger.LogDebug($"Attempting to retrieve event with ID {contactId} for user ID {userIdFromToken}.");
+        _logger.LogDebug($"Retrieving contact with ID {contactId} for user {userIdFromToken}.");
         var contactFromRepository = await _contactRepository.GetByIdAsync(contactId);
         if (contactFromRepository == null)
         {
@@ -91,9 +95,9 @@ public class ContactService : IService<ContactDTO>
     
     public async Task<ContactDTO?> UpdateAsync(int userIdFromToken, int contactId, ContactDTO contactDTO)
     {
-        _logger.LogDebug($"Attempting to update contact with ID {contactId} for user ID {userIdFromToken}.");
+        _logger.LogDebug($"Updating dinner with ID {contactId} for user {userIdFromToken}.");
 
-        
+
         var exsistingContact = await _contactRepository.GetByIdAsync(contactId);
         if (exsistingContact == null)
         {
@@ -134,9 +138,9 @@ public class ContactService : IService<ContactDTO>
 
     public async Task<ContactDTO?> DeleteAsync(int userIdFromToken, int contactId)
     {
-        _logger.LogDebug($"Attempting to delete contact with ID {contactId} for user ID {userIdFromToken}.");
+        _logger.LogDebug($"Deleting dinner with ID {contactId} for user {userIdFromToken}.");
 
-       
+
         var contactToDelete = await _contactRepository.GetByIdAsync(contactId);
         if (contactToDelete == null)
         {
