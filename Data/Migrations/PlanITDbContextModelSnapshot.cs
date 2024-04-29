@@ -47,6 +47,15 @@ namespace PlanIT.API.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Contacts");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "karinordmann@mail.com",
+                            Name = "Kari Nordmann",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("PlanIT.API.Models.Entities.Dinner", b =>
@@ -302,9 +311,9 @@ namespace PlanIT.API.Data.Migrations
                         {
                             Id = 1,
                             Email = "perhansen@mail.com",
-                            HashedPassword = "$2a$11$4xfSJyMQkaolv1cACFijWOObcNT0hdrKDj.JZKjfsRWRsTF9Q9Yse",
+                            HashedPassword = "$2a$11$A9UzbTIitfFMw.aC470qmuNjvbs9CQfhl3EnwkYu0kpRr72PCjlii",
                             Name = "Per Hansen",
-                            Salt = "$2a$11$4xfSJyMQkaolv1cACFijWO"
+                            Salt = "$2a$11$A9UzbTIitfFMw.aC470qmu"
                         });
                 });
 
