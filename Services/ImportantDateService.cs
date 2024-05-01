@@ -31,7 +31,12 @@ public class ImportantDateService : IService<ImportantDateDTO>
     {
         _logger.LogCreationStart("important date");
 
-        
+        if (newImportantDateDTO.Date < DateOnly.FromDateTime(DateTime.Today))
+        {
+            _logger.LogWarning("Attempted to create an important date item that's in the past.");
+            throw new ArgumentException("Cannot create an important date item in the past.");
+        }
+
         var newImportantDate = _dateMapper.MapToModel(newImportantDateDTO);
         newImportantDate.UserId = userIdFromToken;
 
@@ -53,7 +58,7 @@ public class ImportantDateService : IService<ImportantDateDTO>
     {
         _logger.LogDebug($"Retrieving all important dates for user {userIdFromToken}.");
 
-        var importantDatesFromRepository = await _dateRepository.GetAllAsync(1, 10);
+        var importantDatesFromRepository = await _dateRepository.GetAllAsync(pageNr, pageSize);
       
         
         var filteredImportantDates = importantDatesFromRepository.Where(importantDate => importantDate.UserId == userIdFromToken);

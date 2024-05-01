@@ -13,6 +13,10 @@
 Logs/
 .DS_Store
 
+# Exclude application settings
+appsettings.json
+appsettings.Development.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
