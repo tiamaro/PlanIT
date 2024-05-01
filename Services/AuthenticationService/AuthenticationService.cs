@@ -7,8 +7,8 @@ using System.Security.Claims;
 using System.Text;
 
 namespace PlanIT.API.Services.AuthenticationService;
-// Service responsible for user authentication and JWT token generation.
 
+// Service responsible for user authentication and JWT token generation.
 public class AuthenticationService : IAuthService
 {
     private readonly IUserRepository _userRepository;
@@ -22,15 +22,14 @@ public class AuthenticationService : IAuthService
         _logger = logger;
     }
 
-    // Authenticates a user based on email and password.
     public async Task<User?> AuthenticateUserAsync(string email, string password)
     {
         var user = await _userRepository.GetUserByEmailAsync(email);
 
         // Checks if user was found and password matches the hashed password in the database.
-        if (user != null && VerifyPasswordHash(password, user.HashedPassword, user.Salt))
+        if (user != null && VerifyPasswordHash(password, user.HashedPassword))
         {
-            // Authentication successful.
+            // Authentication successful
             return user;
         }
 
@@ -90,21 +89,11 @@ public class AuthenticationService : IAuthService
     }
 
 
-    // Verifies a password against a stored hash. Using BCrypt
-    private bool VerifyPasswordHash(string password, string storedHash, string salt)
-    {
-        // Compute the hash of the input password using the same salt that was used when the original password was hashed.
-        var computedHash = HashPassword(password, salt);
 
-        // Return true if the newly computed hash matches the stored hash, indicating the password is correct.
-        return storedHash == computedHash;
+    // Verifies a password against a stored hash.
+    private bool VerifyPasswordHash(string password, string storedHash)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, storedHash);
     }
 
-
-    // Hashes a password using a specified salt. 
-    private string HashPassword(string password, string salt)
-    {
-        // Use BCrypt to hash the password with the provided salt and return the hashed password.
-        return BCrypt.Net.BCrypt.HashPassword(password, salt);
-    }
 }
