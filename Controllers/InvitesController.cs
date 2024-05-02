@@ -32,13 +32,14 @@ public class InvitesController : ControllerBase
 {
     private readonly IService<InviteDTO> _inviteService;
     private readonly ILogger<InvitesController> _logger;
+    private readonly IInviteService _eventInviteService;
 
 
-    public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger)
+    public InvitesController(IService<InviteDTO> inviteService, ILogger<InvitesController> logger, IInviteService eventInviteService)
     {
         _inviteService = inviteService;
         _logger = logger;
-
+        _eventInviteService = eventInviteService;
     }
 
     // Registers a new invite
@@ -140,4 +141,21 @@ public class InvitesController : ControllerBase
             ? Ok(deletedInviteResult)
             : BadRequest("Unable to delete invite or the invite does not belong to the user");
     }
+
+    [HttpGet("events/{eventId:int}/invites", Name = "GetEventInvites")]
+    public async Task<ActionResult<IEnumerable<InviteDTO>>> GetEventInvitesAsync(int eventId, int pageNr, int pageSize)
+    {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var invites = await _eventInviteService.GetInvitesForEventAsync(userId, eventId, pageNr, pageSize);
+
+        // Returns list of invites, or an error message if not found
+        return invites != null
+            ? Ok(invites)
+            : NotFound("No invites found for the specified event.");
+    }
+
+
+
 }
