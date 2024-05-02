@@ -78,6 +78,7 @@ public class UserService : IUserService
         return _userMapper.MapToDTO(userFromRepository);
     }
 
+
     public async Task<UserDTO?> UpdateAsync(int userId, UserDTO userDTO)
     {
         _logger.LogDebug($"Updating user with ID {userId}");
@@ -87,12 +88,6 @@ public class UserService : IUserService
         {
             _logger.LogNotFound("user", userId);
             throw ExceptionHelper.CreateNotFoundException("user", userId);
-        }
-
-        if (existingUser.Id != userId)
-        {
-            _logger.LogUnauthorizedAccess("user", userId, userId);
-            throw ExceptionHelper.CreateUnauthorizedException("user", userId);
         }
 
         var userToUpdate = _userMapper.MapToModel(userDTO);
@@ -113,21 +108,8 @@ public class UserService : IUserService
     {
         _logger.LogDebug($"Deleting user with ID {userId}");
 
-        var userToDelete = await _userRepository.GetByIdAsync(userId);
+        var userToDelete = await _userRepository.DeleteAsync(userId);
         if (userToDelete == null)
-        {
-            _logger.LogNotFound("user", userId);
-            throw ExceptionHelper.CreateNotFoundException("user", userId);
-        }
-
-        if (userToDelete.Id != userId)
-        {
-            _logger.LogUnauthorizedAccess("user", userId, userId);
-            throw ExceptionHelper.CreateUnauthorizedException("user", userId);
-        }
-
-        var isDeleted = await _userRepository.DeleteAsync(userId);
-        if (isDeleted == null)
         {
             _logger.LogOperationFailure("delete", "user", userId);
             throw ExceptionHelper.CreateOperationException("user", userId, "delete");
