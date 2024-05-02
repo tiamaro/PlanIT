@@ -26,16 +26,12 @@ public class UserRepository : IUserRepository
         return addedUserEntry?.Entity;
     }
 
-
    
     public async Task<ICollection<User>> GetAllAsync(int pageNr, int pageSize)
     {
-        var pagination = new PaginationUtility(_dbContext);
-
         IQueryable<User> usersQuery = _dbContext.Users.OrderBy(x => x.Id);
         return await _pagination.GetPageAsync(usersQuery, pageNr, pageSize);
     }
-
 
     
     public async Task<User?> GetByIdAsync(int userId)

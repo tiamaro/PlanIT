@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
