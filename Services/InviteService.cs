@@ -226,4 +226,25 @@ public class InviteService : IInviteService
         _logger.LogInfo($"Invite ID {inviteId} for Event ID {eventId} has been confirmed successfully.");
         return true;
     }
+
+    public async Task<ICollection<InviteDTO>> GetInvitesForEventAsync(int userId, int eventId, int pageNr, int pageSize)
+    {
+        _logger.LogDebug($"Retrieving invites for event {eventId} and user {userId}.");
+
+        // Fetch all invites using pagination
+        var allInvites = await _inviteRepository.GetAllAsync(pageNr, pageSize);
+
+        // Filter invites based on eventId and userId associated with the event
+        var filteredInvites = allInvites.Where(invite =>
+            invite.EventId == eventId &&
+            invite?.Event?.UserId == userId).ToList();
+
+        // Convert filtered invites to DTOs
+        var inviteDTOs = filteredInvites.Select(invite => _inviteMapper.MapToDTO(invite)).ToList();
+
+        return inviteDTOs;
+    }
+
+
+
 }
