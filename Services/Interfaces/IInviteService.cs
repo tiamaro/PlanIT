@@ -8,5 +8,4 @@ public interface IInviteService : IService<InviteDTO>
 
     Task<ICollection<InviteDTO>> GetInvitesForEventAsync(int userId, int eventId, int pageNr, int pageSize);
 
-
 }
