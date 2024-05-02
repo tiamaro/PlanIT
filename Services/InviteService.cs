@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using PlanIT.API.Mappers.Interface;
+﻿using PlanIT.API.Mappers.Interface;
 using PlanIT.API.Models.DTOs;
 using PlanIT.API.Models.Entities;
 using PlanIT.API.Repositories.Interfaces;
@@ -14,7 +13,7 @@ namespace PlanIT.API.Services;
 public class InviteService : IInviteService
 {
     private readonly IMapper<Invite, InviteDTO> _inviteMapper;
-    private readonly IRepository<Invite> _inviteRepository;
+    private readonly IInviteRepository _inviteRepository;
     private readonly IRepository<Event> _eventRepository;
     private readonly IUserRepository _userRepository;
 
@@ -22,7 +21,7 @@ public class InviteService : IInviteService
     private readonly IMailService _mailService;
 
     public InviteService(IMapper<Invite, InviteDTO> inviteMapper,
-        IRepository<Invite> inviteRepository,
+        IInviteRepository inviteRepository,
         IRepository<Event> eventRepository,
         IUserRepository userRepository,
 
@@ -130,7 +129,38 @@ public class InviteService : IInviteService
     }
 
 
-    
+    public async Task<ICollection<InviteDTO>> GetInvitesForEventAsync(int userId, int eventId, int pageNr, int pageSize)
+    {
+        _logger.LogDebug($"Retrieving invites for event {eventId} for user {userId}.");
+
+        // Ensure the event exists and the user has access to it
+        var eventDetails = await _eventRepository.GetByIdAsync(eventId);
+        if (eventDetails == null)
+        {
+            _logger.LogNotFound("Event", eventId);
+            throw ExceptionHelper.CreateNotFoundException("Event", eventId);
+        }
+        if (eventDetails.UserId != userId)
+        {
+            _logger.LogUnauthorizedAccess("Event", eventId, userId);
+            throw ExceptionHelper.CreateUnauthorizedException("Event", eventId);
+        }
+
+        // Fetch all invites specifically for this event with pagination
+        var allInvites = await _inviteRepository.GetInvitesByEventIdAsync(eventId, pageNr, pageSize);
+        _logger.LogDebug($"Fetched {allInvites.Count} invites from repository.");
+
+        var inviteDTOs = allInvites.Select(invite => _inviteMapper.MapToDTO(invite)).ToList();
+        if (inviteDTOs.Count == 0)
+        {
+            _logger.LogWarning($"No invites found for event {eventId}.");
+        }
+
+        return inviteDTOs;
+    }
+
+
+
     public async Task<InviteDTO?> UpdateAsync(int userIdFromToken, int inviteId, InviteDTO inviteDTO)
     {
         _logger.LogDebug($"Updating invite with ID {inviteId} for user {userIdFromToken}.");
@@ -226,25 +256,5 @@ public class InviteService : IInviteService
         _logger.LogInfo($"Invite ID {inviteId} for Event ID {eventId} has been confirmed successfully.");
         return true;
     }
-
-    public async Task<ICollection<InviteDTO>> GetInvitesForEventAsync(int userId, int eventId, int pageNr, int pageSize)
-    {
-        _logger.LogDebug($"Retrieving invites for event {eventId} and user {userId}.");
-
-        // Fetch all invites using pagination
-        var allInvites = await _inviteRepository.GetAllAsync(pageNr, pageSize);
-
-        // Filter invites based on eventId and userId associated with the event
-        var filteredInvites = allInvites.Where(invite =>
-            invite.EventId == eventId &&
-            invite?.Event?.UserId == userId).ToList();
-
-        // Convert filtered invites to DTOs
-        var inviteDTOs = filteredInvites.Select(invite => _inviteMapper.MapToDTO(invite)).ToList();
-
-        return inviteDTOs;
-    }
-
-
 
 }

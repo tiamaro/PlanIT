@@ -6,7 +6,7 @@ using PlanIT.API.Utilities;
 
 namespace PlanIT.API.Repositories;
 
-public class InviteRepository : IRepository<Invite>
+public class InviteRepository : IInviteRepository
 {
     private readonly PlanITDbContext _dbContext;
     private readonly PaginationUtility _pagination;
@@ -45,7 +45,17 @@ public class InviteRepository : IRepository<Invite>
         return existingInvite is null ? null : existingInvite;
     }
 
-    
+
+    public async Task<ICollection<Invite>> GetInvitesByEventIdAsync(int eventId, int pageNr, int pageSize)
+    {
+        IQueryable<Invite> query = _dbContext.Invites
+            .Where(invite => invite.EventId == eventId)
+            .OrderBy(invite => invite.Id);
+
+        return await _pagination.GetPageAsync(query, pageNr, pageSize);
+    }
+
+
     public async Task<Invite?> UpdateAsync(int inviteId, Invite updatedInvite)
     {
         var exsistingInvite = await _dbContext.Invites.FirstOrDefaultAsync(x => x.Id == inviteId);

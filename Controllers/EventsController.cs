@@ -31,12 +31,17 @@ namespace PlanIT.API.Controllers;
 public class EventsController : ControllerBase
 {
     private readonly IService<EventDTO> _eventService;
+    private readonly IInviteService _inviteService;
     private readonly ILogger<EventsController> _logger;
+    
 
-    public EventsController(IService<EventDTO> eventService,
-        ILogger<EventsController> logger)
+    public EventsController(IService<EventDTO> eventService, 
+        IInviteService inviteService,
+        ILogger<EventsController> logger
+        )
     {
         _eventService = eventService;
+        _inviteService = inviteService;
         _logger = logger;
     }
 
@@ -86,7 +91,7 @@ public class EventsController : ControllerBase
 
 
     // Retrieves a specific event by its ID.
-    // GET /api/v1/Events/{id}
+    // GET /api/v1/Events/{eventId}
     [HttpGet("{eventId}", Name = "GetEventsById")]
     public async Task<ActionResult<EventDTO>> GetEventsByIdASync(int eventId)
     {
@@ -103,8 +108,26 @@ public class EventsController : ControllerBase
     }
 
 
+    // Retrieves invites associated with a specific event by eventID.
+    // GET /api/v1/Events/{eventId}/invites
+    [HttpGet("{eventId:int}/invites", Name = "GetEventInvites")]
+    public async Task<ActionResult<IEnumerable<InviteDTO>>> GetEventInvitesAsync(int eventId, int pageNr, int pageSize)
+    {
+        // Retrieves the user's ID from HttpContext.Items which was added by middleware
+        var userId = WebAppExtensions.GetValidUserId(HttpContext);
+
+        var invites = await _inviteService.GetInvitesForEventAsync(userId, eventId, pageNr, pageSize);
+
+        // Returns list of invites, or an error message if not found
+        return invites != null
+            ? Ok(invites)
+            : NotFound("No invites found for the specified event.");
+    }
+
+
+
     // Updates an event based on the provided ID.
-    // PUT /api/v1/Events/{id}
+    // PUT /api/v1/Events/{eventId}
     [HttpPut("{eventId}", Name = "UpdateEvent")]
     public async Task<ActionResult<EventDTO>> UpdateEventAsync(int eventId, EventDTO updatedEventDTO)
     {
@@ -123,7 +146,7 @@ public class EventsController : ControllerBase
 
 
     // Deletes an event based on the provided ID.
-    // DELETE /api/v1/Events/{id}
+    // DELETE /api/v1/Events/{evenetId}
     [HttpDelete("{eventId}", Name = "DeleteEvent")]
     public async Task<ActionResult<EventDTO>> DeleteEventAsync(int eventId)
     {
