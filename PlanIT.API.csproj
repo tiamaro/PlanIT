@@ -37,8 +37,6 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
-    <Folder Include="Docker\MySQL\" />
-    <Folder Include="Docker\NginX\" />
     <Folder Include="Logs\" />
   </ItemGroup>
 
