@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  planit.api:
+    image: ${DOCKER_REGISTRY-}planitapi
+    build:
+      context: .
+      dockerfile: src/PlanIT.API/Dockerfile
