@@ -11,7 +11,7 @@ public static class AuthenticationConfiguration
     {
 
         // Henter og validerer den hemmelige nøkkelen for JWT fra secret manager.
-        var jwtSecret = configuration["JwtSecret"];
+        var jwtSecret = configuration["JwtSecret"] ?? Environment.GetEnvironmentVariable("JWT_SECRET_FILE");
         if (string.IsNullOrEmpty(jwtSecret))
         {
             logger.Error("JWT Secret Key is not configured correctly.");
@@ -40,14 +40,7 @@ public static class AuthenticationConfiguration
             // Hendelser for autentisering. Logging ved feil eller vellykket validering.
             options.Events = new JwtBearerEvents
             {
-                //// Tilpasset hendelse for å hente token fra cookie
-                //OnMessageReceived = context =>
-                //{
-                //    // Henter token fra en cookie i stedet for standard header
-                //    context.Token = context.Request.Cookies["jwtToken"];
-                //    return Task.CompletedTask;
-                //},
-
+                
                 OnAuthenticationFailed = context =>
                 {
                     logger.Error("Authentication failed: {ErrorMessage}", context.Exception?.Message);
