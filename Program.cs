@@ -116,3 +116,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// For running integration tests
+public partial class Program { }
+
+// HELLO

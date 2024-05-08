@@ -104,7 +104,6 @@ public class InviteService : IInviteService
     }
 
 
-   
     public async Task<InviteDTO?> GetByIdAsync(int userIdFromToken, int inviteId)
     {
         _logger.LogDebug($"Retrieving invite with ID {inviteId} for user {userIdFromToken}.");
