@@ -4,20 +4,20 @@ namespace PlanIT.API.Configurations;
 
 public static class AuthorizationConfiguration
 {
-    // En utvidelsesmetode for IServiceCollection for å konfigurere autorisasjonstjenester.
+    // An extension method for IServiceCollection to configure authorization services.
     public static void ConfigureAuthorization(this IServiceCollection services)
     {
-        // Legger til autorisasjonskonfigurasjoner.
+        // Adds authorization configurations.
         services.AddAuthorization(options =>
         {
-            // Definerer en ny autorisasjonspolicy med navnet "Bearer".
+            // Defines a new authorization policy named "Bearer".
             options.AddPolicy("Bearer", policy =>
             {
-                // Spesifiserer at denne policyen bruker JwtBearerAuthenticationScheme.
+                // Specifies that this policy uses JwtBearerAuthenticationScheme.
                 policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
 
-                // Forespørsler som passerer gjennom endepunkter som bruker denne policyen,
-                // må inneholde en gyldig JWT-token for å få tilgang.
+                // Requests passing through endpoints using this policy
+                // must contain a valid JWT token to gain access.
                 policy.RequireAuthenticatedUser();
 
             });

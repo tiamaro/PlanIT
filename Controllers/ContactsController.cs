@@ -83,7 +83,10 @@ public class ContactsController : ControllerBase
 
         // Returns list of contacts, or an error message if not found
 
-        return Ok(allContacts ?? new List<ContactDTO>()); // Return an empty list instead of null
+        // Returns list of contacts, or an error message if not found
+        return allContacts != null
+            ? Ok(allContacts)
+            : NotFound("No registered contacts found.");
 
     }
 

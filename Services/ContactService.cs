@@ -57,13 +57,10 @@ public class ContactService : IService<ContactDTO>
         _logger.LogDebug($"Retrieving all contacts for user {userIdFromToken}.");
 
         var contactsFromRepository = await _contactRepository.GetAllAsync(1, 10);
-
-
         
         var filteredContacts = contactsFromRepository.Where(contact => contact.UserId == userIdFromToken);
 
-        
-
+       
         return filteredContacts.Select(contactEntity => _contactMapper.MapToDTO(contactEntity)).ToList();
 
         
