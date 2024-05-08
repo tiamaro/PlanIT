@@ -53,7 +53,6 @@ public class PlanITDbContext : DbContext
                 Salt = salt
             });
 
-
         modelBuilder.Entity<Event>().HasData(
             new Event
             {
@@ -96,8 +95,6 @@ public class PlanITDbContext : DbContext
                 
 
             });
-
-        
 
         modelBuilder.Entity<ImportantDate>().HasData(
             new ImportantDate

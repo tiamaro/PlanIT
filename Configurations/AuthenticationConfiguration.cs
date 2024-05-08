@@ -10,7 +10,7 @@ public static class AuthenticationConfiguration
     public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration, Serilog.ILogger logger)
     {
 
-        // Henter og validerer den hemmelige nøkkelen for JWT fra secret manager.
+        // Fetches and validates the secret key for JWT from the secret manager.
         var jwtSecret = configuration["JwtSecret"] ?? Environment.GetEnvironmentVariable("JWT_SECRET_FILE");
         if (string.IsNullOrEmpty(jwtSecret))
         {
@@ -19,10 +19,10 @@ public static class AuthenticationConfiguration
         }
         logger.Information("JWT configuration validated successfully.");
 
-        // Konverterer den hemmelige nøkkelen til en byte-array.
+        // Converts the secret key to a byte array.
         var key = Encoding.ASCII.GetBytes(jwtSecret);
 
-        // Konfigurerer autentiseringstjenester med JWT Bearer som standard.
+        // Configures authentication services with JWT Bearer as the default.
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -34,10 +34,10 @@ public static class AuthenticationConfiguration
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = configuration["Jwt:Issuer"],
                 ValidAudience = configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(key) // Angir signatur-nøkkelen.
+                IssuerSigningKey = new SymmetricSecurityKey(key) 
             };
 
-            // Hendelser for autentisering. Logging ved feil eller vellykket validering.
+            // Logging in case of failure or successful validation.
             options.Events = new JwtBearerEvents
             {
                 
