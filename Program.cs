@@ -19,6 +19,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddScoped<HandleExceptionFilter>();
+builder.Services.AddTransient<GlobalExceptionMiddleware>(); // Transient: Opprettes for hver anmodning
 
 // Add services from the utilities folder
 builder.Services.AddScoped<PaginationUtility>();
@@ -93,7 +94,7 @@ if (app.Environment.IsDevelopment())
 
 }
 
-//app.UseMiddleware<GlobalExceptionMiddleware>(); 
+app.UseMiddleware<GlobalExceptionMiddleware>(); 
 app.UseSerilogRequestLogging(); 
 
 app.UseHttpsRedirection();
@@ -119,5 +120,3 @@ app.Run();
 
 // For running integration tests
 public partial class Program { }
-
-// HELLO
