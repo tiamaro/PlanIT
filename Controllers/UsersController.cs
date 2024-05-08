@@ -61,31 +61,31 @@ public class UsersController : ControllerBase
     }
 
 
-    // At the moment not in use
+    // At the moment not in use. ONLY FOR TESTING
     // Retrieves a paginated list of users.
     // GET: /api/v1/Users?pageNr=1&pageSize=10
 
-    //[HttpGet(Name = "GetUsers")]
-    //public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersAsync(int pageNr, int pageSize)
-    //{
-    //    var users = await _userService.GetAllAsync(pageNr, pageSize);
-    //    return Ok(users);
-    //}
+    [HttpGet(Name = "GetUsers")]
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersAsync(int pageNr, int pageSize)
+    {
+        var users = await _userService.GetAllAsync(pageNr, pageSize);
+        return Ok(users);
+    }
 
 
-    // At the moment not in use
+    // At the moment not in use. ONLY FOR TESTING
     // Retrieves a specific user by its ID.
     // GET /api/v1/Users/{id}
 
-    //[HttpGet("{userId}", Name = "GetUsersById")]
-    //public async Task<ActionResult<UserDTO>> GetUsersByIdASync(int userId)
-    //{
-    //    var user = await _userService.GetByIdAsync(userId);
+    [HttpGet("{userId}", Name = "GetUsersById")]
+    public async Task<ActionResult<UserDTO>> GetUsersByIdASync(int userId)
+    {
+        var user = await _userService.GetByIdAsync(userId);
 
-    //    return user != null
-    //        ? Ok(user)
-    //        : NotFound("User not found");
-    //}
+        return user != null
+            ? Ok(user)
+            : NotFound("User not found");
+    }
 
 
     // Retrieves information about the logged-in user by using a user ID.
