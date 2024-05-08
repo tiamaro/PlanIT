@@ -46,8 +46,6 @@ public class TodoService : IService<ToDoDTO>
     }
 
 
-
-  
     public async Task<ICollection<ToDoDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
         _logger.LogDebug($"Retrieving all todos for user {userIdFromToken}.");

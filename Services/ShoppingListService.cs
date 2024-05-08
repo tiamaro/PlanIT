@@ -49,7 +49,7 @@ public class ShoppingListService : IService<ShoppingListDTO>
     }
 
 
-    
+ 
     public async Task<ICollection<ShoppingListDTO>> GetAllAsync(int userIdFromToken, int pageNr, int pageSize)
     {
         _logger.LogDebug($"Retrieving all shoppinglist items for user {userIdFromToken}.");
@@ -62,7 +62,6 @@ public class ShoppingListService : IService<ShoppingListDTO>
 
 
 
-   
     public async Task<ShoppingListDTO?> GetByIdAsync(int userIdFromToken, int shoppingListId)
     {
         _logger.LogDebug($"Retrieving shoppinglist item with ID {shoppingListId} for user {userIdFromToken}.");
@@ -123,7 +122,6 @@ public class ShoppingListService : IService<ShoppingListDTO>
     }
 
 
-   
     public async Task<ShoppingListDTO?> DeleteAsync(int userIdFromToken, int shoppingListId)
     {
         _logger.LogDebug($"Deleting shoppinglist item with ID {shoppingListId} for user {userIdFromToken}.");
